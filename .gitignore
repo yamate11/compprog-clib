@@ -1,0 +1,15 @@
+*~
+__pycache__
+.cookies
+.vscode
+cans
+cans2
+cans3
+*.log
+*.d
+*.o
+/test/*_t.cc
+/test/*_t
+/boost
+/ac-library
+/html
