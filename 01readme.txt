@@ -1,18 +1,16 @@
 修正とテストの方法:
 
-foo.cc を修正する場合．
+develop ブランチに切り替える:
+  git checkout develop
+修正とテストを行う
+コミットする
+  git add ....
+  git commit -m "comment"
+master ブランチにマージして，リモートに送る
+  git checkout master
+  git merge develop
+  git push
 
-* tmp_xxx というような名前のディレクトリを作る．
-* 以下のファイルを tmp_xxx にコピーする:
-  * Makefile
-  * foo.cc
-  * test/Makefile
-  * test/foo_skel.cc
-  * test/foo_t.d
-  * その他，test/foo_t.d でリストされているファイル
-* tmp_xxx/foo.cc と tmp_xxx/test/foo_skel.cc を編集する
-* tmp_xxx/test で，make foo_t で foo_t を作成し，テストする．
-  * デバッグするときには make DEBUG=yes foo_t
-* コピーしたファイルを元に戻す．
-* make test で，全体をテストする．
-
+compprog で修正を取り込む
+  git submodule update
+  
