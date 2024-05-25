@@ -2,10 +2,10 @@
 
 フィーチャーブランチに切り替える:
   cd ~/compprog-clib
-  git checkout dev
+  git checkout -b dev     (-b = ブランチを作る)
 修正とテストを行う
 コミットする
-  git add ....
+  git add 修正したファイルたち
   git commit -m "comment"
 master ブランチにマージして，リモートに送る
   git checkout master

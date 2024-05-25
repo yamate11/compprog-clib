@@ -141,6 +141,12 @@ default value.  Returned dictionary contains all names in posp and kwp as its ke
     for k in dic:
         if not (k in kwp or k in pns):
             raise MyExc(f'Unknown parameter {k}.')
+        if k in kwp and kwp[k] is None and dic[k] == 'None':
+            dic[k] = None
+        if k in kwp and type(kwp[k]) is bool and dic[k] == 'True':
+            dic[k] = True
+        if k in kwp and type(kwp[k]) is bool and dic[k] == 'False':
+            dic[k] = False
     for k in kwp:
         if not k in dic:
             dic[k] = kwp[k]
