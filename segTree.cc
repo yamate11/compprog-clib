@@ -143,17 +143,28 @@ struct GenSegTree {
     return ret;
   }
 
-  const DAT& get_single(int i) {
+  const DAT& at(int i) {
     if constexpr(lazy) push_upto(size + i, size + i + 1);
     return node[size + i];
   }
 
-  void set_single(int i, const DAT& t) {
+  const DAT& set_single(int i, const DAT& t) {
     ll x = size + i;
     if constexpr(lazy) push_upto(x, x + 1);
     node[x] = t;
     for (x >>= 1; x >= 1; x >>= 1) node[x] = add(node[x<<1|0], node[x<<1|1]);
+    return t;
   }
+
+  struct STSubst {
+    GenSegTree& st;
+    int i;
+    STSubst(GenSegTree& st_, int i_) : st(st_), i(i_) {}
+    const DAT& operator=(const DAT& t) { return st.set_single(i, t); }
+  };
+
+  // Reference for Substitution
+  STSubst rs(int i) { return STSubst(*this, i); }
 
   // obsolete
   template<bool xx = lazy> enable_if_t<! xx> update(int i, DAT t) {
@@ -190,7 +201,7 @@ struct GenSegTree {
     os << '[';
     for (int i = 0; i < st.orig_size; i++) {
       if (i > 0) os << ", ";
-      os << st.get_single(i);
+      os << st.at(i);
     }
     os << ']';
     return os;
