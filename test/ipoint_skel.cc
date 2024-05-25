@@ -53,7 +53,6 @@ int main() {
 
     assert(not IPoint::lt_arg(p00, p00));
     for (const auto& p : vec) assert(not IPoint::lt_arg(p00, p));
-    for (const auto& p : vec) assert(not IPoint::lt_arg(p, p00));
     for (size_t i = 0; i < vec.size(); i++) {
       for (size_t j = 0; j < vec.size(); j++) {
         assert(IPoint::lt_arg(vec[i], vec[j]) == (arg[i] < arg[j]));

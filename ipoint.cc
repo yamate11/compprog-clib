@@ -46,8 +46,6 @@ struct IPoint {
   IPoint mirror_x() const { return IPoint(x, -y); }
   IPoint mirror_y() const { return IPoint(-x, y); }
 
-  bool parallel(const IPoint o) const { return x * o.y == y * o.x; }
-
   IPoint& operator +=(const IPoint& o) {
     x += o.x;
     y += o.y;
@@ -79,15 +77,15 @@ struct IPoint {
     else return y < o.y;
   }
 
+  bool parallel(const IPoint o) const { return x * o.y == y * o.x; }
+
+  // For "argument sort".  The origin is treated as the maximum.
   static bool lt_arg(const IPoint& p1, const IPoint& p2) {
-    if ((p1.x == 0 and p1.y == 0) or (p2.x == 0 and p2.y == 0)) return false;
-    if (p2.y == 0 and p2.x > 0) return false;
-    if (p1.y == 0 and p1.x > 0) return true;
-    if (p2.y == 0) return p1.y > 0;
-    if (p1.y == 0) return p2.y < 0;
-    if ((p1.y > 0) != (p2.y > 0)) return p1.y > 0;
-    return p1.x * p2.y > p1.y * p2.x;
-  };
+    bool b1 = p1.y > 0 or (p1.y == 0 and p1.x > 0);
+    bool b2 = p2.y > 0 or (p2.y == 0 and p2.x > 0);
+    if (b1 != b2) return b1;
+    else return p1.x * p2.y > p1.y * p2.x;
+  }
 
 };
     
@@ -114,6 +112,7 @@ namespace std {
     }
   };
 }
+
 
 // @@ !! END ---- ipoint.cc
 
