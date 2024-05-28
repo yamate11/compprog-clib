@@ -11,5 +11,4 @@ cans3
 /test/*_t.cc
 /test/*_t
 /boost
-/ac-library
 /html
