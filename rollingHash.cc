@@ -109,7 +109,7 @@ struct RollingHashGen {
 
   void set_conv(conv_t conv_) { conv = conv_; }
 
-  vector<u64> hashes(auto s) {
+  vector<u64> _hashes(const auto& s) {
     int n = s.size();
     vector<u64> ret(n+1);
     for (int i = 0; i < n; i++) {
@@ -123,6 +123,15 @@ struct RollingHashGen {
     }
     return ret;
   }
+
+  struct HashedValues {
+    RollingHashGen& rh;
+    vector<u64> hs;
+    HashedValues(RollingHashGen& rh_, const auto& s) : rh(rh_) { hs = rh._hashes(s); }
+    u64 get(int start = 0, int len = -1) { return rh.get(hs, start, len); }
+  };
+
+  HashedValues hashes(const auto& s) { return HashedValues(*this, s); }
 
   u64 base_power(ll n) {
     while ((int)pow_memo.size() < n + 1) {
