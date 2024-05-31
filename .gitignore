@@ -8,7 +8,9 @@ cans3
 *.log
 *.d
 *.o
+/.lib_depend
 /test/*_t.cc
 /test/*_t
+/test/tmp
 /boost
 /html
