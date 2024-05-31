@@ -74,6 +74,8 @@ ostream& operator<< (ostream& os, const optional<T>& t);
 
 ostream& operator<< (ostream& os, int8_t x);
 
+ostream& operator<< (ostream& os, const __int128& x);
+
 // definitions
 
 template <typename T1, typename T2>
@@ -240,6 +242,29 @@ ostream& operator<< (ostream& os, int8_t x) {
   return os;
 }
 
+// This is a very ad-hoc implementation...
+ostream& operator<<(ostream& os, const __int128& v) {
+  unsigned __int128 a = v < 0 ? -v : v;
+  ll i = 0;
+  string s(64, ' ');
+  if (v == 0) {
+    s[i++] = '0';
+  }else {
+    while (a > 0) {
+      s[i++] = '0' + (char)(a % 10);
+      a /= 10;
+    }
+  }
+  if (v < 0) {
+    s[i++] = '-';
+  }
+  s.erase(s.begin() + i, s.end());
+  reverse(s.begin(), s.end());
+  os << s;
+  return os;
+}
+
+
 // @@ !! FUNC END f:<<
 
 // operator>> definitions for some classes
@@ -282,6 +307,28 @@ vector<T> read_vector(istream& is) {
   size_t n; is >> n;
   return read_vector_n<T>(is, n);
 }
+
+// This is a very ad-hoc implementation...
+istream& operator>>(istream& is, __int128& o) {
+  string s; is >> s;
+  o = 0;
+  int sign = 1;
+  for (int i = 0; i < ssize(s); i++) {
+    if (s[i] == '-') {
+      if (i == 0) sign = -1;
+      else throw runtime_error(">>: misplaced minus sign");
+    }else {
+      int d = s[i] - '0';
+      if (0 <= d and d <= 9) {
+        o = 10 * o + d;
+      }else throw runtime_error(">>: not a digit");
+    }
+  }
+  o = sign * o;
+  return is;
+    
+}
+
 // @@ !! FUNC END f:>>
 
 // @@ !! FUNC BEGIN f:gcd
@@ -290,22 +337,23 @@ vector<T> read_vector(istream& is) {
 //     g == gcd(|a|, |b|) and as + bt == g           
 //     It guarantees that max(|s|, |t|) <= max(|a| / g, |b| / g)   (when g != 0)
 //     Note that gcd(a, 0) == gcd(0, a) == a.
-tuple<ll, ll, ll> eGCD(ll a, ll b) {
-  ll sa = a < 0 ? -1 : 1;
-  ll ta = 0;
-  ll za = a * sa;
-  ll sb = 0;
-  ll tb = b < 0 ? -1 : 1;
-  ll zb = b * tb;
+template<typename INT=ll>
+tuple<INT, INT, INT> eGCD(INT a, INT b) {
+  INT sa = a < 0 ? -1 : 1;
+  INT ta = 0;
+  INT za = a * sa;
+  INT sb = 0;
+  INT tb = b < 0 ? -1 : 1;
+  INT zb = b * tb;
   while (zb != 0) {
-    ll q = za / zb;
-    ll r = za % zb;
+    INT q = za / zb;
+    INT r = za % zb;
     za = zb;
     zb = r;
-    ll new_sb = sa - q * sb;
+    INT new_sb = sa - q * sb;
     sa = sb;
     sb = new_sb;
-    ll new_tb = ta - q * tb;
+    INT new_tb = ta - q * tb;
     ta = tb;
     tb = new_tb;
   }

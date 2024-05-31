@@ -36,11 +36,15 @@ using namespace std;
     // primes should contain prime numbers at least up to sqrt(m)
     // divSieve should contain divisors upto m.
 
+  bool is_prime_MR(int n, int k = 20);
+    // Miller Rabin prime judgement.
+    // In this implementation, n must be within the range of int.
+
 */
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN() ---- sieve.cc
+// @@ !! BEGIN(mod random power) ---- sieve.cc
 
 // sieve(upto) returns the list of prime numbers up to upto.
 //   Size: upto(1e8).size() ... 5.7e6,  upto(1e9).size() ... 5.1e7
@@ -173,5 +177,32 @@ vector<ll> _gdsub(int i, const auto& fs) {
 vector<ll> getDivisors(ll n) { return _gdsub(0, prfac(n)); }
 vector<ll> getDivisors(ll n, const vector<int>& primes) { return _gdsub(0, prfac(n, primes)); }
 vector<ll> getDivisorsDivSieve(ll n, const vector<int>& divSieve) { return _gdsub(0, prfacDivSieve(n, divSieve)); }
+
+// Miller-Rabin prime judgement
+// n must be in the range of int
+bool is_prime_MR(int n, int k = 20) {
+
+  if (n == 2 or n == 3 or n == 5 or n == 7) return true;
+  if (n <= 1 or n % 2 == 0 or n % 3 == 0 or n % 5 == 0 or n % 7 == 0) return false;
+  using Fp = FpG<0>;
+  Fp::setMod(n);
+
+  Random rand;
+  int s = 0;
+  ll d = n - 1;
+  for (; d % 2 == 0; s++, d /= 2);
+
+  auto is_comp_evidence = [&](ll a) -> bool {
+    if (power<Fp>(Fp(a), d) == Fp(1)) return false;
+    for (int r = 0; r < s; r++) if (power<Fp>(Fp(a), (1LL << r) * d) == Fp(-1)) return false;
+    return true;
+  };
+
+  for (; k > 0; k--) {
+    ll a = rand.range(1, n);
+    if (is_comp_evidence(a)) return false;
+  }
+  return true;
+}
 
 // @@ !! END ---- sieve.cc

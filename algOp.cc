@@ -107,22 +107,27 @@ using namespace std;
 //    zero, one, inverse
 
 template<typename T>
-constexpr T zero(const T& t) {
+const T zero(const T& t) {
   if constexpr (is_integral_v<T> || is_floating_point_v<T>) { return (T)0; }
   else { return t.zero(); }
 }
 
 template<typename T>
-constexpr T one(const T& t) {
+const T one(const T& t) {
   if constexpr (is_integral_v<T> || is_floating_point_v<T>) { return (T)1; }
   else { return t.one(); }
 }
 
 template<typename T>
-constexpr T inverse(const T& t) {
+const T inverse(const T& t) {
   if constexpr (is_floating_point_v<T>) { return 1.0 / t; }
   else { return t.inverse(); }
 }
+
+#ifdef BOOST_MP_CPP_INT_HPP
+template<> const cpp_int zero(const cpp_int& t) { return cpp_int(0); }
+template<> const cpp_int one(const cpp_int& t) { return cpp_int(1); }
+#endif // BOOST_MP_CPP_INT_HPP
 
 // begin -- detection ideom
 //    cf. https://blog.tartanllama.xyz/detection-idiom/

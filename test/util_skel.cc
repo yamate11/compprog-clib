@@ -75,7 +75,7 @@ int main() {
       for (ll x2 = 1; x2 <= 12; x2++) {
 	vector rr(x1, vector(x2, -1));
 	ll lcm = x1 * x2 / gcd(x1, x2);
-	for (ll r = 0; r < lcm; r++) rr[r % x1][r % x2] = r;
+	for (ll r = 0; r < lcm; r++) rr[r % x1][r % x2] = (int)r;
 	for (ll a1 = 0; a1 < x1; a1++) {
 	  for (ll a2 = 0; a2 < x2; a2++) {
 	    for (ll c1 = -2; c1 <= 2; c1++) {
@@ -151,10 +151,10 @@ int main() {
 
   {
     ll sv = 0;
-    for (ll i = 0; i < 9; i++) sv_set(2, sv, i, i % 4);
+    for (int i = 0; i < 9; i++) sv_set(2, sv, i, i % 4);
     assert(sv_show(2, sv, 9) == "[0, 1, 2, 3, 0, 1, 2, 3, 0]");
     assert(sv_show(2, sv) == "[0, 1, 2, 3, 0, 1, 2, 3]");
-    for (ll i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; i++) {
       sv_set(2, sv, i, (sv_get(2, sv, i) + 1) % 4);
     }
     assert(sv_show(2, sv, 9) == "[1, 2, 3, 0, 1, 2, 2, 3, 0]");
@@ -202,6 +202,39 @@ int main() {
     auto it = find_if(ALLIR(0, 10),
                       [&](ll i) -> bool { return i * i > 50; });
     assert (*it == 8);
+  }
+
+  { // __int128 input output
+    stringstream ss1;
+    __int128 x1 = 0;
+    ss1 << x1 << 0;
+    assert(ss1.str() == "00");
+
+    auto out_check = [&](__int128 x, string s) -> void {
+      stringstream ss;
+      ss << x;
+      assert(ss.str() == s);
+    };
+    out_check((__int128)0, "0");
+    out_check((__int128)123, "123");
+    out_check((__int128)(-2450), "-2450");
+    unsigned __int128 y1 = 1LL << 60;
+    unsigned __int128 y2 = 1LL << 7;
+    unsigned __int128 y3 = y1 * y1 * y2;
+    __int128 x4 = (-1) * y3;
+    __int128 x5 = y3 - 1;
+    out_check(x4, "-170141183460469231731687303715884105728");
+    out_check(x5, "170141183460469231731687303715884105727");
+
+    stringstream ss2("56 0 -18");
+    __int128 x10, x11, x12 ; ss2 >> x10 >> x11 >> x12;
+    assert(x10 == 56 and x11 == 0 and x12 == -18);
+    stringstream ss3("-170141183460469231731687303715884105728");
+    __int128 x13; ss3 >> x13;
+    assert(x13 == x4);
+    stringstream ss4("170141183460469231731687303715884105727");
+    __int128 x14; ss4 >> x14;
+    assert(x14 == x5);
   }
 
 

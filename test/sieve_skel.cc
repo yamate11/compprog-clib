@@ -74,5 +74,19 @@ int main() {
     }
   }
 
+  {  // Miller-Rabin prime judgement
+    ll n = 1e4;
+    auto primes = sieve(n);
+    ll j = 0;
+    for (ll i = 2; i < n; i++) {
+      if (primes[j] == i) {
+        assert(is_prime_MR(i));
+        j++;
+      }else {
+        assert(not is_prime_MR(i));
+      }
+    }
+  }
+
   cerr << "OK\n";
 }

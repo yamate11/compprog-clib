@@ -10,7 +10,7 @@ else
   endif
 endif
 
-WARNINGS := -Wall -Wno-format-security -Wshadow -fconcepts
+WARNINGS := -Wall -Wno-format-security -Wshadow -Wconversion -fconcepts 
 
 CXXFLAGS := -std=gnu++20 $(DEBUGFLAGS) $(WARNINGS)
 

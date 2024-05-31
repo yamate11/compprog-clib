@@ -3,7 +3,10 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(mod power)
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
+// @@ !! LIM(mod power debug f:>> f:<<)
 
 template<int mod> void testf1(int dyn_mod);
 
@@ -90,6 +93,51 @@ int main() {
       // as expected
     }
   }
+
+  {  // __int128
+    using Fp = FpG<0, __int128>;
+    __int128 mod = 1152921504606847009LL;  // This is a prime.
+    Fp::setMod(mod);
+    __int128 x1 = 123456789012345678LL;
+    __int128 x2 = 987654321098765432LL;
+    __int128 x3 = 456789012345678901LL;
+    __int128 y1 = x1 * x2 + x3;
+    __int128 y2 = x2 * x3 + x1;
+    assert(Fp(y1) + Fp(y2) == Fp(y1 + y2));
+    assert(Fp(y1) - Fp(y2) == Fp(y1 - y2));
+    assert(Fp(x1) * Fp(x2) + Fp(x3) == Fp(x1 * x2 + x3));
+    Fp z1 = Fp(1) / Fp(x1);
+    assert(x1 * (__int128)z1 % mod == 1);
+    stringstream ss1;
+    ss1 << mod + 10;
+    Fp f1;
+    ss1 >> f1;
+    stringstream ss2;
+    ss2 << f1;
+    assert(ss2.str() == "10");
+  }
+
+  {  // boost
+    using Fp = FpG<0, cpp_int>;
+    cpp_int mod("170141183460469231731687303715884105727");   // This is a prime. (around 10^40)
+    Fp::setMod(mod);
+    cpp_int x = power(cpp_int(2), 1000);
+    cpp_int y = power(cpp_int(3), 1000);
+    assert(Fp(x) + Fp(y) == Fp(x + y));
+    assert(Fp(x) - Fp(y) == Fp(x - y));
+    assert(Fp(x) * Fp(y) == Fp(x * y));
+    Fp z = Fp(1) / Fp(x);
+    assert(x * (cpp_int)z % mod == 1);
+    stringstream ss1;
+    ss1 << mod + 10;
+    Fp f1;
+    ss1 >> f1;
+    stringstream ss2;
+    ss2 << f1;
+    assert(ss2.str() == "10");
+  }
+
+
 
   cout << "ok" << endl;
 }
