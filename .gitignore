@@ -2,6 +2,7 @@
 __pycache__
 .cookies
 .vscode
+.lib_depend
 cans
 cans2
 cans3
@@ -11,6 +12,6 @@ cans3
 /.lib_depend
 /test/*_t.cc
 /test/*_t
-/test/tmp
+/test/tmp/
 /boost
 /html
