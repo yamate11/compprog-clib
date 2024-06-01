@@ -12,6 +12,7 @@ cans3
 /.lib_depend
 /test/*_t.cc
 /test/*_t
+/test/*_t.d
 /test/tmp/
 /boost
 /html
