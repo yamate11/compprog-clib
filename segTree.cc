@@ -282,7 +282,7 @@ struct GenSegTree {
 
   vector<DAT> vec_view() {
     vector<DAT> ret(orig_size);
-    REP(i, 0, orig_size) ret[i] = at(i);
+    for (int i = 0; i <  orig_size; i++) ret[i] = at(i);
     return ret;
   };
 

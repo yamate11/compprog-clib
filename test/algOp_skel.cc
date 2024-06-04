@@ -29,7 +29,7 @@ int main() {
     prod1 *= a10;
     prod1 *= a5 * a7;
     prod1 = prod1 * a2;
-    assert(prod1.v = 24);
+    assert(prod1.v == 24);
   }
 
   {
