@@ -280,6 +280,12 @@ struct GenSegTree {
     return binsearch_l_until([&](DAT x) { return not check(x); }, r) - 1;
   }
 
+  vector<DAT> vec_view() {
+    vector<DAT> ret(orig_size);
+    REP(i, 0, orig_size) ret[i] = at(i);
+    return ret;
+  };
+
 };
 
 template<typename DAT, typename OP>
