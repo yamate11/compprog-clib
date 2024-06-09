@@ -121,6 +121,7 @@ struct FuncGraph {
   }
 
   int dist_to_cycle(int i) {
+    if (not _built) build();
     return _dp[i];
   }
 

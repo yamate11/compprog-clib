@@ -74,6 +74,13 @@ int main() {
     assert(fg.dist_to_cycle(2) == 1);
   }
   
+  {
+    FuncGraph fg(3);
+    fg.add_edge(0, 1);
+    fg.add_edge(1, 2);
+    fg.add_edge(2, 0);
+    assert(fg.dist_to_cycle(0) == 0);
+  }
 
   {
     int numRep = 10000;
