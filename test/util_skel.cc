@@ -138,6 +138,15 @@ int main() {
   }
 
   {
+    enum FOO { A, B, C };
+    stringstream ss;
+    FOO a = A;
+    FOO c = C;
+    ss << c << a;
+    assert(ss.str() == "20");
+  }
+
+  {
     vector<ll> v1(3000);
     iota(v1.begin(), v1.end(), 0);
     assert(mex(v1.begin(), v1.end()) == 3000);
