@@ -10,6 +10,7 @@ int main() {
   assert(power(2,3) == 8);
   assert(power(10LL, 12) == llround(1e12));
   assert(power(0.5, 4) * 16 == 1.0);
+  assert(power(0, 0) == 1);
   
   {
     using Fp = FpB;

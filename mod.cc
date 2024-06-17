@@ -26,9 +26,10 @@ using namespace std;
 
   With Comb<T>, you can do something like:
 
-        Comb<FpA> cb(1000);          // args upto 1000, inclusive
+        Comb<FpA> cb(1000);          // args upto 1000 (=: nMax), inclusive.
         FpA x = cb.fact(1000);       // factorial
-        FpA y = cb.binom(500, 300);  // combination
+        FpA y = cb.binom(500, 300);  // combination.    binom(int n, int r).  Valid only for 0 <= n <= nMax.
+                                     // When 0 < r or n < r, it returns 0 (that conforms to the definition).
         FpA yy = cb.binom_dup(300, 500); // combination with duplicate (== binom(300+500-1, 500))
         FpA z = cb.perm(500, 300);   // permutation
 

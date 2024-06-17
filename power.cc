@@ -8,6 +8,8 @@ using namespace std;
 
    The implementation refers to one<T>().  Thus, basic types such as int and double are supported, as well as
    mod classes.  To use this for your own class, define it using MyAlg<Op> in algOp.cc.
+
+   It holds that power(t, 0) == one<T>(), even for t == 0.
  */
 
 //////////////////////////////////////////////////////////////////////
