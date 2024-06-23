@@ -305,6 +305,18 @@ struct Tree {
   }
 #pragma GCC diagnostic pop
 
+  pair<int, int> centroids() {
+    auto dfs = [&](auto rF, int nd) -> pair<int, int> {
+      for (int c : children(nd)) {
+        int a = 2 * stsize(c);
+        if (a > numNodes) return rF(rF, c);
+        if (a == numNodes) return make_pair(nd, c);
+      }
+      return make_pair(nd, -1);
+    };
+    return dfs(dfs, root);
+  }
+
   void change_root(int newRoot) {
     _stsize.clear();
     _depth.clear();

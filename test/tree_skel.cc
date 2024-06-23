@@ -297,6 +297,37 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  { // testing centroids() with change_root()
+    int rep = 1000;
+    for (int _r = 0; _r < rep; _r++) {
+      int N = randrange(1, 11);
+      Tree tr(N);
+      for (int i = 1; i < N; i++) tr.add_edge(i, randrange(0, i));
+      vector<int> ans;
+      for (int i = 0; i < N; i++) {
+        if ([&]() -> bool {
+          ll rem = N - 1;
+          for (int j : tr.children(i)) {
+            if (tr.stsize(j) * 2 > N) return false;
+            rem -= tr.stsize(j);
+          }
+          if (rem * 2 > N) return false;
+          return true;
+        }()) ans.push_back(i);
+      }
+      for (int z = 0; z < N; z++) {
+        tr.change_root(z);
+        auto [a, b] = tr.centroids();
+        if (b < 0) {
+          assert(ans[0] == a and ssize(ans) == 1);
+        }else {
+          if (a > b) swap(a, b);
+          assert(ssize(ans) == 2 and ans[0] == a and ans[1] == b);
+        }
+      }
+    }
+  }
+
 
   // The length of the longest simple path that goes through the node
   using T5 = pair<ll, ll>;
