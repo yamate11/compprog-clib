@@ -10,8 +10,8 @@ int main() {
   {
     ll big = 1e18;
     set<ll> myset{-big, 0, 4, 5, 7, big};
-    auto it_mb = myset.find(-big);
-    auto it_0 = myset.find(0);
+    // auto it_mb = myset.find(-big);
+    // auto it_0 = myset.find(0);
     auto it_4 = myset.find(4);
     auto it_5 = myset.find(5);
     auto it_7 = myset.find(7);
