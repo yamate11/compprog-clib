@@ -8,12 +8,13 @@
     REP(i, 0, M) mo.add_query(L[i], R[i]);   // half-open interval [L[i], R[i])
     vector<ll> ans(Q);
     auto in_left = [&](ll i) -> void { ...; };  // what you need to do when i steps into the range from the left.
+                         // If you happen to need cr as well, capture mo and access mo.cr.  (i == mo.cl)
     auto in_right = [&](ll i) -> void {...; };
     auto out_left = [&](ll i) -> void { ...; };
     auto out_right = [&](ll i) -> void { ...; };
     auto calc = [&](ll q) -> void { ans[q] = ....; };
     mo.run(in_left, in_right, out_left, out_right, calc);
-    // or    mo.run(in_, out_, calc);
+    // or    mo.run(in_, out_, calc);   in case in_left == in_right and out_left == out_right
     REPOUT(q, 0, Q, ans[q], "\n");
  */
 
@@ -26,14 +27,17 @@ struct Mo {
   int size;
   int vq_idx;
   vector<vq_t> vq;
+  int cl;
+  int cr;
 
-  Mo(int size_) : size(size_), vq_idx(0), vq() {}
+  Mo(int size_) : size(size_), vq_idx(0), vq(), cl(0), cr(0) {}
   void add_query(int l, int r) { vq.emplace_back(l, r, vq_idx++); }
 
   void run(auto in_left, auto in_right, auto out_left, auto out_right, auto calc) {
     int qsz = vq.size();
     int bsize = max(1, int((double)size / sqrt(qsz)));
-    int cl = 0, cr = 0;
+    cl = 0;
+    cr = 0;
     sort(vq.begin(), vq.end(),
          [&](const vq_t& p1, const vq_t& p2) -> bool {
            const auto& [a1, b1, i1] = p1;
@@ -45,9 +49,10 @@ struct Mo {
            else return b1 > b2;
          });
     for (const auto& [l, r, i] : vq) {
+      // in_* must be called before out_*
       while (l < cl)   in_left(--cl);
-      while (cl < l)  out_left(cl++);
       while (cr < r)  in_right(cr++);
+      while (cl < l)  out_left(cl++);
       while (r < cr) out_right(--cr);
       calc(i);
     }
