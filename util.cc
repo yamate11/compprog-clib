@@ -496,6 +496,9 @@ int mex(ForwardIt first, ForwardIt last) {
 
 // @@ !! FUNC BEGIN f:shortVector
 
+// *BEWARE*
+//    YOU SHOULD PROBABLY NOT USE THESE FUNCTIONS.  Using string, say "02001", is much easier.
+
 // Vector for small integers such as 0..3, fit in a small bit width,
 // represented with a long long int.
 //   - val should be in [0, 1LL << bit_width)
