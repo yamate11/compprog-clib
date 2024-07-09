@@ -4,7 +4,15 @@ using namespace std;
 using ll = long long int;
 
 /*
+  WARNING : NOT YET MATURED
+    -- There can be usage in map, set, multimap, vector, but only set is implemented.
+    -- Performance is not good.
+    -- Probably, to get accustomed with the existing interface will benefit more, rather than
+       writing new interface....
+
+  WARNING : NOT YET MATURED
   Vicinity
+  WARNING : NOT YET MATURED
 
   For set, multiset, and map, gets iterators near to specified value.
 
