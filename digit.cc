@@ -14,6 +14,8 @@
   su.nd_max(4)       // 9999, the maximum number whose width is 4.
   du.floor(1234)     // 1000, the largest power of 10 that does not exceed 1234
   du.ceil(1234)      // 10000, the smallest power of 10 that does not fall below 1234
+  du.d_at(1234, 0)   // 4,  du.d_at(1234, 1) == 3,  du.d_at(1234, 2) == 2, du.d_at(1234, 3) == 1
+  du.v_at(1234, 0)   // 4,  du.v_at(1234, 1) == 30, du.d_at(1234, 2) == 200, du.d_at(1234, 3) == 1000
   du.to_vector(1234) // vector<ll>{1, 2, 3, 4}
   du.to_string(1234) // "1234"
   du.from_vector(vector<ll>{1, 2, 3, 4}) // 1234
@@ -56,6 +58,9 @@ struct digit_util {
     ll p = _pow[width(x) - 1];
     return (x == p) ? p : (p * base);
   }
+
+  ll d_at(ll x, ll i) { return (x / pow(i)) % base; }
+  ll v_at(ll x, ll i) { return d_at(x, i) * pow(i); }
 
   vector<ll> to_vector(ll x) {
     if (x < 0) throw runtime_error("to_vector: x < 0");

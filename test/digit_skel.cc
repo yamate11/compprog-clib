@@ -39,6 +39,14 @@ int main() {
     assert(du.ceil(0) == 0);
     assert(du.ceil(123) == 1000);
     assert(du.ceil(1000) == 1000);
+    assert(du.d_at(1234, 0) == 4);
+    assert(du.d_at(1234, 1) == 3);
+    assert(du.d_at(1234, 2) == 2);
+    assert(du.d_at(1234, 3) == 1);
+    assert(du.v_at(1234, 0) == 4);
+    assert(du.v_at(1234, 1) == 30);
+    assert(du.v_at(1234, 2) == 200);
+    assert(du.v_at(1234, 3) == 1000);
     assert(du.to_string(0) == "0");
     assert(du.to_string(1) == "1");
     assert(du.to_string(123) == "123");
@@ -60,6 +68,11 @@ int main() {
     assert(du.width(80) == 4);
     assert(du.floor(80) == 27);
     assert(du.ceil(80) == 81);
+    assert(du.d_at(79, 0) == 1);
+    assert(du.d_at(79, 1) == 2);
+    assert(du.d_at(79, 3) == 2);
+    assert(du.v_at(79, 1) == 6);
+    assert(du.v_at(79, 3) == 54);
     assert(du.to_string(83) == "10002");
     assert(du.from_string("10002") == 83);
   }
