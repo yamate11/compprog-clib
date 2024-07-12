@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(power mod)
+// @@ !! LIM(power mod random debug)
 
 int main() {
 
@@ -76,6 +76,87 @@ int main() {
     };
     assert(near(power(m1, 10), MM(VT({{cos(10), -sin(10)}, {sin(10), cos(10)}}))));
   }
+
+  { // ll* functions
+
+    Random rand;
+
+    assert(llpower(4, 0) == 1);
+    assert(llpower(0, 0) == 1);
+    assert(llpower(0, 10) == 0);
+    assert(llpower(15, 1) == 15);
+    assert(llpower(0, 3) == 0);
+    assert(llpower(1, 8) == 1);
+    assert(llpower(2, 3) == 8);
+    assert(llpower(2, 62) == (1LL << 62));
+    assert(llpower(2, 63) == -1);
+    assert(llpower(5, 2) == 25);
+    assert(llpower(1LL << 32, 2) == -1);
+    assert(llpower(3, 10) == 9*9*9*9*9);
+    assert(llpower(3, 60) == -1);
+    assert(llpower(4, 22) == 256LL*256*256*256*256*16);
+    ll p3 = 1;
+    for (int i = 0; i <= 39; i++) {
+      assert(llpower(3, i) == p3);
+      p3 *= 3;
+    }
+    assert(llpower(3, 40) == -1);
+
+
+    assert(llsqrt(0) == 0);
+    assert(llsqrt(1) == 1);
+    assert(llsqrt(2) == 1);
+    assert(llsqrt(3) == 1);
+    assert(llsqrt(4) == 2);
+    assert(llsqrt(5) == 2);
+    assert(llsqrt(100) == 10);
+    assert(llsqrt((ll)(1e18)) == (ll)1e9);
+    assert(llsqrt((ll)(1e18) + 1) == (ll)1e9);
+    assert(llsqrt((ll)(1e18) - 1) == (ll)1e9 - 1);
+    for (int i = 0; i < 1000; i++) {
+      ll x1 = rand.range((ll)8e8, (ll)1e9);
+      ll x2 = x1 * x1;
+      assert(llsqrt(x2) == x1);
+      assert(llsqrt(x2 + 1) == x1);
+      assert(llsqrt(x2 - 1) == x1 - 1);
+    }
+    
+
+    assert(llroot(121, 2) == 11);
+    assert(llroot(0, 3) == 0);
+    assert(llroot(81, 4) == 3);
+    assert(llroot(100, 3) == 4);
+    assert(llroot(100, 4) == 3);
+    for (int i = 0; i < 1000; i++) {
+      ll x1 = rand.range((ll)8e5, (ll)1e6);
+      ll x2 = x1 * x1 * x1;
+      assert(llroot(x2, 3) == x1);
+      assert(llroot(x2 + 1, 3) == x1);
+      assert(llroot(x2 - 1, 3) == x1 - 1);
+    }
+
+    assert(lllog(6, 1) == 0);
+    assert(lllog(6, 5) == 0);
+    assert(lllog(6, 6) == 1);
+    assert(lllog(6, 7) == 1);
+    assert(lllog(6, 35) == 1);
+    assert(lllog(6, 36) == 2);
+    assert(lllog(6, 37) == 2);
+    assert(lllog(2, 16) == 4);
+    assert(lllog(5, 25*25*25*5) == 7);
+    assert(lllog(7, 49*7*2) == 3);
+    for (int i = 0; i < 1000; i++) {
+      ll b1 = rand.range(2, 11);
+      ll a1 = lllog(b1, 1LL << 62);
+      ll y1 = llpower(b1, a1);
+      assert(lllog(b1, y1) == a1);
+      assert(lllog(b1, y1 + 1) == a1);
+      assert(lllog(b1, y1 - 1) == a1 - 1);
+    }
+  }
+
+
+
   return 0;
 
 }
