@@ -11,7 +11,8 @@ using namespace std;
 
   Real g_err = 1e-9;
   bool may_eq(x, y[, err]); // x and y are nearlly equal.  relative or
-                           //absolute error is less than err (default is g_err)
+                            // absolute error is less than err (default is g_err)
+                            // may_le() and may_ge() are also available.
 
   G_PI is either M_PI or M_PIl.
 
