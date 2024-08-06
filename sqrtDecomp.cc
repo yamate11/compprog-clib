@@ -6,7 +6,7 @@ using namespace std;
 /*
   Square Root Decomposition
 
-  see https://yamate11.github.io/blog/posts/2024/????
+  see https://yamate11.github.io/blog/posts/2024/08-06-sqrt-decomp/
 
 */
 
