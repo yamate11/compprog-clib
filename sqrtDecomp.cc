@@ -40,6 +40,7 @@ struct SRD { // square root decomposition
     if (i < numb - 1) return bsize;
     else return tot_size - (numb - 1) * bsize;
   }
+  /*
   void exec_general(int lo, int hi, auto f_edge, auto f_body) {
     auto [b_f, lo_f, hi_f, b_l, lo_l, hi_l] = range_pos(lo, hi);
     f_edge(b_f, lo_f, hi_f);
@@ -55,6 +56,31 @@ struct SRD { // square root decomposition
     };
     exec_general(lo, hi, f_edge, f_body);
   }
+  */
+  template<typename F0e = nullptr_t, typename F0c = nullptr_t, typename F1e = nullptr_t, typename F1c = nullptr_t>
+  void exec(int lo, int hi, auto edge_body, auto core_body,
+            F0e edge_pre = nullptr, F0c core_pre = nullptr, F1e edge_post = nullptr, F1c core_post = nullptr) {
+    auto do_edge = [&](int b, int lo_e, int hi_e) -> void {
+      if constexpr (not is_same_v<F0e, nullptr_t>) { edge_pre(b, data(b)); }
+      if constexpr (not is_same_v<decltype(edge_body), nullptr_t>) {
+        for (int i = lo_e; i < hi_e; i++) { edge_body(b, data(b), i, pos2idx(b, i)); }
+      }
+      if constexpr (not is_same_v<F1e, nullptr_t>) { edge_post(b, data(b)); }
+    };
+
+    auto [b_f, lo_f, hi_f, b_l, lo_l, hi_l] = range_pos(lo, hi);
+    do_edge(b_f, lo_f, hi_f);
+    if (b_f + 1 < b_l) {
+      if constexpr (not is_same_v<F0c, nullptr_t>) { core_pre(); }
+      if constexpr (not is_same_v<decltype(core_body), nullptr_t>) {
+        for (int b = b_f + 1; b < b_l; b++) { core_body(b, data(b)); }
+      }
+      if constexpr (not is_same_v<F1c, nullptr_t>) { core_post(); }
+    }
+    if (b_f < b_l) do_edge(b_l, lo_l, hi_l);
+  }
+
+
 };
 
 

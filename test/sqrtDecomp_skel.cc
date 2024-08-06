@@ -52,6 +52,39 @@ int main() {
     SRD<ll> srd4(100, 1000);
     assert(srd4.bsize == 1000 and srd4.numb == 1 and srd4.block_size(0) == 100);
   }
+  { // exec arguments
+    SRD<ll> srd(10);
+    string ret;
+    auto edge_body = [&](ll b, ll& s, ll i, ll idx) { ret += (char)('0' + idx); };
+    auto core_body = [&](ll b, ll& s) { ret += (char)('A' + b); };
+    auto edge_pre = [&](ll b, ll& s) { ret += (char)('a' + b); };
+    auto core_pre = [&]() { ret += '@'; };
+    auto edge_post = [&](ll b, ll& s) { ret += (char)('m' + b); };
+    auto core_post = [&]() { ret += '$'; };
+    srd.exec(2, 7, edge_body, nullptr);
+    assert(ret == "26");
+    ret = "";
+
+    srd.exec(1, 3, edge_body, nullptr);
+    assert(ret == "12");
+    ret = "";
+
+    srd.exec(2, 7, nullptr, core_body);
+    assert(ret == "B");
+    ret = "";
+
+    srd.exec(2, 7, edge_body, core_body, edge_pre, core_pre, edge_post, core_post);
+    assert(ret == "a2m@B$c6o");
+    ret = "";
+
+    srd.exec(2, 7, edge_body, core_body, edge_pre, core_pre);
+    assert(ret == "a2@Bc6");
+    ret = "";
+
+    srd.exec(2, 7, edge_body, core_body, nullptr, core_pre);
+    assert(ret == "2@B6");
+    ret = "";
+  }
   { // range sum query
     ll rep_num_1 = 200;
     ll rep_num_2 = 100;
