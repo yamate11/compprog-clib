@@ -47,8 +47,12 @@ struct SRD { // square root decomposition
     if (b_f < b_l) f_edge(b_l, lo_l, hi_l);
   }
   void exec(int lo, int hi, auto inloop_edge, auto inloop_body) {
-    auto f_edge = [&](int b, int lo_b, int hi_b) { for (int i = lo_b; i < hi_b; i++) inloop_edge(b, i); };
-    auto f_body = [&](int b0, int b1) { for (int b = b0; b < b1; b++) inloop_body(b); };
+    auto f_edge = [&](int b, int lo_b, int hi_b) {
+      for (int i = lo_b; i < hi_b; i++) inloop_edge(b, data(b), i, pos2idx(b, i));
+    };
+    auto f_body = [&](int b0, int b1) {
+      for (int b = b0; b < b1; b++) inloop_body(b, data(b));
+    };
     exec_general(lo, hi, f_edge, f_body);
   }
 };

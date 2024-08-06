@@ -66,24 +66,25 @@ int main() {
         S() : shift(0), sum(0) {}
       };
       SRD<S> srd(a_size);
-      REP(i, 0, srd.numb) {
-        REP(j, 0, srd.block_size(i)) srd.data(i).sum += A[srd.pos2idx(i, j)];
+      REP(i, 0, a_size) {
+        auto [b, _j] = srd.idx2pos(i);
+        srd.data(b).sum += A[i];
       }
       auto modify = [&](ll lo, ll hi, ll a) {  // A[i] += a for i \in [lo, hi)
-        auto fe = [&](ll b, ll i) {
-          A[srd.pos2idx(b, i)] += a;
-          srd.data(b).sum += a;
+        auto fe = [&](ll b, S& s, ll i, ll idx) {
+          A[idx] += a;
+          s.sum += a;
         };
-        auto fb = [&](ll b) {
-          srd.data(b).sum += a * srd.block_size(b);
-          srd.data(b).shift += a;
+        auto fb = [&](ll b, S& s) {
+          s.sum += a * srd.block_size(b);
+          s.shift += a;
         };
         srd.exec(lo, hi, fe, fb);
       };
       auto get_sum = [&](ll lo, ll hi) -> ll { // returns sum { A[i] | i \in [lo, hi) }
         ll ret = 0;
-        auto fe = [&](ll b, ll i) { ret += srd.data(b).shift + A[srd.pos2idx(b, i)]; };
-        auto fb = [&](ll b) { ret += srd.data(b).sum; };
+        auto fe = [&](ll b, S& s, ll i, ll idx) { ret += s.shift + A[idx]; };
+        auto fb = [&](ll b, S& s) { ret += s.sum; };
         srd.exec(lo, hi, fe, fb);
         return ret;
       };
