@@ -1,4 +1,4 @@
-import os, subprocess, sys, re, requests, pickle, datetime
+import os, subprocess, sys, re, requests, pickle, datetime, time
 from urllib.parse import unquote
 from bs4 import BeautifulSoup
 import typing
@@ -32,15 +32,17 @@ def login():
     global _sess
     _sess = requests.Session()
     cookies_file = f'{topDir}/.cookies'
-    lim = datetime.datetime.now().timestamp() - 60*60*24
+    lim = datetime.datetime.now().timestamp() - 60*60*24*7
     if not os.path.exists(cookies_file) \
        or os.stat(cookies_file).st_mtime < lim:
         doLogin()
         with open(cookies_file, 'wb') as wfp:
             pickle.dump(_sess.cookies, wfp)
+        time.sleep(1)
     else:
         with open(cookies_file, 'rb') as fp:
             _sess.cookies.update(pickle.load(fp))
+        os.utime(cookies_file)
 
 def doLogin():
     url = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome'
