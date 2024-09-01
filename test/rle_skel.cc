@@ -16,17 +16,24 @@ int main() {
     vector<ll> vec1{5, 10, 7, 4, 4, 4, 4, 2, 2};
     vector<pair<ll, ll>> exp{{5, 1}, {10, 1}, {7, 1}, {4, 4}, {2, 2}};
     vector<pair<ll, ll>> res;
-    rle(ALL(vec1), back_inserter(res));
+    rle_iter(ALL(vec1), back_inserter(res));
     assert(res == exp);
   }
 
   {
-    auto res1 = rle_string("aaabccccbbdd");
+    auto res1 = rle(string("aaabccccbbdd"));
     vector<pair<char, int>> exp1{{'a', 3}, {'b', 1}, {'c', 4}, {'b', 2}, {'d', 2}};
     assert(res1 == exp1);
-    auto res2 = rle_string("");
+    auto res2 = rle(string());
     vector<pair<char, int>> exp2{};
     assert(res2 == exp2);
+  }
+
+  {
+    deque<ll> deq1{2, 2, 2, 7, 4, 8, 8, 2, 7, 7, 7};
+    auto res1 = rle(deq1);
+    vector<pair<ll, int>> exp1{{2, 3}, {7, 1}, {4, 1}, {8, 2}, {2, 1}, {7, 3}};
+    assert(res1 == exp1);
   }
 
   cerr << "ok" << endl;
