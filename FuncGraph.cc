@@ -90,27 +90,27 @@ struct FuncGraph {
     _built = true;
   }
 
-  int numcc() {
+  ll numcc() {
     if (not _built) build();
-    return (int)_cc_size.size();
+    return (ll)_cc_size.size();
   }
 
-  int ccid(int i) {
+  ll ccid(int i) {
     if (not _built) build();
     return _cc[i];
   }
 
-  int cc_size(int i) {
+  ll cc_size(int i) {
     if (not _built) build();
     return _cc_size[ccid(i)];
   }
 
-  int cycle_size(int i) {
+  ll cycle_size(int i) {
     if (not _built) build();
     return _cycle_size[ccid(i)];
   }
 
-  int node_on_cycle(int i) {
+  ll node_on_cycle(int i) {
     if (not _built) build();
     return _on_cycle[i];
   }
@@ -120,7 +120,7 @@ struct FuncGraph {
     return _dp[i] == 0;
   }
 
-  int dist_to_cycle(int i) {
+  ll dist_to_cycle(int i) {
     if (not _built) build();
     return _dp[i];
   }
