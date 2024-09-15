@@ -49,7 +49,7 @@ struct itv_set {
   
   struct Itr {
     using iterator_category = input_iterator_tag;
-    using value_type = tuple<ll, ll, T>;
+    using value_type = tuple<ll, ll, const T&>;
     // using difference_type = ptrdiff_t;
     using reference = value_type const&;
     // using pointer = value_type const*;
@@ -61,20 +61,22 @@ struct itv_set {
 
     bool operator ==(const Itr& o) const { return it_impl == o.it_impl; }
     bool operator !=(const Itr& o) const { return it_impl != o.it_impl; }
-    value_type operator *() const {
-      auto [l, t] = *it_impl;
-      auto [r, _dummy] = *(next(it_impl));
-      return value_type(l, r, t);
-    }
+    value_type operator *() const { return value_type(it_impl->first, (std::next(it_impl))->first, it_impl->second); }
     Itr& operator ++() { 
       ++it_impl;
       return *this;
     }
-    Itr operator ++(int) {
-      Itr const tmp(*this);
-      ++*this;
-      return tmp;
+    Itr operator ++(int) { return Itr(it_impl++); }
+    Itr& operator --() {
+      --it_impl;
+      return *this;
     }
+    Itr operator --(int) { return Itr(it_impl--); }
+    ll left() const { return it_impl->first; }
+    ll right() const { return (std::next(it_impl))->first; }
+    const T& val() const { return it_impl->second; }
+    Itr prev() const { return Itr(std::prev(it_impl)); }
+    Itr next() const { return Itr(std::next(it_impl)); }
   };
   using iterator = Itr;
   Itr begin() { return Itr(impl.begin()); }
@@ -94,12 +96,7 @@ struct itv_set {
 
   auto get_iter(ll x) {
     auto it = impl.upper_bound(x);
-    return std::prev(it);
-  }
-
-  auto get_iter(ll x) const {
-    auto it = impl.upper_bound(x);
-    return std::prev(it);
+    return Itr(std::prev(it));
   }
 
   auto divide(ll x) {
@@ -108,7 +105,6 @@ struct itv_set {
     if (it->first == x) return it;
     return impl.emplace_hint(it_nxt, x, it->second);
   }
-
   
   void range_check(ll l, ll r) const {
     if (l < lo or r > hi) throw runtime_error("intervalSet: out of range: " + to_string(l) + ", " + to_string(r));
@@ -133,15 +129,14 @@ struct itv_set {
     put(x, x + 1, t);
   }
 
-  const T& get_val(ll x) const {
+  const T& get_val(ll x) {
     range_check(x);
-    return get_iter(x)->second;
+    return get_iter(x).val();
   }
 
-  tuple<ll, ll, T> get(ll x) {
+  tuple<ll, ll, const T&> get(ll x) {
     range_check(x);
-    auto it = impl.upper_bound(x);
-    return {std::prev(it)->first, it->first, std::prev(it)->second};
+    return *get_iter(x);
   }
 
   T sum(ll l0, ll r0) {

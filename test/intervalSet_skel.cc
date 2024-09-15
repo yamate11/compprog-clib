@@ -37,11 +37,11 @@ int main(/* int argc, char *argv[] */) {
     assert(isA.impl == isB.impl);
     {
       auto it = isA.get_iter(3);
-      assert(it->first == 2 and it->second == 1);
+      assert(it.left() == 2 and it.right() == 5 and it.val() == 1);
     }
     {
       auto it = isA.get_iter(8);
-      assert(it->first == 5 and it->second == 0 and next(it)->first == 10);
+      assert(it.left() == 5 and it.right() == 10 and it.val() == 0);
     }
   }
 
@@ -212,6 +212,34 @@ int main(/* int argc, char *argv[] */) {
     vis[3] = itv_apply(plus<int>(), vis[0], vis[1]);
     assert(vis[0] != vis[1]);
     assert(vis[2] == vis[3]);
+  }
+  { // Iterator operations
+    itv_set<int> is(0, 100, 10);
+    is.put(10, 20, 50);
+    is.put(30, 40, 200);
+    auto it = is.get_iter(25);
+    assert(it.left() == 20 and it.right() == 30 and it.val() == 10);
+    ++it;
+    assert(it.left() == 30 and it.right() == 40 and it.val() == 200);
+    ++it;
+    ++it;
+    assert(it == is.end());
+    --it;
+    assert(it.left() == 40 and it.right() == 100 and it.val() == 10);
+    auto it2 = it--;
+    assert(it2.left() == 40 and it2.right() == 100 and it2.val() == 10);
+    auto it3 = it++;
+    assert(it3.left() == 30 and it3.right() == 40 and it3.val() == 200);
+    assert(it.left() == 40 and it.right() == 100 and it.val() == 10);
+    assert(++it == is.end());
+    auto it4 = --it;
+    assert(it4.left() == 40 and it4.right() == 100 and it4.val() == 10);
+    auto it5 = it.prev();
+    assert(it5.left() == 30 and it5.right() == 40 and it5.val() == 200);
+    assert(it.left() == 40 and it.right() == 100 and it.val() == 10);
+    auto it6 = it.next();
+    assert(it6 == is.end());
+    assert(it.left() == 40 and it.right() == 100 and it.val() == 10);
   }
 
   cout << "ok\n";
