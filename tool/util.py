@@ -32,7 +32,7 @@ def login():
     global _sess
     _sess = requests.Session()
     cookies_file = f'{topDir}/.cookies'
-    lim = datetime.datetime.now().timestamp() - 60*60*24*7
+    lim = datetime.datetime.now().timestamp() - 60*60*12
     if not os.path.exists(cookies_file) \
        or os.stat(cookies_file).st_mtime < lim:
         doLogin()
