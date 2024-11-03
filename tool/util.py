@@ -1,11 +1,12 @@
-import os, subprocess, sys, re, requests, pickle, datetime, time
+import os, subprocess, sys, re, requests, pickle, datetime, time, typing, json
 from urllib.parse import unquote
 from bs4 import BeautifulSoup
-import typing
 
 topDir = '/home/y-tanabe/proj/compprog'
 def getTopDir():
     return topDir
+
+loginInfo = os.environ['HOME'] + '/.compprog.json'
 
 def warn(*msg, **opt):
     print(*msg, **opt, file=sys.stderr, flush=True)
@@ -20,69 +21,88 @@ class UtilError(Exception):
     pass
 
 
+class MySession():
 
-_sess = None
+    @classmethod
+    def the_instance(cls, force_create=False):
+        if not hasattr(cls, 'instance') or force_create:
+            cls.instance = cls(force_do_login=force_create)
+        return cls.instance
 
-def session():
-    if _sess is None:
-        login()
-    return _sess
+    def __init__(self, force_do_login):
+        self.cookies_file = f'{topDir}/.cookies'
+        # requests.Session() creates a new session.  Thus, the following call
+        # should be done only ONCE.
+        self.session = requests.Session()
+        # Cookies will be regarded as stale if 12 hours passes (too short?)
+        lim = datetime.datetime.now().timestamp() - 60*60*12
+        if force_do_login \
+           or not os.path.exists(self.cookies_file) \
+           or os.stat(self.cookies_file).st_mtime < lim:
+            self.do_login()
+        else:
+            with open(self.cookies_file, 'rb') as fp:
+                self.session.cookies.update(pickle.load(fp))
+        
+    def do_login(self):
+        url = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome'
+        loginPage = self.get_page(url)
+        soup = BeautifulSoup(loginPage, 'lxml')
+        sch = soup.find_all(attrs={'name': 'csrf_token'})
+        if not sch:
+            die(f'doLogin: Failed to find csrf_token')
+        with open(loginInfo) as fp:
+            dic = json.load(fp)
+        r = self.post_data(url, dic['atcoder'], csrf_token=sch[0]['value'])
+        time.sleep(0.5)
+        
+    def check_status_code(self, r, url):
+        r.encoding = 'UTF-8'
+        if r.status_code != requests.codes.ok:
+            with open('z.log', 'w', encoding='UTF-8') as wfp:
+                print(r.text, file=wfp)
+            die(f'Failed to get/post for {url}.  status_code = {r.status_code}.  '
+                  'Response is stored in z.log')
+        with open(self.cookies_file, 'wb') as wfp:
+            pickle.dump(self.session.cookies, wfp)
 
-def login():
-    global _sess
-    _sess = requests.Session()
-    cookies_file = f'{topDir}/.cookies'
-    lim = datetime.datetime.now().timestamp() - 60*60*12
-    if not os.path.exists(cookies_file) \
-       or os.stat(cookies_file).st_mtime < lim:
-        doLogin()
-        with open(cookies_file, 'wb') as wfp:
-            pickle.dump(_sess.cookies, wfp)
-        time.sleep(1)
-    else:
-        with open(cookies_file, 'rb') as fp:
-            _sess.cookies.update(pickle.load(fp))
-        os.utime(cookies_file)
+    def get_page(self, url):
+        r = self.session.get(url)
+        self.check_status_code(r, url)
+        return r.text
 
-def doLogin():
-    url = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome'
-    loginPage = getPage(url)
-    soup = BeautifulSoup(loginPage, 'lxml')
-    sch = soup.find_all(attrs={'name': 'csrf_token'})
-    if not sch:
-        die(f'doLogin: Failed to find csrf_token')
-    dic = {'username': 'yamate11', 'password': 'picture19river'}
-    r = postData(url, dic, csrf_token=sch[0]['value'])
-
-def checkStatusCode(r, url):
-    r.encoding = 'UTF-8'
-    if r.status_code != requests.codes.ok:
-        with open('z.log', 'w', encoding='UTF-8') as wfp:
-            print(r.text, file=wfp)
-        die(f'Failed to get/post for {url}.  status_code = {r.status_code}.  '
-              'Response is stored in z.log')
+    def post_data(self, url, payload, csrf_token=None):
+        if csrf_token is None:
+            # This code is fragile.
+            # A csrf_token is sent in an input_hidden tag of a form in HTML.
+            # A correct code should send this token with a post request.
+            # Thus, this third parameter csrf_token should not be None and
+            # the caller of this MySession.post_data method should parse
+            # the HTML file.  (And it should check the HTML file has been
+            # retrieved within the current session (i.e., requests.Session()).)
+            # But it seems in AtCoder it is OK to send the csrf_token value
+            # in the cookies with other post data, so csrf_token=None seems
+            # working....
+            for c in self.session.cookies:
+                mo = re.search(r'csrf_token%3A(.+?)%00', c.value)
+                if mo: 
+                    csrf_token = unquote(mo[1])
+                    break
+            if csrf_token is None:
+                die('Failed to retrieve csrf_token from sess.cookies.')
+        payload['csrf_token'] = csrf_token
+        r = self.session.post(url, payload)
+        self.check_status_code(r, url)
+        return r.text
 
 def getPage(url):
-    sess = session()
-    r = sess.get(url)
-    checkStatusCode(r, url)
-    return r.text
+    return MySession.the_instance().get_page(url)
 
 def postData(url, payload, csrf_token=None):
-    sess = session()
-    if csrf_token is None:
-        for c in sess.cookies:
-            mo = re.search(r'csrf_token%3A(.+?)%00', c.value)
-            if mo: 
-                csrf_token = unquote(mo[1])
-                break
-        if csrf_token is None:
-            die('Failed to retrieve csrf_token from sess.cookies.')
-    payload['csrf_token'] = csrf_token
-    r = sess.post(url, payload)
-    checkStatusCode(r, url)
-    
+    return MySession.the_instance().post_data(url, payload, csrf_token)
 
+def forceLogin():
+    MySession.the_instance(force_create=True)
 
 
 def in_file(id): return f'din_{id}.txt'

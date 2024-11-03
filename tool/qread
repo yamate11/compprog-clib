@@ -3,7 +3,7 @@
 import sys, argparse, os, re
 from bs4 import BeautifulSoup
 import util
-from util import warn, die, getPage, debug
+from util import warn, die, getPage, debug, forceLogin
 import time
 
 args = None
@@ -178,6 +178,9 @@ def main():
         if os.path.exists(q):
             die(f'File or directory {q} exists.')
 
+    if args.force_login:
+        forceLogin()
+
     for q in qdict:
         doQuest(q, qdict[q])
 
@@ -212,6 +215,10 @@ def parseArgs():
         help='''Problem URL.  If specified, -a, -c and quest are ignored.
         The question identifier is taken from the last letter of the URL.
         ''')
+    parser.add_argument(
+        '--force-login', action='store_true',
+        help='Create a new session and log into AtCoder.'
+        )
     parser.add_argument(
         'quest', type=str, nargs='*',
         help='question identifier such as a or f')

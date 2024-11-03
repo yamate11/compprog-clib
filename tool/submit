@@ -2,7 +2,7 @@
 
 import sys, argparse, os, re, subprocess
 from bs4 import BeautifulSoup
-from util import die, warn, postData
+from util import die, warn, postData, forceLogin
 
 args = None
 fKeep = None
@@ -64,6 +64,20 @@ def get_lang_info(srcName):
         die(f'Extension {mo[1]} is not supported.')
     return (li[mo[3]]['prog'], li[mo[3]]['jv'])
 
+def check_post_results(page):
+    soup2 = BeautifulSoup(page, 'lxml')
+    for title in soup2.find_all('title'):
+        if title.string.startswith('My Submissions'):
+            return True
+    # with open('dbg.html', 'w') as wfp:
+    #     print(page, file=wfp)
+    msg = 'The returned page is not as expected.'
+    if args.force_login:
+        msg += '  Maybe check username and password.'
+    else:
+        msg += '  Maybe retry with --force-login.'
+    die(msg)
+
 def main():
     global args, fKeep
     parser = argparse.ArgumentParser()
@@ -72,6 +86,10 @@ def main():
         help = 'submit the source without checking')
     parser.add_argument('-s', '--source', default='cans.cc', 
                         help='file to submit.  Default is cans.cc')
+    parser.add_argument(
+        '--force-login', action='store_true',
+        help='Create a new session and log into AtCoder.'
+        )
     args = parser.parse_args()
 
     (prog, langID) = get_lang_info(args.source)
@@ -90,7 +108,11 @@ def main():
                'sourceCode': code}
     url = contest_url + '/submit'
     diag('Submitting ...')
-    r = postData(url, payload)
+    if args.force_login:
+        forceLogin()
+    page = postData(url, payload)
+    check_post_results(page)
+
     diag('Done.')
 
 main()
