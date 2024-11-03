@@ -82,10 +82,10 @@ class MySession():
             # retrieved within the current session (i.e., requests.Session()).)
             # But it seems in AtCoder it is OK to send the csrf_token value
             # in the cookies with other post data, so csrf_token=None seems
-            # working....
+            # working.
             for c in self.session.cookies:
                 mo = re.search(r'csrf_token%3A(.+?)%00', c.value)
-                if mo: 
+                if mo:
                     csrf_token = unquote(mo[1])
                     break
             if csrf_token is None:
