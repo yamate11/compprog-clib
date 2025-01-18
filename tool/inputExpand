@@ -265,30 +265,34 @@ def mk_fields_list(param):
 
 def mkstruct(namebase, c_fields, idx, order, istr, ostr):
     tp = namebase + '_t'
-    out = f'struct {tp} {{'
-    out += '\n' + '\n'.join([f'  {t} {v};' for (v, t) in c_fields])
-    if idx:
-        out += f'\n  int {idx};'
     plist = ', '.join([f'{t} {v}_ = {t}()' for (v, t) in c_fields])
     init_list = ', '.join([f'{v}({v}_)' for (v, t) in c_fields])
     read_list = ' >> '.join([f't.{v}' for (v, t) in c_fields])
     write_list = ' << ", " << '.join([f't.{v}' for (v, t) in c_fields])
-    
-    out += f'''
-  // {tp}() {{}}
-  {tp}({plist}) : {init_list} {{}}'''
+
+    out = f'struct {tp} {{'
+
+    out += '\n' + '\n'.join([f'  {t} {v};' for (v, t) in c_fields])
     if idx:
-        out += f'\n  {tp}({plist}, int {idx}_) : {init_list}, {idx}({idx}_) {{}}'
+        out += f'\n  int {idx};'
+
+    if idx:
+        out += f'\n  {tp}({plist}, int {idx}_ = 0) : {init_list}, {idx}({idx}_) {{}}'
+    else:
+        out += f'\n  {tp}({plist}) : {init_list} {{}}'
+
     if istr:
         out += f'''\n  friend istream& operator>>(istream& istr, {tp}& t) {{
     istr >> {read_list};
     return istr;
   }}'''
+
     if ostr:
         out += f'''\n  friend ostream& operator<<(ostream& ostr, const {tp}& t) {{
     ostr << "(" << {write_list} << ")";
     return ostr;
   }}'''
+
     if order:
         out += f'\n  bool operator<(const {tp}& o) const {{'
         o_fields = []
@@ -301,6 +305,7 @@ def mkstruct(namebase, c_fields, idx, order, istr, ostr):
             out += f'\n    if ({s} {op1} o.{s}) return true;'
             out += f'\n    if ({s} {op2} o.{s}) return false;'
         out += '\n    return false;\n  }'
+
     out += '\n};'
     return out
 
