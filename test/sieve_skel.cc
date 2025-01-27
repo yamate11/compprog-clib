@@ -86,6 +86,15 @@ int main() {
         assert(not is_prime_MR(i));
       }
     }
+
+    // This is the list of y where 2^62 - y is a prime.
+    vector vec_diff{57, 87, 117, 143, 153, 167, 171, 195, 203, 273};
+    vector tbl(274, false);
+    for (ll v : vec_diff) tbl[v] = true;
+    ll x = 1LL << 62;
+    for (ll i = 0; i < 274; i++) {
+      assert(is_prime_MR(x - i) == tbl[i]);
+    }
   }
 
   cerr << "OK\n";

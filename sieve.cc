@@ -179,30 +179,44 @@ vector<ll> getDivisors(ll n, const vector<int>& primes) { return _gdsub(0, prfac
 vector<ll> getDivisorsDivSieve(ll n, const vector<int>& divSieve) { return _gdsub(0, prfacDivSieve(n, divSieve)); }
 
 // Miller-Rabin prime judgement
-// n must be in the range of int
-bool is_prime_MR(int n, int k = 20) {
+// is_prime_MR(n) returns true iff n is prime for u64 n.
+//     The original code is on https://zenn.dev/mizar/articles/791698ea860581
 
-  if (n == 2 or n == 3 or n == 5 or n == 7) return true;
-  if (n <= 1 or n % 2 == 0 or n % 3 == 0 or n % 5 == 0 or n % 7 == 0) return false;
-  using Fp = FpG<0>;
-  Fp::setMod(n);
-
-  Random rand;
-  int s = 0;
-  ll d = n - 1;
-  for (; d % 2 == 0; s++, d /= 2);
-
-  auto is_comp_evidence = [&](ll a) -> bool {
-    if (power<Fp>(Fp(a), d) == Fp(1)) return false;
-    for (int r = 0; r < s; r++) if (power<Fp>(Fp(a), (1LL << r) * d) == Fp(-1)) return false;
-    return true;
-  };
-
-  for (; k > 0; k--) {
-    ll a = rand.range(1, n);
-    if (is_comp_evidence(a)) return false;
+#include <cstdbool>
+#include <cstdint>
+uint64_t modmul(uint64_t a, uint64_t b, uint64_t n) {
+  return (uint64_t)(((__uint128_t)a) * ((__uint128_t)b) % ((__uint128_t)n));
+}
+uint64_t modpow(uint64_t a, uint64_t b, uint64_t n) {
+  uint64_t t = ((b & 1) == 0) ? 1 : a;
+  for (b >>= 1; b != 0; b >>= 1) {
+    a = modmul(a, a, n);
+    if ((b & 1) == 1) { t = modmul(t, a, n); } 
+  }
+  return t;
+}
+const uint64_t bases[] = {2,325,9375,28178,450775,9780504,1795265022};
+bool is_prime_MR(uint64_t n) {
+  if (n == 2) { return true; }
+  if (n < 2 || (n & 1) == 0) { return false; }
+  uint64_t n1 = n - 1, d = n - 1;
+  uint32_t s = 0;
+  for (; (d & 1) == 0; d >>= 1) { s += 1; }
+  for (const auto& base : bases) {
+    uint64_t a = base;
+    if (a >= n) {
+      a %= n;
+      if (a == 0) { continue; }
+    }
+    uint64_t t = modpow(a, d, n);
+    if (t == 1) { continue; }
+    for (uint32_t j = 1; t != n1; ++j) {
+      if (j >= s) { return false; }
+      t = modmul(t, t, n);
+    }
   }
   return true;
 }
+
 
 // @@ !! END ---- sieve.cc
