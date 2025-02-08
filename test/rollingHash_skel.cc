@@ -94,20 +94,36 @@ int main(int argc, char *argv[] ) {
     string s2 = "XXdefYYYZZ";
     auto hashes1 = rh.hashes(s1);
     auto hashes2 = rh.hashes(s2);
-    assert(hashes1.get() != hashes2.get());
-    assert(hashes1.get(3, 3) == hashes2.get(2, 3));
+    assert(rh.get(hashes1) != rh.get(hashes2));
+    assert(rh.get(hashes1, 3, 3) == rh.get(hashes2, 2, 3));
     string s3 = "xyz";
     string s4 = "Axyz";
     string s5 = "xyzA";
     auto hashes3 = rh.hashes(s3);
     auto hashes4 = rh.hashes(s4);
     auto hashes5 = rh.hashes(s5);
-    assert(rh.hash_concat('A', hashes3.get(), s3.size()) == hashes4.get());
-    assert(rh.hash_concat(hashes3.get(), 'A', 1) == hashes5.get());
+    assert(rh.hash_concat('A', rh.get(hashes3), s3.size()) == rh.get(hashes4));
+    assert(rh.hash_concat(rh.get(hashes3), 'A', 1) == rh.get(hashes5));
     string s6 = "abc";
     string s7 = "de";
     string s8 = "abcde";
-    assert(rh.hash_concat(rh.hashes(s6).get(), rh.hashes(s7).get(), ssize(s7)) == rh.hashes(s8).get());
+    u64 h6 = rh.hashvalue(s6);
+    u64 h7 = rh.hashvalue(s7);
+    u64 h8 = rh.hashvalue(s8);
+    assert(rh.hash_concat(h6, h7, ssize(s7)) == h8);
+    assert(h8 == rh_add(rh_mul(h6, rh.base_power(ssize(s7))), h7));
+  }
+
+  {
+    RollingHash rh;
+    const char* p = "Hello";
+    string s(p);
+    u64 h1 = rh.hashvalue(s);
+    u64 h2 = rh.hashvalue(p);
+    assert(h1 == h2);
+    auto hs1 = rh.hashes(s);
+    auto hs2 = rh.hashes(p);
+    assert(hs1 == hs2);
   }
 
   {
@@ -121,10 +137,10 @@ int main(int argc, char *argv[] ) {
     auto hashes0 = rh.hashes(s);
     for (ll i = 0; i < size; i++) {
       for (ll j = i; j <= size; j++) {
-	u64 hash1 = hashes0.get(i, j - i);
+	u64 hash1 = rh.get(hashes0, i, j - i);
 	string t = s.substr(i, j - i);
 	auto hashes2 = rh.hashes(t);
-	u64 hash2 = hashes2.get(0, j - i);
+	u64 hash2 = rh.get(hashes2, 0, j - i);
 	assert(hash1 == hash2);
       }
     }
@@ -146,9 +162,9 @@ int main(int argc, char *argv[] ) {
     for (ll i = 0; i < sz - len; i++) {
       for (ll j = i + 1; j < sz - len; j++) {
         if (i == p0 && j == q0) {
-          assert(hs.get(i, len) == hs.get(j, len));
+          assert(rh.get(hs, i, len) == rh.get(hs, j, len));
         }else {
-          assert(hs.get(i, len) != hs.get(j, len));
+          assert(rh.get(hs, i, len) != rh.get(hs, j, len));
         }
       }
     }
@@ -162,11 +178,10 @@ int main(int argc, char *argv[] ) {
     for (int i = 0; i < 5e4; i ++) {
       auto rh = make_rolling_hash_gen<pll>(0, 1LL << 30, hash_elem);
       auto hs = rh.hashes(vec);
-      assert(hs.get(0, 3) == hs.get(3, 3));
-      assert(hs.get(0, 4) != hs.get(3, 4));
+      assert(rh.get(hs, 0, 3) == rh.get(hs, 3, 3));
+      assert(rh.get(hs, 0, 4) != rh.get(hs, 3, 4));
     }
   }
-
 
   {
     // WeakRH rh{};
@@ -189,7 +204,7 @@ int main(int argc, char *argv[] ) {
         int q = dist_idx(rng2);
         if (p > q) swap(p, q);
         string t = s.substr(p, q-p);
-        u64 hash = hashes.get(p, q-p);
+        u64 hash = rh.get(hashes, p, q-p);
         auto it = mp.find(hash);
         if (it == mp.end()) {
           mp[hash] = t;
