@@ -165,11 +165,11 @@ vector<ll> _gdsub(int i, const auto& fs) {
   if (i == (int)fs.size()) { return vector<ll>({1}); }
   auto part = _gdsub(i+1, fs);
   auto [p, r] = fs[i];
-  ll pp = p;    // pp = p^m, for m \in [1, r]
+  ll pp = 1;    // pp = p^m, for m \in [1, r]
   int partOrigLen = part.size();
   for (int m = 1; m <= r; m++) {
-    for (int j = 0; j < partOrigLen; j++) part.push_back(pp * part[j]);
     pp *= p;
+    for (int j = 0; j < partOrigLen; j++) part.push_back(pp * part[j]);
   }
   return part;
 }

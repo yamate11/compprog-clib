@@ -74,9 +74,14 @@ int main() {
     }
   }
 
+  {  // bugfix test  ... The bug only occurred when compliled with -fsanitize=address,undefined
+    ll x = 10036048629166561; // 10009 ^ 4
+    assert(ssize(getDivisors(x)) == 5);
+  }
+
   {  // Miller-Rabin prime judgement
     ll n = 1e4;
-    auto primes = sieve(n);
+    auto primes = sieve(2 * n);
     ll j = 0;
     for (ll i = 2; i < n; i++) {
       if (primes[j] == i) {
