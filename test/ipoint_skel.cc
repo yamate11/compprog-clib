@@ -1,3 +1,4 @@
+#include <compare>
 #include <bits/stdc++.h>
 #include <cassert>
 typedef long long int ll;
@@ -44,6 +45,20 @@ int main() {
     assert(it3 != ump.end() && it3->second == 50);
     auto it4 = ump.find(IPoint(5, 3));
     assert(it4 == ump.end());
+  }
+
+  {
+    IPoint p00{0, 0}, p01{0, 1}, p10{1, 0};
+    assert(     p00 <  p01  and      p00 <  p10  and not (p00 <  p00));
+    assert(not (p00 >= p01) and not (p00 >= p10) and      p00 >= p00);
+    assert(not (p00 >  p01) and not (p00 >  p10) and not (p00 >  p00));
+    assert(     p00 <= p01  and      p00 <= p10  and      p00 <= p00);
+    assert(not (p00 == p01) and not (p00 == p10) and      p00 == p00);
+    assert(     p00 != p01  and      p00 != p10  and not (p00 != p00));
+
+    vector<IPoint> v{p00, p01, p10};
+    sort(v.begin(), v.end(), greater<IPoint>());
+    assert(v[0] == p10 and v[1] == p01 and v[2] == p00);
   }
 
   {

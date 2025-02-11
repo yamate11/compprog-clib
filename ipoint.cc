@@ -46,6 +46,8 @@ struct IPoint {
   IPoint mirror_x() const { return IPoint(x, -y); }
   IPoint mirror_y() const { return IPoint(-x, y); }
 
+  auto operator<=>(const IPoint&) const = default;   // This generates ==, !=, <, >, <=, >=.
+
   IPoint& operator +=(const IPoint& o) {
     x += o.x;
     y += o.y;
@@ -64,18 +66,10 @@ struct IPoint {
     return *this;
   }
 
-  bool operator ==(const IPoint& o) const { return x == o.x && y == o.y; }
-  bool operator !=(const IPoint& o) const { return x != o.x || y != o.y; }
   IPoint operator +(const IPoint& o) const { return IPoint(x, y) += o; }
   IPoint operator -(const IPoint& o) const { return IPoint(x, y) -= o; }
   IPoint operator *(ll k) const { return IPoint(x, y) *= k; }
   IPoint operator -() const { return IPoint(-x, -y); }
-
-  bool operator <(const IPoint& o) const {
-    // This seems awkward, but is needed for storing objects in maps.
-    if (x != o.x) return x < o.x;
-    else return y < o.y;
-  }
 
   bool parallel(const IPoint o) const { return x * o.y == y * o.x; }
 
