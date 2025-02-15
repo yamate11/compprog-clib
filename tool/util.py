@@ -34,8 +34,8 @@ class MySession():
         # requests.Session() creates a new session.  Thus, the following call
         # should be done only ONCE.
         self.session = requests.Session()
-        # Cookies will be regarded as stale if 12 hours passes (too short?)
-        lim = datetime.datetime.now().timestamp() - 60*60*12
+        # Cookies will be regarded as stale if 10 days has passed
+        lim = datetime.datetime.now().timestamp() - 60*60*24*10
         if force_do_login \
            or not os.path.exists(self.cookies_file) \
            or os.stat(self.cookies_file).st_mtime < lim:
