@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
   for (auto [x,y] : edge3) t3.add_edge(x, y);
   assert(t3.nnpath(1,5) == vector<int>({1,2,3,4,5}));
   assert(t3.nnpath(7,2) == vector<int>({7,6,5,4,3,2}));
-  for (int i = 0; i <=7; i++) assert(t3.ancestorDep(7,i) == i);
   assert(t3.lca(7,8) == 6);
   assert(t3.lca(8,13) == 0);
   assert(t3.lca(7,10) == 3);
@@ -145,14 +144,10 @@ int main(int argc, char *argv[]) {
           assert ((ll)(tr.num_children(i)) == cnt);
           assert (tr.depth(i) == 0);
           assert (tr.stsize(i) == N);
-          assert (tr.ancestorDep(i, 0) == i);
         }else {
           assert (conn[i][tr.parent(i)]);
           assert (tr.num_children(i) + 1 == cnt);
           assert (tr.depth(i) == tr.depth(tr.parent(i)) + 1);
-          vector tmp(tr.depth(i) + 1, 0LL);
-          for (ll d = 0; d <= tr.depth(i); d++) tmp[d] = tr.ancestorDep(i, d);
-          for (ll d = 1; d <= tr.depth(i); d++) assert (tr.parent(tmp[d]) == tmp[d - 1]);
         }
       }
       {
@@ -180,13 +175,6 @@ int main(int argc, char *argv[]) {
       }
       for (ll x = 0; x < N; x++) {
         for (ll y = 0; y < N; y++) {
-          ll z = tr.lca(x, y);
-          ll dz = tr.depth(z);
-          ll dx = tr.depth(x);
-          ll dy = tr.depth(y);
-          assert (dx >= dz and tr.ancestorDep(x, dz) == z);
-          assert (dy >= dz and tr.ancestorDep(y, dz) == z);
-          if (dx > dz and dy > dz) assert(tr.ancestorDep(x, dz + 1) != tr.ancestorDep(y, dz + 1));
           const auto vec = tr.nnpath(x, y);
           for (ll i = 0; i < SIZE(vec); i++) for (ll j = i + 1; j < SIZE(vec); j++) assert(vec[i] != vec[j]);
           assert (vec[0] == x and vec.back() == y);
@@ -195,38 +183,16 @@ int main(int argc, char *argv[]) {
           else            assert (tr.edge_idx(x, y) == -1);
         }
       }
-      { // getting LCA using euler tour and sparse table
-        int sz = 2 * N - 1;
-        int K = countr_zero(bit_floor((u64)sz));
-        vector sp_tbl(K + 1, vector(sz, -1));
-        for (int i = 0; i < sz; i++) {
-          auto [e, x, y] = tr.euler_edge(i);
-          sp_tbl[0][i] = y;
-        }
-        for (int k = 1; k <= K; k++) {
-          for (int i = 0; i < sz; i++) {
-            if (i + (1 << k) > sz) break;
-            int x = sp_tbl[k - 1][i];
-            int y = sp_tbl[k - 1][i + (1 << (k - 1))];
-            sp_tbl[k][i] = tr.depth(x) <= tr.depth(y) ? x : y;
-          }
-        }
+      { 
+        auto lca_naive = [&](int i, int j) -> int {
+          vector on_path(N, false);
+          for (int ii = i; ii >= 0; ii = tr.parent(ii)) on_path[ii] = true;
+          for (int jj = j; jj >= 0; jj = tr.parent(jj)) if (on_path[jj]) return jj;
+          assert(0);
+        };
         for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) {
-            if (i == j) continue;
             int x = tr.lca(i, j);
-            int y = -1, t0 = i, t1 = j;
-            int i0 = tr.euler_in(i), o0 = tr.euler_out(i), i1 = tr.euler_in(j), o1 = tr.euler_out(j);
-            assert(i0 != i1 and o0 != o1);
-            if (i0 > i1) { swap(t0, t1); swap(i0, i1); swap(o0, o1); }
-            if (o1 < o0) y = t0;
-            else {
-              assert(o0 < i1);
-              int len = i1 - o0;
-              int k = countr_zero(bit_floor((u64)len));
-              int u = sp_tbl[k][o0];
-              int v = sp_tbl[k][i1 - (1 << k)];
-              y = tr.depth(u) <= tr.depth(v) ? u : v;
-            }
+            int y = lca_naive(i, j);
             assert(x == y);
           }
       }
@@ -328,7 +294,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-
   // The length of the longest simple path that goes through the node
   using T5 = pair<ll, ll>;
   vector<TreeEdge> edge5({{0,1}, {0,2}, {0,3}, {1,4}, {1,5}, {2,6}, {2,7}});
@@ -352,6 +317,34 @@ int main(int argc, char *argv[]) {
   for (ll i = 0; i < t5.numNodes; i++) {
     assert(v5[i].first + v5[i].second == ans5[i]);
   }
+
+  // tree of size one
+  {
+    Tree tr(1, 0);
+    assert(tr.numNodes == 1);
+    assert(tr.root == 0);
+    assert(tr.num_children(0) == 0);
+    assert(tr.parent(0) == -1);
+    for (ll x : tr.children(0)) { assert(x != x); }
+    for (auto [cld_nd, cld_edge] : tr.children_pe(0)) { assert(cld_nd != cld_nd and cld_edge != cld_edge); }
+    assert(tr.edge_idx(0, 0) == -1);
+    assert(tr.depth(0) == 0);
+    assert(tr.stsize(0) == 1);
+    auto [e0, x0, y0] = tr.euler_edge(0);
+    auto [e1, x1, y1] = tr.euler_edge(1);
+    assert(e0 == 0 and e1 == 0 and y0 == 0 and x1 == 0);
+    assert(x0 == -1 and y1 == -1);
+    assert(tr.euler_in(0) == 0 and tr.euler_out(0) == 1);
+    assert(tr.lca(0, 0) == 0);
+    auto vec = tr.nnpath(0, 0);
+    assert(ssize(vec) == 1 and vec[0] == 0);
+    assert(get<0>(tr.diameter()) == 0);
+    pair<int, int> pp(0, -1);
+    assert(tr.centroids() == pp);
+    tr.change_root(0);
+    assert(tr.numNodes == 1);
+  }
+
 
   // ABC160-F
   using T6 = pair<ll, ll>;

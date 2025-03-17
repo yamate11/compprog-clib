@@ -67,12 +67,10 @@ struct Tree {
   vector<int> _stsize;
   vector<int> _depth;
   unordered_map<long long, int> _edge_idx;
-  vector<vector<int>> _pPnt;   
-          // _pPnt[0][n] == parent of n (or root if n is root)
-          // _pPnt[t][n] == parent^{2^t}[n]
   vector<int> _euler_in;
   vector<int> _euler_out;
   vector<pair<int, bool>> _euler_edge;
+  vector<vector<vector<int>>> _lca_tbl;
 
   constexpr static bool use_depth = true;
   constexpr static bool use_stsize = true;
@@ -207,39 +205,31 @@ struct Tree {
     else throw function_error("use_euler should be set to call euler_out.");
   }
 
-  void preparePPnt() {
-    if (not _pPnt.empty()) return;
-    vector<int> vec_parent(numNodes);
-    for (int i = 0; i < numNodes; i++) vec_parent[i] = i == root ? i : parent(i);
-    _pPnt.push_back(move(vec_parent));
-    for (int t = 0; true; t++) {
-      bool done = true;
-      vector<int> vec(numNodes);
-      for (int n = 0; n < numNodes; n++) {
-	int m = _pPnt[t][n];
-	vec[n] = _pPnt[t][m];
-	if (vec[n] != m) done = false;
-      }
-      _pPnt.push_back(move(vec));
-      if (done) break;
-    }
-  }
-
   // Lowest Common Ancestor
   int lca(int x, int y) {
-    if (depth(x) > depth(y)) swap(x, y);
-    int dep = depth(x);
-    int yy = ancestorDep(y, dep);
-    if (x == yy) return x;
-    int t = 0;
-    for (int q = 1; q < dep; q *= 2) t++;
-    for ( ; t >= 0; t--) {
-      if (_pPnt[t][x] != _pPnt[t][yy]) {
-	x = _pPnt[t][x];
-	yy = _pPnt[t][yy];
+    int kmax = 1 + bit_ceil((unsigned)numNodes);
+    int lastmove = 2 * numNodes - 2;
+    if (_lca_tbl.empty()) {
+      auto choose = [&](const auto& vec, int a, int b) -> int {
+        if (0 <= b and b <= lastmove and vec[b] >= 0) return depth(vec[a]) < depth(vec[b]) ? vec[a] : vec[b];
+        else return -1;
+      };
+      _lca_tbl.resize(kmax + 1, vector(2, vector(lastmove + 1, -1)));
+      for (int s = 0; s < 2; s++) for (int i = 0; i <= lastmove; i++) _lca_tbl[0][s][i] = get<2>(euler_edge(i));
+      for (int k = 1; k <= kmax; k++) {
+        int prev_len = 1 << (k - 1);
+        for (int s = 0; s < 2; s++) {
+          for (int i = 0; i <= lastmove; i++) _lca_tbl[k][0][i] = choose(_lca_tbl[k - 1][0], i, i + prev_len);
+          for (int i = 0; i <= lastmove; i++) _lca_tbl[k][1][i] = choose(_lca_tbl[k - 1][1], i, i - prev_len);
+        }
       }
     }
-    return parent(x);
+    int a = euler_in(x), b = euler_in(y);
+    if (a > b) swap(a, b);
+    int k = countr_zero(bit_floor((unsigned)(b - a + 1)));
+    int i = _lca_tbl[k][0][a];
+    int j = _lca_tbl[k][1][b];
+    return depth(i) < depth(j) ? i : j;
   }
 
   // the path between two nodes (list of nodes, including x and y)
@@ -252,15 +242,6 @@ struct Tree {
     for ( ; y != c; y = parent(y)) ret.push_back(y);
     reverse(ret.begin() + len, ret.end());
     return ret;
-  }
-
-  // the ancestor of n whose depth is dep
-  int ancestorDep(int x, int dep) {
-    preparePPnt();
-    int diff = depth(x) - dep;
-    if (diff < 0) throw range_error("ancestorDep");
-    for (int t = 0; diff >> t; t++) if (diff >> t & 1) x = _pPnt[t][x];
-    return x;
   }
 
 #pragma GCC diagnostic push
@@ -323,7 +304,7 @@ struct Tree {
     _edge_idx.clear();
     _euler_in.clear();
     _euler_out.clear();
-    _pPnt.clear();
+    _lca_tbl.clear();
 
     root = newRoot;
     _set_parent();
