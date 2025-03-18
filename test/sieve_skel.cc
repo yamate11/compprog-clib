@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(f:<< sieve)
+// @@ !! LIM(f:<< sieve random)
 
 int main() {
 
@@ -101,6 +101,39 @@ int main() {
       assert(is_prime_MR(x - i) == tbl[i]);
     }
   }
+
+  {  // prime factorization using Pollard's rho algorithm
+    Random rand;
+
+    ll n = 1e4;
+    auto primes = sieve(2 * n);
+    ll rep1 = 1000;
+    ll rep2 = 100;
+    for (ll i = 0; i < rep1; i++) {
+      ll x = rand.range(2, n * n);
+      auto pr1 = prfac(x, primes);
+      auto pr2 = prfacPollardsRho(x);
+      assert(pr1 == pr2);
+    }
+    for (ll i = 0; i < rep2; i++) {
+      ll h = 1e9;
+      ll x, y;
+      while (true) {
+        x = rand.range(2, h);
+        if (is_prime_MR(x)) break;
+      }
+      while (true) {
+        y = rand.range(2, h);
+        if (y != x and is_prime_MR(y)) break;
+      }
+      if (x > y) swap(x, y);
+      auto pr = prfacPollardsRho(x * y);
+      using pli = pair<ll, int>;
+      bool b = ssize(pr) == 2 and pr[0] == pli(x, 1) and pr[1] == pli(y, 1);
+      assert(b);
+    }
+  }
+
 
   cerr << "OK\n";
 }

@@ -36,9 +36,11 @@ using namespace std;
     // primes should contain prime numbers at least up to sqrt(m)
     // divSieve should contain divisors upto m.
 
-  bool is_prime_MR(int n, int k = 20);
+  bool is_prime_MR(uint64_t n);
     // Miller Rabin prime judgement.
-    // In this implementation, n must be within the range of int.
+
+  vector<pair<ll, int>>> prfacPollardsRho(ll n);
+    // Returns the prime factorization results, using Pollard's rho algorithm.    
 
 */
 
@@ -218,5 +220,74 @@ bool is_prime_MR(uint64_t n) {
   return true;
 }
 
+ll findPrimeFactor(ll n) {
+  if (n % 2 == 0) return 2;
+  ll m = llround(ceil(pow((double)n, 0.125)));
+  auto loop_c = [&]() -> ll {
+    auto sub_c = [&](int c) -> ll {
+      ll y = 0;
+      auto sub_r = [&](int r) -> ll {
+        auto next_rand = [&](__int128 a) -> ll { return (a * a + c) % n; };
+
+        ll x = y;
+        int th1 = 3 * r / 4;
+        for (int k = 0; k < th1; k++) y = next_rand(y);
+        for (int j = 0; th1 + j * m < r; j++) {
+          auto sub_range_all = [&](ll st, ll len) -> ll {
+            ll en = st + len > r ? r : st + len;
+            ll q = 1;
+            for (int k = st; k < en; k++) {
+              y = next_rand(y);
+              q = (__int128)q * abs(x - y) % n;
+            }
+            return gcd(q, n);
+          };
+
+          auto sub_range_each = [&](ll st, ll len) -> ll {
+            ll en = st + len > r ? r : st + len;
+            for (int k = st; k < en; k++) {
+              y = next_rand(y);
+              if (ll g = gcd(abs(x - y), n); g != 1) return g;
+            }
+            assert(0);
+          };
+
+          ll y_save = y;
+          auto g = sub_range_all(th1 + j * m, m);
+          if (g == n) {
+            y = y_save;
+            return sub_range_each(th1 + j * m, m);
+          }else if (g != 1) return g;
+        }
+        return 1;
+      };
+
+      for (int r = 1; true; r *= 2) { if (ll res = sub_r(r); res != 1) return res; }
+    };
+
+    for (int c = 1; true; c++) { if (ll res = sub_c(c); res != n) return res; }
+  };
+
+  ll v = loop_c();
+  if      (is_prime_MR(v    )) return v;
+  else if (is_prime_MR(n / v)) return n / v;
+  else return findPrimeFactor(v);
+}
+
+vector<pair<ll, int>> prfacPollardsRho(ll n) {
+  vector<pair<ll, int>> ret;
+  while (n > 1 and not is_prime_MR(n)) {
+    ll p = findPrimeFactor(n);
+    int r = 0;
+    while (n % p == 0) {
+      n /= p;
+      r++;
+    }
+    ret.emplace_back(p, r);
+  }
+  if (n > 1) ret.emplace_back(n, 1);
+  sort(ret.begin(), ret.end());
+  return ret;
+}
 
 // @@ !! END ---- sieve.cc
