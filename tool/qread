@@ -1,23 +1,13 @@
 #!/usr/bin/env python3
 
 import sys, argparse, os, re
+from argparse import Namespace
 from bs4 import BeautifulSoup
 import util
-from util import warn, die, getPage, debug, forceLogin
+from util import warn, die, getPage, debug
 import time
 
-args = None
-
-# def conflictFiles(qdict):
-#     files = []
-#     for d in qdict:
-#         if not os.path.isdir(d): continue
-#         for f in os.listdir(d):
-#             if f in ['q.html', 'Makefile', 'cans.cc'] or util.id_in_fname(f):
-#                 files.append(f'{d}/{f}')
-#     return files
-
-def quest(contestName):
+def quest(args: Namespace, contestName: str) -> dict[str, str]:
     qlist = 'qlist.html'
     if args.contest or not os.path.exists(qlist):
         url = f'https://atcoder.jp/contests/{contestName}/tasks'
@@ -28,9 +18,8 @@ def quest(contestName):
     with open(qlist, 'r', encoding='UTF-8') as fp:
         soup = BeautifulSoup(fp, 'lxml')
     qdict = {}
-    for row in soup.table.find_all('tr')[1:]:
-        qdict[row.a.string.lower()] = \
-            'https://atcoder.jp' + row.a.attrs['href']
+    for row in soup.table.find_all('tr')[1:]:    # type: ignore
+        qdict[row.a.string.lower()] = 'https://atcoder.jp' + row.a.attrs['href']    # type: ignore
     if args.all_questions:
         return qdict
     retv = {}
@@ -42,8 +31,8 @@ def quest(contestName):
     return retv
 
 # We assume that samples are in <h3> tags....
-def extractEg(qid, page):
-    def sub(tag, exp, dic):
+def extractEg(qid: str, page: str) -> None:
+    def sub(tag, exp: str, dic: dict[str, str]) -> None:
         if not tag.string: return
         mo = re.search(exp, tag.string)
         if not mo: return
@@ -59,8 +48,8 @@ def extractEg(qid, page):
         dic[mo[1]] = tag.string.strip() if tag.string else ''
 
     soup = BeautifulSoup(page, 'lxml')
-    ins = {}
-    outs = {}
+    ins: dict[str, str] = {}
+    outs: dict[str, str] = {}
     for tag in soup.find_all('h3'):
         sub(tag, r'(?:Sample\s*Input|入力例)\s*(\d+)', ins)
         sub(tag, r'(?:Sample\s*Output|出力例)\s*(\d+)', outs)
@@ -77,7 +66,7 @@ def extractEg(qid, page):
             if outs[i]:
                 print(outs[i], file=wfp)
 
-def makeMakefile(path):
+def makeMakefile(path: str) -> None:
     with open(path, 'w', encoding='UTF-8') as wfp:
         print('''
 CXX := g++
@@ -106,7 +95,7 @@ clean:
 	$(RM) cans.o cans cans.exe *~ *.stackdump core
 ''', file=wfp)
 
-def makeSource(path):
+def makeSource(path: str) -> None:
     with open(path, 'w', encoding='UTF-8') as wfp:
         print('''#include <bits/stdc++.h>
 #include <cassert>
@@ -133,7 +122,7 @@ int main(/* int argc, char *argv[] */) {
 }
 ''', file=wfp)
 
-def doQuest(qid, url):
+def doQuest(qid: str, url: str) -> None:
     # debug('doQuest ', qid, url)
     if not os.path.exists(qid):
         os.mkdir(qid)
@@ -152,7 +141,7 @@ def doQuest(qid, url):
     makeMakefile(f'{qid}/Makefile')
     makeSource(f'{qid}/cans.cc')
 
-def getContestName(name):
+def getContestName(name: str) -> str:
     cnFile = ".contestName"
     if name:
         with open(cnFile, 'w') as wfp:
@@ -163,14 +152,13 @@ def getContestName(name):
             return fp.readline().strip()
     return os.path.basename(os.getcwd())
 
-def main():
-    global args
+def main() -> None:
     args = parseArgs()
 
     if args.url:
         qdict = {args.url[-1]: args.url}
     elif args.quest or args.all_questions:
-        qdict = quest(getContestName(args.contest))
+        qdict = quest(args, getContestName(args.contest))
     else:
         die('No question is specified.')
 
@@ -178,47 +166,50 @@ def main():
         if os.path.exists(q):
             die(f'File or directory {q} exists.')
 
-    if args.force_login:
-        forceLogin()
-
+    warn('Processing ', end='')
     for q in qdict:
+        warn(q, end='... ')
         doQuest(q, qdict[q])
+    warn('Done.')
 
-def parseArgs():
+def parseArgs() -> Namespace:
     parser = argparse.ArgumentParser(
-        description='''Reads AtCoder questions, extracts input/output examples,
-        makes a makefile and cans.cc.
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='''
+Reads AtCoder questions, extracts input/output examples, makes a makefile 
+and cans.cc.  
+
+Examples:
+  * qread --url=https://atcoder.jp/contests/abc398/tasks/abc398_a
+      Read a single question.
+  * qread --contest abc398 a b c
+      Read questions a, b and c of Contest abc398.
+  * qread d e
+      Read questions d and e.  If qread has been executed in this directory,
+      the same contest is used.  Otherwise, the name of the current directory
+      is assumed as the contest name.
+  * qread --all_questions
+      Read all questions of the contest.
 '''
     )
-    # parser.add_argument(
-    #     '-e', '--existing', type=str,
-    #     choices=['keep', 'overwrite', 'k', 'o'],
-    #     help="If 'k' or 'keep' is specified, files are untouched; "
-    #          "for 'o' or 'overwrite', files are overwritten."
-    # )
     parser.add_argument(
-        '-c', '--contest', type=str,
+        '--url', type=str,
+        help='''Problem URL.  If specified, --all_questions, --contest 
+        and quest are ignored.
+        The question identifier is taken from the last letter of the URL.
+        ''')
+    parser.add_argument(
+        '--contest', type=str,
         help='''Contest identifier, such as abc147 or tdpc.
         If not specified, it is taken from the most recently specified name,
         which has been saved into ./.contestName, or the directory name.
         ''')
+    # It is dangerous to define one character '-c' option, because when
+    # the user mistakingly typed `-contest abc`, it is interpreted as
+    # `-c ontest abc`.
     parser.add_argument(
         '-a', '--all_questions', action='store_true',
         help='All questions will be retrieved.')
-    # parser.add_argument(
-    #     '--force', action='store_true',
-    #     help='''Existing directories will be overwritten.  If not specified,
-    #     an existing directory causes an error.
-    #     ''')
-    parser.add_argument(
-        '--url', type=str,
-        help='''Problem URL.  If specified, -a, -c and quest are ignored.
-        The question identifier is taken from the last letter of the URL.
-        ''')
-    parser.add_argument(
-        '--force-login', action='store_true',
-        help='Create a new session and log into AtCoder.'
-        )
     parser.add_argument(
         'quest', type=str, nargs='*',
         help='question identifier such as a or f')

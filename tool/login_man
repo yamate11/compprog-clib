@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+
+from typing import Optional
+import argparse, json, pickle, os, sys
+from argparse import Namespace
+from requests.cookies import RequestsCookieJar
+from util import warn, die, getPage, debug, checkLogin, writeCookieFile
+
+def op_check(args: Namespace) -> bool:
+    e = checkLogin()
+    if args.quiet:
+        pass
+    elif args.non_verbose:
+        print('in' if e else 'out')
+    elif e:
+        print('No problems were detected.  Tools will use a logged-in session.')
+    else:
+        print('The session used by tools is not logged into atcoder.jp.')
+        print('To fix it, you can use the following steps:')
+        print(cookie_steps())
+    return e
+
+def op_use(args: Namespace) -> None:
+    with open(args.use, 'r') as fp:
+        cookies = json.load(fp)
+    jar = RequestsCookieJar()
+    for c in cookies:
+        if c['domain'] == 'atcoder.jp' or c['domain'] == '.atcoder.jp':
+            jar.set(c['name'], c['value'], domain=c['domain'], path=c['path'])
+    writeCookieFile(jar)
+
+def main() -> None:
+    args = parseArgs()
+    if args.check:
+        if not op_check(args):
+            sys.exit(1)
+    elif args.use:
+        if args.non_verbose:
+            die("--non-verbose can only be used with --check")
+        if args.quiet:
+            die("--quiet can only be used with --check")
+        op_use(args)
+    else:
+        assert False
+
+def parseArgs() -> Namespace:
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=f'''
+login_man -- login management for tools
+
+The command can check if already logged in -- meaning that whether sessions
+in invocations of tools such as `submit` or `qread` will be executed in the 
+logged-in state or not.  If not, the command can also be used to have 
+those sessions use the infomation of an existing Chrome session using the
+following steps:
+
+{cookie_steps()}
+
+Examples:
+  * login_man --check
+      Checks if already logged in and prints a message.
+  * login_man --check --non-verbose
+      Checks if already logged in and prints "in" or "out".
+  * login man --check --quiet
+      No output.  (The exit code is non-zero if not logged in.)
+  * login_man --use jsonfile
+      Gets a logged-in status using jsonfile.
+'''
+    )
+    operation = parser.add_mutually_exclusive_group(required=True)
+    operation.add_argument(
+        '-c', '--check', action='store_true',
+        help='Checks if logged-in'
+        )
+    operation.add_argument(
+        '-u', '--use', type=str, metavar='JSON',
+        help='Use cookies info in file JSON in the following tool sessions'
+        )
+    parser.add_argument(
+        '-n', '--non-verbose', action='store_true',
+        help='Just prints "in" or "out" in check mode'
+        )
+    parser.add_argument(
+        '-q', '--quiet', action='store_true',
+        help='''No output in check mode.  The check results is
+        indicated in the exit code.  
+        It is zero if logged-in, non-zero otherwise.'''
+        )
+    return parser.parse_args()
+
+def cookie_steps():
+    return '''
+* Install the Chrome extension called Cookie-Editor if not done yet.
+* Using Chrome, log into atcoder.jp manually.
+* Display the Chrome Developer Tool on an AtCoder page.
+* Select the Cookie-Editor panel in Developer Tool.
+* Push the Extract button and select JSON to copy cookie information into
+  the clipboard.
+* Save the contents of the clipboard into a file.
+* Invoke this command as `login_man --use file` where file is the 
+  name of the file in the previous bullet.
+'''
+
+
+
+main()

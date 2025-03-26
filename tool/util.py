@@ -1,14 +1,17 @@
+from __future__ import annotations
+from typing_extensions import Self, TypeAlias
 import os, subprocess, sys, re, requests, pickle, datetime, time, typing, json
 from urllib.parse import unquote
 from bs4 import BeautifulSoup
+from requests.cookies import RequestsCookieJar
 
 topDir = '/home/y-tanabe/proj/compprog'
-def getTopDir():
+def getTopDir() -> str:
     return topDir
 
 loginInfo = os.environ['HOME'] + '/.compprog.json'
 
-def warn(*msg, **opt):
+def warn(*msg, **opt) -> None:
     print(*msg, **opt, file=sys.stderr, flush=True)
 
 debug = warn
@@ -17,61 +20,69 @@ def die(*msg) -> typing.NoReturn:
     warn('ERROR:', *msg)
     sys.exit(1)
 
+topPage = 'https://atcoder.jp'
+
 class UtilError(Exception):
     pass
 
+PayloadType: TypeAlias = dict[str, str]
 
-class MySession():
+# The singleton pattern is used.
+class MySession:
 
-    @classmethod
-    def the_instance(cls, force_create=False):
-        if not hasattr(cls, 'instance') or force_create:
-            cls.instance = cls(force_do_login=force_create)
-        return cls.instance
+    _instance : MySession | None = None
 
-    def __init__(self, force_do_login):
-        self.cookies_file = f'{topDir}/.cookies'
-        # requests.Session() creates a new session.  Thus, the following call
-        # should be done only ONCE.
-        self.session = requests.Session()
-        # Cookies will be regarded as stale if 10 days has passed
-        lim = datetime.datetime.now().timestamp() - 60*60*24*10
-        if force_do_login \
-           or not os.path.exists(self.cookies_file) \
-           or os.stat(self.cookies_file).st_mtime < lim:
-            self.do_login()
-        else:
+    def __new__(cls) -> MySession:
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self) -> None:
+        if not hasattr(self, '_initialized'):
+            self.cookies_file = f'{topDir}/.cookies'
+            # requests.Session() creates a new session.  Thus, the following call
+            # should be done only ONCE.
+            self.session = requests.Session()
+            # Cookies will be regarded as stale if 10 days has passed
+            if not os.path.exists(self.cookies_file):
+                warn(f'Cookies file {self.cookies_file} does not exist.  Will create one.')
+                self.write_cookie_file(RequestsCookieJar())
             with open(self.cookies_file, 'rb') as fp:
                 self.session.cookies.update(pickle.load(fp))
+            self._initialized = True
+
+    # def do_login(self):
+    #     url = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome'
+    #     loginPage = self.get_page(url)
+    #     soup = BeautifulSoup(loginPage, 'lxml')
+    #     sch = soup.find_all(attrs={'name': 'csrf_token'})
+    #     if not sch:
+    #         die(f'doLogin: Failed to find csrf_token')
+    #     with open(loginInfo) as fp:
+    #         dic = json.load(fp)
+    #     r = self.post_data(url, dic['atcoder'], csrf_token=sch[0]['value'])
+    #     time.sleep(0.5)
         
-    def do_login(self):
-        url = 'https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome'
-        loginPage = self.get_page(url)
-        soup = BeautifulSoup(loginPage, 'lxml')
-        sch = soup.find_all(attrs={'name': 'csrf_token'})
-        if not sch:
-            die(f'doLogin: Failed to find csrf_token')
-        with open(loginInfo) as fp:
-            dic = json.load(fp)
-        r = self.post_data(url, dic['atcoder'], csrf_token=sch[0]['value'])
-        time.sleep(0.5)
-        
-    def check_status_code(self, r, url):
+    def write_cookie_file(self, jar: RequestsCookieJar) -> None:
+        with open(self.cookies_file, 'wb') as wfp:
+            pickle.dump(jar, wfp)
+
+    def check_status_code(self, r: requests.Response, url: str) -> None:
         r.encoding = 'UTF-8'
         if r.status_code != requests.codes.ok:
             with open('z.log', 'w', encoding='UTF-8') as wfp:
                 print(r.text, file=wfp)
             die(f'Failed to get/post for {url}.  status_code = {r.status_code}.  '
                   'Response is stored in z.log')
-        with open(self.cookies_file, 'wb') as wfp:
-            pickle.dump(self.session.cookies, wfp)
+        self.write_cookie_file(self.session.cookies)
 
-    def get_page(self, url):
+    def get_page(self, url: str) -> str:
         r = self.session.get(url)
         self.check_status_code(r, url)
         return r.text
 
-    def post_data(self, url, payload, csrf_token=None):
+    def post_data(self, url: str, payload: PayloadType,
+                  csrf_token : str | None = None) -> str:
         if csrf_token is None:
             # This code is fragile.
             # A csrf_token is sent in an input_hidden tag of a form in HTML.
@@ -81,13 +92,11 @@ class MySession():
             # the HTML file.  (And it should check the HTML file has been
             # retrieved within the current session (i.e., requests.Session()).)
             # But it seems in AtCoder it is OK to send the csrf_token value
-            # in the cookies with other post data, so csrf_token=None seems
-            # working.
-            for c in self.session.cookies:
-                mo = re.search(r'csrf_token%3A(.+?)%00', c.value)
-                if mo:
+            # embedded in the value of the cookie named REVEL_SESSION, so 
+            # csrf_token=None seems working.
+            if (val := self.session.cookies.get('REVEL_SESSION')):
+                if (mo := re.search(r'csrf_token%3A(.+?)%00', val)):
                     csrf_token = unquote(mo[1])
-                    break
             if csrf_token is None:
                 die('Failed to retrieve csrf_token from sess.cookies.')
         payload['csrf_token'] = csrf_token
@@ -95,20 +104,58 @@ class MySession():
         self.check_status_code(r, url)
         return r.text
 
-def getPage(url):
-    return MySession.the_instance().get_page(url)
+    def check_login(self) -> bool:
+        with open(loginInfo) as fp:
+            dic = json.load(fp)
+            username = dic['atcoder']['username']
+        jp_page = f'{topPage}/?lang=ja'
+        cont = self.get_page(jp_page)
+        soup = BeautifulSoup(cont, 'lxml')
+        header = soup.find(id='header')
+        if header:
+            # debug('header found')
+            def pat1():
+                if not (hm := header.find(class_='header-mypage')):
+                    return False
+                for s in hm.stripped_strings:
+                    if s == username:
+                        return True
+                return False
+            def pat2():
+                if not (hc := header.find(class_='header-control')):
+                    return False
+                for s in hc.stripped_strings:
+                    if s == 'ログイン':
+                        return True
+                return False
+            if pat1():
+                return True
+            elif pat2():
+                return False
+        else:
+            # debug('header not found')    
+            die('Failed to check login.  Unknown page pattern.')
 
-def postData(url, payload, csrf_token=None):
-    return MySession.the_instance().post_data(url, payload, csrf_token)
+def getPage(url: str) -> str:
+    return MySession().get_page(url)
 
-def forceLogin():
-    MySession.the_instance(force_create=True)
+def postData(url: str, payload: PayloadType,
+             csrf_token : str | None = None) -> str:
+    return MySession().post_data(url, payload, csrf_token)
 
+def checkLogin() -> bool:
+    return MySession().check_login()
 
-def in_file(id): return f'din_{id}.txt'
-def exp_file(id): return f'dexp_{id}.txt'
-def act_file(id): return f'dact_{id}.txt'
-def id_in_fname(name):
+def writeCookieFile(jar: RequestsCookieJar) -> None:
+    MySession().write_cookie_file(jar)
+
+def in_file(id: str) -> str:
+    return f'din_{id}.txt'
+def exp_file(id: str) -> str:
+    return f'dexp_{id}.txt'
+def act_file(id: str) -> str:
+    return f'dact_{id}.txt'
+def id_in_fname(name: str) -> str | None:
     mo = re.match(r'd(?:in|exp|act)_(.*)\.txt$', name)
     if mo: return mo[1]
     else:  return None
