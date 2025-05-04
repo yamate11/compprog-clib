@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(perm)
+// @@ !! LIM(perm debug)
 
 int cmp_vec(const auto& v1, const auto& v2) {
   ll m = min(v1.size(), v2.size());
@@ -89,6 +89,10 @@ int main() {
     vector<ll> v2{{3, 2, 1}};
     IntDirProd p2(v2);
     assert(my_compare(p2, vvi({{0,0,0},{0,1,0},{1,0,0},{1,1,0},{2,0,0},{2,1,0}})));
+  }
+  {
+    IntPartition p1{5};
+    assert(my_compare(p1, vvi{{1,1,1,1,1},{1,1,1,2},{1,1,3},{1,2,2},{1,4},{2,3},{5}}));
   }
 
 
@@ -185,6 +189,28 @@ int main() {
     chkDupComb(8, 5);
     chkDupComb(3, 8);
   }
+  {
+    auto count_partition = [&](ll n) {
+      IntPartition p(n);
+      ll cnt = 0;
+      while (p.get()) { cnt++; }
+      return cnt;
+    };
+    assert(count_partition(10) == 42);
+    assert(count_partition(20) == 627);
+    assert(count_partition(30) == 5604);
+
+    using u64 = unsigned long long;
+    IntPartition part_u64((u64)10);
+    part_u64.get();
+    vector<u64> tmp1 = part_u64.vec_view();  // just to test if compilation is ok
+    IntPartition part_ll((long long)10);
+    part_ll.get();
+    vector<ll> tmp2 = part_ll.vec_view();
+    IntPartition part_unsigned((unsigned)10);
+    part_unsigned.get();
+    vector<unsigned> tmp3 = part_unsigned.vec_view();
+  }
 
 
   auto test_is_empty = [&](auto p) -> void { assert(my_compare(p, vvi{})); };
@@ -210,25 +236,22 @@ int main() {
     test_is_single(IntDupComb(5, 0));
   }
 
-  auto test_double = [&](auto p) -> void {
+  auto test_run_twice = [&](auto p) -> void {
     vector<vector<int>> res1, res2;
     while (p.get()) {
-      vector<int> v;
-      for (int i = 0; i < p.r; i++) v.push_back(p.at(i));
-      res1.push_back(move(v));
+      res1.push_back(p.vec_view());
     }
     while (p.get()) {
-      vector<int> v;
-      for (int i = 0; i < p.r; i++) v.push_back(p.at(i));
-      res2.push_back(move(v));
+      res2.push_back(p.vec_view());
     }
     assert(res1 == res2);
   };
   {
-    test_double(IntPerm(3, 2));
-    test_double(IntComb(7, 3));
-    test_double(IntDupPerm(7, 3));
-    test_double(IntDupComb(7, 3));
+    test_run_twice(IntPerm(3, 2));
+    test_run_twice(IntComb(7, 3));
+    test_run_twice(IntDupPerm(7, 3));
+    test_run_twice(IntDupComb(7, 3));
+    test_run_twice(IntPartition(10));
   }
 
   cerr << "ok\n";

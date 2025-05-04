@@ -7,7 +7,7 @@ using namespace std;
   Permutations
 
   Structs:
-    IntPerm, IntComb, IntDupPerm, IntDupComb, IntDirProd
+    IntPerm, IntComb, IntDupPerm, IntDupComb, IntDirProd, IntPartition
 
   Usage:
 
@@ -16,6 +16,7 @@ using namespace std;
     IntDupPerm dip(3, 2);  // Sequences of length 2 from [0, 3)
     IntDupComb dic(3, 2);  // Sorted sequences of length 2 from [0, 3)
     IntDirProd did{vector{{1, 2, 3}}};  // Sequences (a, b, c) s.t. a < 1, b < 2 and c < 3
+    IntPartition part(5);  // Partitions of 5
 
     while (ip.get()) {  
       for (int i = 0; i < 2; i++) cout << ip.at(i) << " ";
@@ -31,6 +32,7 @@ using namespace std;
     //    IntDupComb ... [0,0],[0,1],[0,2],      [1,1],[1,2],            [2,2]
     //
     //    IntDirProd ... [0,0,0],[0,0,1],[0,0,2],[0,1,0],[0,1,1],[0,1,2]
+    //    IntPartition ... [[1,1,1,1,1],[1,1,1,2],[1,1,3],[1,2,2],[1,4],[2,3],[5]]
 
     // Note:
     //    Unless 0 <= n and 0 <= r, they returns {}.
@@ -44,6 +46,19 @@ using namespace std;
 
    For Debugging:
       const vector<int>& vec_view() const;
+
+   About partition:
+      table of partition numbers up to 10000: https://oeis.org/A000041/b000041.txt
+      // 0  1  2  3  4  5   6   7   8   9  10  11  12   13   14   15   16   17   18   19     //  i
+      [  1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490]    // p(i)
+      p(20) = 627
+      p(25) = 1958
+      p(30) = 5604
+      p(40) = 37338 (3.7E4)
+      p(50) = 204226 (2.0E5)
+      p(61) = 1121505 (1.1E6)
+      p(77) = 10619863 (1.1E7)
+
 */
 
 // @@ !! LIM()
@@ -203,7 +218,39 @@ struct IntDirProd {
     for (int i = r - 1; i >= 0; vec[i--] = 0) if (++vec[i] < lim[i]) return true;
     return finish();
   }
+};
 
+template<typename INT>
+struct IntPartition {
+  INT n;
+  vector<INT> vec;
+  bool started = false;
+  IntPartition(INT n_) : n(n_) {}
+  
+  bool get() {
+    if (not started) {
+      started = true;
+      vec = vector<INT>(n, 1);
+      return true;
+    }else if (ssize(vec) == 1) {
+      started = false;
+      return false;
+    }else {
+      ll b = vec.back(); vec.pop_back();
+      ll a = vec.back(); vec.pop_back();
+      ll c = a + b;
+      ll a1 = a + 1;
+      while (c - a1 >= a1) {
+        vec.push_back(a1);
+        c -= a1;
+      }
+      vec.push_back(c);
+      return true;
+    }
+  }
+
+  INT at(int i) const { return vec[i]; }
+  const vector<INT>& vec_view() const { return vec; }
 };
 
 // @@ !! END() ---- perm.cc
