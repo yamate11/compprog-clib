@@ -5,6 +5,7 @@ using namespace std;
 
 /*
   Bellman-Ford Algorithm and ``Ushi-Game'' (Ushige)
+  https://yamate11.github.io/blog/posts/2025/05-05-bellman-ford/
  */
 
 //////////////////////////////////////////////////////////////////////
