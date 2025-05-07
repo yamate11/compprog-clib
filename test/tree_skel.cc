@@ -4,6 +4,7 @@ typedef long long int ll;
 using namespace std;
 #define SIZE(v) ((ll)((v).size()))
 using u64 = unsigned long long;
+using pll = pair<ll, ll>;
 
 // @@ !! LIM(mod debug tree)
 
@@ -20,24 +21,24 @@ int main(int argc, char *argv[]) {
     return dist(rng);
   };
 
-  using TreeEdge = pair<int, int>;
+  using TreeEdge = pll;
 
   {
     vector<TreeEdge> edge1({{0,1}, {0,2}, {1,3}, {1,4}, {2,5}, {2,6}});
     Tree t1(7);
     for (auto [x,y] : edge1) t1.add_edge(x, y);
-    assert(t1.nnpath(1, 2) == vector<int>({1,0,2}));
-    assert(t1.nnpath(3, 2) == vector<int>({3,1,0,2}));
-    assert(t1.nnpath(6, 0) == vector<int>({6,2,0}));
-    assert(t1.nnpath(4, 2) == vector<int>({4,1,0,2}));
-    assert(t1.nnpath(2, 4) == vector<int>({2,0,1,4}));
+    assert(t1.nnpath(1, 2) == vector<ll>({1,0,2}));
+    assert(t1.nnpath(3, 2) == vector<ll>({3,1,0,2}));
+    assert(t1.nnpath(6, 0) == vector<ll>({6,2,0}));
+    assert(t1.nnpath(4, 2) == vector<ll>({4,1,0,2}));
+    assert(t1.nnpath(2, 4) == vector<ll>({2,0,1,4}));
     assert(t1.parent(0) == -1);
     assert(t1.parent(1) == 0);
     assert(t1.parent(6) == 2);
-    vector<int> v;
-    for (int c : t1.children(0)) v.push_back(c);
+    vector<ll> v;
+    for (ll c : t1.children(0)) v.push_back(c);
     sort(v.begin(), v.end());
-    assert(v == vector<int>({1, 2}));
+    assert(v == vector<ll>({1, 2}));
     assert(t1.stsize(0) == 7);
     assert(t1.stsize(2) == 3);
     assert(t1.stsize(5) == 1);
@@ -47,14 +48,13 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    using pii = pair<int, int>;
     Tree t2(3);
     t2.add_edge(0, 1);
     t2.add_edge(0, 2);
     assert(t2.edge_idx(0,1) == 0);
     assert(t2.edge_idx(2,0) == 1);
-    assert(t2.nodes_of_edge(0) == pii(0, 1));
-    assert(t2.nodes_of_edge(1) == pii(0, 2));
+    assert(t2.nodes_of_edge(0) == pll(0, 1));
+    assert(t2.nodes_of_edge(1) == pll(0, 2));
   }
 
   vector<TreeEdge>
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
 	   {6,8}, {3,9}, {9,10}, {0,11}, {11,12}, {11,13}});
   Tree t3(14);
   for (auto [x,y] : edge3) t3.add_edge(x, y);
-  assert(t3.nnpath(1,5) == vector<int>({1,2,3,4,5}));
-  assert(t3.nnpath(7,2) == vector<int>({7,6,5,4,3,2}));
+  assert(t3.nnpath(1,5) == vector<ll>({1,2,3,4,5}));
+  assert(t3.nnpath(7,2) == vector<ll>({7,6,5,4,3,2}));
   assert(t3.lca(7,8) == 6);
   assert(t3.lca(8,13) == 0);
   assert(t3.lca(7,10) == 3);
@@ -72,16 +72,16 @@ int main(int argc, char *argv[]) {
     edge4({{0,1}, {1,2}, {3,4}, {0,3}, {3,5}, {6,7}, {6,8}, {6,1}});
   Tree t4(9);
   for (auto [x,y] : edge4) t4.add_edge(x, y);
-  auto sub4 = [](Tree t, int i)  {
-    vector<int> v;
-    for (int j = 0; j < t.num_children(i); j++) v.push_back(t.child(i, j));
-    return set<int>(v.begin(), v.end());
+  auto sub4 = [](Tree t, ll i)  {
+    vector<ll> v;
+    for (ll j = 0; j < t.num_children(i); j++) v.push_back(t.child(i, j));
+    return set<ll>(v.begin(), v.end());
   };
-  assert(sub4(t4, 0) == set<int>({1,3}));
-  assert(sub4(t4, 1) == set<int>({2,6}));
-  assert(sub4(t4, 3) == set<int>({4,5}));
-  assert(sub4(t4, 6) == set<int>({7,8}));
-  assert(sub4(t4, 8) == set<int>());
+  assert(sub4(t4, 0) == set<ll>({1,3}));
+  assert(sub4(t4, 1) == set<ll>({2,6}));
+  assert(sub4(t4, 3) == set<ll>({4,5}));
+  assert(sub4(t4, 6) == set<ll>({7,8}));
+  assert(sub4(t4, 8) == set<ll>());
   assert(t4.parent(0) == -1);
   assert(t4.parent(1) == 0);
   assert(t4.parent(2) == 1);
@@ -151,9 +151,9 @@ int main(int argc, char *argv[]) {
         }
       }
       {
-        for (int nd = 0; nd < N; nd++) {
-          int nc = 0;
-          for (int cld : tr.children(nd)) {
+        for (ll nd = 0; nd < N; nd++) {
+          ll nc = 0;
+          for (ll cld : tr.children(nd)) {
             assert(nd == tr.parent(cld));
             assert(cld == tr.child(nd, nc));
             auto [p, e] = tr.parent_pe(cld);
@@ -162,11 +162,11 @@ int main(int argc, char *argv[]) {
             nc++;
           }
           assert(nc == tr.num_children(nd));
-          int i = 0;
+          ll i = 0;
           for (auto [cld, e1] : tr.children_pe(nd)) {
             auto [p, e2] = tr.parent_pe(cld);
             assert(p == nd and e1 == e2);
-            int e3 = tr.child_edge(nd, i);
+            ll e3 = tr.child_edge(nd, i);
             assert(e1 == e3);
             assert(e1 == tr.edge_idx(nd, cld));
             i++;
@@ -184,15 +184,15 @@ int main(int argc, char *argv[]) {
         }
       }
       { 
-        auto lca_naive = [&](int i, int j) -> int {
+        auto lca_naive = [&](ll i, ll j) -> ll {
           vector on_path(N, false);
-          for (int ii = i; ii >= 0; ii = tr.parent(ii)) on_path[ii] = true;
-          for (int jj = j; jj >= 0; jj = tr.parent(jj)) if (on_path[jj]) return jj;
+          for (ll ii = i; ii >= 0; ii = tr.parent(ii)) on_path[ii] = true;
+          for (ll jj = j; jj >= 0; jj = tr.parent(jj)) if (on_path[jj]) return jj;
           assert(0);
         };
-        for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) {
-            int x = tr.lca(i, j);
-            int y = lca_naive(i, j);
+        for (ll i = 0; i < N; i++) for (ll j = 0; j < N; j++) {
+            ll x = tr.lca(i, j);
+            ll y = lca_naive(i, j);
             assert(x == y);
           }
       }
@@ -228,26 +228,26 @@ int main(int argc, char *argv[]) {
 
   // Euler Tour
   {
-    int rep = 1000;
-    for (int _r = 0; _r < rep; _r++) {
-      int nn = randrange(1, 17);
-      int root = randrange(0, nn);
+    ll rep = 1000;
+    for (ll _r = 0; _r < rep; _r++) {
+      ll nn = randrange(1, 17);
+      ll root = randrange(0, nn);
       Tree tr(nn, root);
-      for (int i = 1; i < nn; i++) {
-        int j = randrange(0, i);
+      for (ll i = 1; i < nn; i++) {
+        ll j = randrange(0, i);
         if (randrange(0, 2) == 0) tr.add_edge(i, j);
         else                      tr.add_edge(j, i);
       }
 
-      auto dfs = [&](auto rF, int nd) -> vector<int> {
-        int ein = tr.euler_in(nd);
-        int eout = tr.euler_out(nd);
-        vector<int> v{ein, eout};
+      auto dfs = [&](auto rF, ll nd) -> vector<ll> {
+        ll ein = tr.euler_in(nd);
+        ll eout = tr.euler_out(nd);
+        vector<ll> v{ein, eout};
         if (tr.num_children(nd) == 0) {
           assert(ein + 1 == eout);
           return v;
         }else {
-          for (int i : tr.children(nd)) {
+          for (ll i : tr.children(nd)) {
             auto w = rF(rF, i);
             v.insert(v.end(), w.begin(), w.end());
           }
@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
           assert(v[0] == ein);
           assert(v.back() == eout);
           assert(ssize(v) == eout - ein + 1);
-          for (int i = 0; i < ssize(v) - 1; i++) v[i + 1] = v[i] + 1;
+          for (ll i = 0; i < ssize(v) - 1; i++) v[i + 1] = v[i] + 1;
         }
         return v;
       };
@@ -264,16 +264,16 @@ int main(int argc, char *argv[]) {
   }
 
   { // testing centroids() with change_root()
-    int rep = 1000;
-    for (int _r = 0; _r < rep; _r++) {
-      int N = randrange(1, 11);
+    ll rep = 1000;
+    for (ll _r = 0; _r < rep; _r++) {
+      ll N = randrange(1, 11);
       Tree tr(N);
-      for (int i = 1; i < N; i++) tr.add_edge(i, randrange(0, i));
-      vector<int> ans;
-      for (int i = 0; i < N; i++) {
+      for (ll i = 1; i < N; i++) tr.add_edge(i, randrange(0, i));
+      vector<ll> ans;
+      for (ll i = 0; i < N; i++) {
         if ([&]() -> bool {
           ll rem = N - 1;
-          for (int j : tr.children(i)) {
+          for (ll j : tr.children(i)) {
             if (tr.stsize(j) * 2 > N) return false;
             rem -= tr.stsize(j);
           }
@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
           return true;
         }()) ans.push_back(i);
       }
-      for (int z = 0; z < N; z++) {
+      for (ll z = 0; z < N; z++) {
         tr.change_root(z);
         auto [a, b] = tr.centroids();
         if (b < 0) {
@@ -339,7 +339,7 @@ int main(int argc, char *argv[]) {
     auto vec = tr.nnpath(0, 0);
     assert(ssize(vec) == 1 and vec[0] == 0);
     assert(get<0>(tr.diameter()) == 0);
-    pair<int, int> pp(0, -1);
+    pair<ll, ll> pp(0, -1);
     assert(tr.centroids() == pp);
     tr.change_root(0);
     assert(tr.numNodes == 1);
@@ -422,8 +422,8 @@ int main(int argc, char *argv[]) {
     auto myadd = [&](const sta& p1, const sta& p2) -> sta {
       return sta(p1.first * p2.first , p1.second + p2.second);
     };
-    auto mod1 = [&](sta p, int nd, int cd) -> sta { return sta(p.first / cb.fact(p.second), p.second); };
-    auto mod2 = [&](sta p, int nd) -> sta { return sta(p.first * cb.fact(p.second), p.second + 1); };
+    auto mod1 = [&](sta p, ll nd, ll cd) -> sta { return sta(p.first / cb.fact(p.second), p.second); };
+    auto mod2 = [&](sta p, ll nd) -> sta { return sta(p.first * cb.fact(p.second), p.second + 1); };
     auto result = reroot(tr, unit, myadd, mod1, mod2);
     vector<ll> expected{40, 280, 840, 120, 120, 504, 72, 72};
     for (ll i = 0; i < N; i++) assert(result[i].first == expected[i]);
