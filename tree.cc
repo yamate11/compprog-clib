@@ -207,7 +207,7 @@ struct Tree {
 
   // Lowest Common Ancestor
   ll lca(ll x, ll y) {
-    ll kmax = 1 + bit_ceil((unsigned)numNodes);
+    ll kmax = 1 + bit_width((unsigned)numNodes);
     ll lastmove = 2 * numNodes - 2;
     if (_lca_tbl.empty()) {
       auto choose = [&](const auto& vec, ll a, ll b) -> ll {
