@@ -14,6 +14,7 @@ cans3
 /test/*_t
 /test/*_t.d
 /test/tmp/
+/test/data/auto
 /boost
 /html
 /tool/tmp

@@ -429,6 +429,91 @@ int main(int argc, char *argv[]) {
     for (ll i = 0; i < N; i++) assert(result[i].first == expected[i]);
   }
 
+  { // large tree (number of nodes ~ 2e5)
+
+    /*
+    auto summary = [&](auto& tr) -> void {
+      vector<ll> depths;
+      vector<ll> degrees;
+      for (ll i = 0; i < tr.numNodes; i++) {
+        depths.push_back(tr.depth(i));
+        degrees.push_back(tr.num_children(i) + 1);
+      }
+      sort(depths.begin(), depths.end(), greater<ll>());
+      sort(degrees.begin(), degrees.end(), greater<ll>());
+      for (ll i = 0; i < min(5, (int)ssize(depths)); i++) DLOGK(depths[i]);
+      for (ll i = 0; i < min(5, (int)ssize(degrees)); i++) DLOGK(degrees[i]);
+    };
+    */
+
+    auto doit = [&](string fname) -> void {
+      string datadir = "/home/y-tanabe/proj/compprog-clib/test/data/auto";
+      string path = datadir + "/" + fname;
+      std::ifstream file(path);
+      assert(file);
+      ll n; file >> n;
+      DLOGKL("reading", fname);
+      Tree tr(n);
+      for (ll i = 0; i < n - 1; i++) {
+        ll u, v; file >> u >> v; u--; v--;
+        tr.add_edge(u, v);
+      }
+      DLOG("done");
+      // summary(tr);
+      for (int i = 0; i < 500; i++) {
+        ll nd = randrange(0, tr.numNodes);
+        if (nd != tr.root) {
+          ll pt = tr.parent(nd);
+          assert(tr.depth(pt) + 1 == tr.depth(nd));
+          auto p = tr.parent_pe(nd);
+          assert(p.peer == pt);
+          auto z = tr.nodes_of_edge(p.edge);
+          assert(pt < nd ? z == pll(pt, nd) : z == pll(nd, pt));
+        }
+        if (tr.num_children(nd) > 0) {
+          ll cld0 = tr.child(nd, 0);
+          assert(tr.depth(nd) + 1 == tr.depth(cld0));
+          auto p = tr.child_pe(nd, 0);
+          assert(cld0 == p.peer);
+          auto z = tr.nodes_of_edge(p.edge);
+          assert(nd < cld0 ? z == pll(nd, cld0) : z == pll(cld0, nd));
+          assert(tr.stsize(nd) > tr.stsize(cld0));
+        }
+        for (ll c : tr.children(nd)) {
+          assert(nd == tr.parent(c));
+          break;
+        }
+        for (auto p : tr.children_pe(nd)) {
+          assert(tr.parent(p.peer) == nd);
+          auto z = tr.nodes_of_edge(p.edge);
+          assert(z == pll(nd, p.peer) or z == pll(p.peer, nd));
+          assert(tr.edge_idx(nd, p.peer) == p.edge and tr.edge_idx(p.peer, nd) == p.edge);
+          break;
+        }
+      }
+      for (ll nd = 0; nd < tr.numNodes; nd++) {
+        if (nd != tr.root) {
+          ll pt = tr.parent(nd);
+          ll e = tr.edge_idx(nd, pt);
+          auto z = tr.nodes_of_edge(e);
+          assert(nd < pt ? z == pll(nd, pt) : z == pll(pt, nd));
+        }
+      }
+      // euler tour is tested in lca, and lca is tested in nnpath
+      auto [diam, nd0, nd1, ct0, ct1] = tr.diameter();
+      auto ns = tr.nnpath(nd0, nd1);
+      assert(ssize(ns) == diam + 1);
+      auto [r1, r2] = tr.centroids();
+      tr.change_root(r1);
+      for (ll c : tr.children(r1)) {
+        assert(tr.stsize(c) * 2 <= tr.numNodes);
+      }
+    };
+
+    vector<string> fnames{"tree1.txt", "tree2.txt", "tree3.txt"};
+    for (string fname: fnames) doit(fname);
+  }
+
 
   cerr << "test done." << endl;
   return 0;
