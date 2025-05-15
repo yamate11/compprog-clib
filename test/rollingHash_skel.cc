@@ -135,6 +135,8 @@ int main(int argc, char *argv[] ) {
     auto hashes2 = rh.hashes(abc);
     assert(rh.get(hashes2, 2, 0) == 0);
     assert(rh.get(hashes2, 3) == 0);
+    u64 h3 = rh.hashvalue(string{});
+    assert(h3 == 0);
   }
 
   {
