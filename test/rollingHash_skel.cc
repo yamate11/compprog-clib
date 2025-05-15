@@ -128,6 +128,17 @@ int main(int argc, char *argv[] ) {
 
   {
     RollingHash rh;
+    string empty;
+    u64 h1 = rh.hashvalue(empty);
+    assert(h1 == 0);
+    string abc = "abc";
+    auto hashes2 = rh.hashes(abc);
+    assert(rh.get(hashes2, 2, 0) == 0);
+    assert(rh.get(hashes2, 3) == 0);
+  }
+
+  {
+    RollingHash rh;
     uniform_int_distribution<char> dist('0', '1');
     ll size = 100;
     string s(size, 0);
