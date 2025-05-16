@@ -21,7 +21,7 @@ struct BitVector {
   BitVector() = default;
   BitVector(ll N_) : N(N_), vsize((N + 63) / 64), vs(vsize + 1), vb(vsize), built(false) {}
   void set(bool val, int k) {
-    if (built) throw RuntimeError("already built.");
+    if (built) throw runtime_error("already built.");
     if (val) vb[k >> 6] |=   1ULL << (k & 63);
     else     vb[k >> 6] &= ~(1ULL << (k & 63));
   }
@@ -34,10 +34,18 @@ struct BitVector {
   }
   ll rank(bool val, ll k) {
     if (not built) build();
-    ll cnt1 = vs[k >> 6] + popcount(vb[i] & ((1ULL << (k & 63)) - 1));
+    ll cnt1 = vs[k >> 6] + popcount(vb[k >> 6] & ((1ULL << (k & 63)) - 1));
     if (val) return cnt1;
     else     return k - cnt1;
   }
+
+  // for debugging
+  vector<bool> vec_view() {
+    vector<bool> vec(N);
+    for (ll i = 0; i < N; i++) vec[i] = at(i);
+    return vec;
+  }
+
 };
 
 template<typename INT=ll>
@@ -50,17 +58,17 @@ struct WaveletMatrix {
   pair<bool, INT> _h_rest(ll h, INT t) { return {t >> h & 1, t & ((static_cast<INT>(1) << h) - 1)}; }
 
   WaveletMatrix() = default;
-  WaveletMatrix(const auto& vec, ll amax) : N(vec.size()), ht(bitwidth((u64)amax)), vbv(ht, BitVector(N)), mid(ht) {
+  WaveletMatrix(const auto& vec, ll amax) : N(vec.size()), ht(bit_width((u64)amax)), vbv(ht, BitVector(N)), mid(ht) {
     vector tmpA{vec, vector<INT>(N)};
     vector tmpB(2, vector<INT>(N));
-    vector a{N, 0};
-    vector b{0, 0};
+    vector<ll> a{N, 0};
+    vector<ll> b{0, 0};
     for (ll h = ht - 1; h >= 0; h--) {
       for (int e = 0; e < 2; e++) {
         for (ll i = 0; i < a[e]; i++) {
           auto [x, y] = _h_rest(h, tmpA[e][i]);
-          vbv[h].set(x, i);
-          tmpB[x][b[e]++] = y;
+          vbv[h].set(x, e == 0 ? i : a[0] + i);
+          tmpB[x][b[x]++] = y;
         }
       }
       mid[h] = b[0];
@@ -91,7 +99,7 @@ struct WaveletMatrix {
     ll l = 0;
     for (ll h = ht - 1; h >= 0; h--) {
       ll x = t >> h & 1;
-      auto [l, r] = _next_range(x, l, r, h);
+      tie (l, r) = _next_range(x, l, r, h);
     }
     return r - l;
   }
@@ -119,6 +127,7 @@ struct WaveletMatrix {
       if (x == 1) ret += vbv[h].rank(0, r) - vbv[h].rank(0, l);
       tie(l, r) = _next_range(x, l, r, h);
     }
+    return ret;
   }
 
   // #{i \in [l, r) : lo <= vec[i] < hi }
