@@ -119,6 +119,9 @@ struct WaveletMatrix {
     return ret;
   }
 
+  // k-th largest value in vec[l, r)   (0-indexed)
+  INT kth_largest(ll k, ll l, ll r) { return kth_smallest(r - l - 1 - k, l, r); }
+
   // #{ i \in [l, r) : vec[i] < hi }
   ll range_freq(INT hi, ll l, ll r) {
     ll ret = 0;

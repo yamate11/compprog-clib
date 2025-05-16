@@ -78,6 +78,9 @@ void test_wm1() {
   assert(wm.kth_smallest(2, 1, 5) == 4);
   assert(wm.kth_smallest(4, 0, 5) == 6);
 
+  assert(wm.kth_largest(3, 0, 8) == 4);
+  assert(wm.kth_largest(1, 0, 3) == 6);
+
   assert(wm.range_freq(4, 0, 8) == 4);
   assert(wm.range_freq(1, 2, 6) == 0);
   assert(wm.range_freq(6, 2, 6) == 3);
@@ -105,10 +108,13 @@ void test_wm2() {
     ll l1 = myrand.range(0, N);
     ll r1 = myrand.range(l1 + 1, N + 1);
     ll k = myrand.range(0, r1 - l1);
+    ll k2 = myrand.range(0, r1 - l1);
     vector<ll> vv;
     REP(j, l1, r1) vv.push_back(vec[j]);
     sort(ALL(vv));
     assert(wm.kth_smallest(k, l1, r1) == vv[k]);
+    sort(ALL(vv), greater<ll>());
+    assert(wm.kth_largest(k2, l1, r1) == vv[k2]);
     ll t1 = myrand.range(0, amax + 1);
     ll t2 = myrand.range(0, amax + 1);
     if (t1 > t2) swap(t1, t2);
