@@ -58,7 +58,13 @@ struct WaveletMatrix {
   pair<bool, INT> _h_rest(ll h, INT t) { return {t >> h & 1, t & ((static_cast<INT>(1) << h) - 1)}; }
 
   WaveletMatrix() = default;
-  WaveletMatrix(const auto& vec, ll amax) : N(vec.size()), ht(bit_width((u64)amax)), vbv(ht, BitVector(N)), mid(ht) {
+  WaveletMatrix(const auto& vec, ll amax) { _init(vec, amax); }
+  void _init(const auto& vec, ll amax) {
+    if (amax < 0) amax = *max_element(vec.begin(), vec.end());
+    N = ssize(vec);
+    ht = bit_width((u64)amax);
+    vbv = vector(ht, BitVector(N));
+    mid = vector<int>(ht);
     vector tmpA{vec, vector<INT>(N)};
     vector tmpB(2, vector<INT>(N));
     vector<ll> a{N, 0};
@@ -96,6 +102,7 @@ struct WaveletMatrix {
 
   // #{ i < r : vec[i] == t }
   ll rank(INT t, ll r) {
+    if (bit_width((u64)t) > ht) return 0;
     ll l = 0;
     for (ll h = ht - 1; h >= 0; h--) {
       ll x = t >> h & 1;
@@ -106,6 +113,7 @@ struct WaveletMatrix {
 
   // k-th smallest value in vec[l, r)   (0-indexed)
   INT kth_smallest(ll k, ll l, ll r) {
+    if (k < 0 or k >= r - l) throw runtime_error("k out of range");
     INT ret = 0;
     for (ll h = ht - 1; h >= 0; h--) {
       ll num0 = vbv[h].rank(0, r) - vbv[h].rank(0, l);
@@ -124,6 +132,7 @@ struct WaveletMatrix {
 
   // #{ i \in [l, r) : vec[i] < hi }
   ll range_freq(INT hi, ll l, ll r) {
+    if (bit_width((u64)hi) > ht) return r - l;
     ll ret = 0;
     for (ll h = ht - 1; h >= 0; h--) {
       ll x = hi >> h & 1;

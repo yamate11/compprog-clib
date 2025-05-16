@@ -72,11 +72,18 @@ void test_wm1() {
   assert(wm.rank(6, 2) == 1);
   assert(wm.rank(6, 3) == 2);
   assert(wm.rank(6, 8) == 2);
+  assert(wm.rank(64+6, 8) == 0);
 
   assert(wm.kth_smallest(0, 0, 8) == 0);
   assert(wm.kth_smallest(1, 1, 5) == 2);
   assert(wm.kth_smallest(2, 1, 5) == 4);
   assert(wm.kth_smallest(4, 0, 5) == 6);
+
+  try {
+    wm.kth_smallest(5, 0, 5);
+    assert(false);
+  }catch(runtime_error& e) {
+  }
 
   assert(wm.kth_largest(3, 0, 8) == 4);
   assert(wm.kth_largest(1, 0, 3) == 6);
@@ -90,16 +97,16 @@ void test_wm1() {
 }
 
 void test_wm2() {
-  ll rep = 1000;
+  ll rep = 10000;
   for (ll _r = 0; _r < rep; _r++) {
     ll N = myrand.range(2, 20);
     ll amax = myrand.range(2, 20);
     vector<ll> vec(N);
     REP(i, 0, N) vec.push_back(myrand.range(0, amax + 1));
-    WaveletMatrix wm(vec, amax);
+    WaveletMatrix wm(vec, (myrand.range(0, 100) < 50 ? amax : -1));
     ll i = myrand.range(0, N);
     assert(wm.access(i) == vec[i]);
-    ll x = myrand.range(0, amax + 1);
+    ll x = myrand.range(0, amax + 2);  // x == amax+1 is tested
     ll cnt1 = 0;
     REP(j, 0, N) {
       if (vec[j] == x) cnt1++;
@@ -115,8 +122,8 @@ void test_wm2() {
     assert(wm.kth_smallest(k, l1, r1) == vv[k]);
     sort(ALL(vv), greater<ll>());
     assert(wm.kth_largest(k2, l1, r1) == vv[k2]);
-    ll t1 = myrand.range(0, amax + 1);
-    ll t2 = myrand.range(0, amax + 1);
+    ll t1 = myrand.range(0, amax + 2); // amax+1 is tested
+    ll t2 = myrand.range(0, amax + 2);
     if (t1 > t2) swap(t1, t2);
     ll cnt2 = 0;
     REP(r, l1, N + 1) {
