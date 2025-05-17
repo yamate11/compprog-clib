@@ -99,8 +99,8 @@ void test_wm1() {
 void test_wm2() {
   ll rep = 10000;
   for (ll _r = 0; _r < rep; _r++) {
-    ll N = myrand.range(2, 20);
-    ll amax = myrand.range(2, 20);
+    ll N = myrand.range(1, 20);
+    ll amax = myrand.range(1, 20);
     vector<ll> vec(N);
     REP(i, 0, N) vec.push_back(myrand.range(0, amax + 1));
     WaveletMatrix wm(vec, (myrand.range(0, 100) < 50 ? amax : -1));
@@ -134,6 +134,12 @@ void test_wm2() {
   }
 }
 
+void test_wm3() { // vec is empty
+  vector<ll> vec;
+  WaveletMatrix wm(vec, -1);
+  assert(wm.rank(1, 0) == 0);
+  assert(wm.range_freq(0, 10, 0, 0) == 0);
+}
 
 
 int main() {
@@ -143,6 +149,7 @@ int main() {
 
   test_wm1();
   test_wm2();
+  test_wm3();
 
   cerr << "ok" << endl;
   return 0;

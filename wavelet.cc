@@ -34,7 +34,7 @@ struct BitVector {
   }
   ll rank(bool val, ll k) {
     if (not built) build();
-    ll cnt1 = vs[k >> 6] + popcount(vb[k >> 6] & ((1ULL << (k & 63)) - 1));
+    ll cnt1 = (k >= N) ? vs.back() : vs[k >> 6] + popcount(vb[k >> 6] & ((1ULL << (k & 63)) - 1));
     if (val) return cnt1;
     else     return k - cnt1;
   }
@@ -60,7 +60,7 @@ struct WaveletMatrix {
   WaveletMatrix() = default;
   WaveletMatrix(const auto& vec, ll amax) { _init(vec, amax); }
   void _init(const auto& vec, ll amax) {
-    if (amax < 0) amax = *max_element(vec.begin(), vec.end());
+    if (amax < 0) amax = vec.empty() ? 1 : *max_element(vec.begin(), vec.end());
     N = ssize(vec);
     ht = bit_width((u64)amax);
     vbv = vector(ht, BitVector(N));
