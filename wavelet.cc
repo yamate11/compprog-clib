@@ -6,6 +6,7 @@ using namespace std;
 
 /*
   Wavelet Matrix
+  https://yamate11.github.io/blog/posts/2025/05-17-wavelet-matrix-lib/
  */
 
 //////////////////////////////////////////////////////////////////////
