@@ -27,6 +27,8 @@ using namespace std;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- unordered_map.cc
 
+/* This code is based on https://codeforces.com/blog/entry/62393 */
+
 /*
 #include <ext/pb_ds/assoc_container.hpp>
 using namespace __gnu_pbds;
