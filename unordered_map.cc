@@ -18,8 +18,10 @@ using namespace std;
 #    // Now, mymap can be used almost same as unordered_map<T_key, T_value>
 ###
     
-    // The following also works, but maybe you do not need to do that.
+    // The following also works.
     using mymap = unordered_map<T_key, T_value, safe_custom_hash>;
+    using myset = unordered_set<T, safe_custom_hash>;
+    using mymultiset = unordered_multiset<T, safe_custom_hash>;
 
 */
 
