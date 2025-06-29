@@ -1,69 +1,229 @@
 #include <bits/stdc++.h>
 #include <cassert>
-typedef long long int ll;
 using namespace std;
+using ll =  long long int;
+using u64 = unsigned long long;
 
-/**
- * @file trie.cc
- * @brief Trie木の実装
-
- Trie木を実装したもの．
-
+/*
+  https://yamate11.github.io/blog/posts/2025/06-28-trie-with-pointers/
  */
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- trie.cc
 
-/**
- * @brief Trie木
- *
- * テンプレートパラメタ T には，ユーザデータを格納するデータ型を指定する．
- *   特に使わないときには，仮に，T = ll としておく．
- */
+template <int bt_size, char from, typename User = monostate,
+  typename S = string, bool compact = 2 < bt_size, bool has_offset = true>
+struct Trie {
 
+  Trie* parent = nullptr;
+
+  using c_pat_t = conditional_t<compact, unsigned long long, monostate>;
+  [[no_unique_address]] c_pat_t c_pat{};
+
+  using cpt_children_t = conditional_t<compact, vector<Trie*>, monostate>;
+  [[no_unique_address]] cpt_children_t cpt_children{};
+
+  using children_t = conditional_t<compact, monostate, array<Trie*, bt_size>>;
+  [[no_unique_address]] children_t children{};
+
+  using offset_t = conditional_t<has_offset, int, monostate>;
+  static consteval offset_t make_default_offset() {
+    if constexpr (is_same_v<offset_t, int>) return -1;
+    else return {};
+  }
+  [[no_unique_address]] offset_t offset = make_default_offset();
+
+  bool reside = false;
+
+  int size_st = 0;
+
+  [[no_unique_address]] User user{};
+
+  Trie() = default;
+  Trie(Trie* p, int offset_) : parent(p) {
+    if constexpr (has_offset) offset = offset_;
+  }
+
+  Trie* get_child_val(int c, bool create = false) { return get_child_offset(c - from, create); }
+
+  Trie* get_child_offset(int d, bool create = false) {
+    if constexpr(compact) {
+      ll idx = popcount(c_pat & ((1ULL << d) - 1));
+      if (c_pat >> d & 1) return cpt_children[idx];
+      if (not create) return nullptr;
+      Trie* p = new Trie(this, d);
+      cpt_children.insert(cpt_children.begin() + idx, p);
+      c_pat |= 1ULL << d;
+      return p;
+    }else {
+      Trie* p = children[d];
+      if (p) return p;
+      if (not create) return nullptr;
+      p = children[d] = new Trie(this, d);
+      return p;
+    }
+  }
+
+  struct children_iterator {
+    Trie* node;
+    int idx;
+    int offset;
+    explicit children_iterator(Trie* node_, int idx_, int offset_) : node(node_), idx(idx_), offset(offset_) {
+      _next_effective_child();
+    }
+    pair<Trie*, char> operator*() const {
+      Trie* p;
+      if constexpr (compact) p = node->cpt_children[idx];
+      else                   p = node->children[idx];
+      return make_pair(p, from + offset);
+    }
+    void _next_effective_child() {
+      if constexpr (compact) {
+        if constexpr (has_offset) {
+          if (idx < ssize(node->cpt_children)) offset = node->cpt_children[idx]->offset;
+          else offset = bt_size;
+        }else {
+          while (offset < bt_size and not (node->c_pat >> offset & 1)) offset++;
+        }
+      }else {
+        while (idx < bt_size and not node->children[idx]) idx++;
+        offset = idx;
+      }
+    }
+    const children_iterator& operator++() {
+      idx++;
+      offset++;
+      _next_effective_child();
+      return *this;
+    }
+    bool operator !=(const children_iterator& o) const { return node != o.node or offset != o.offset; }
+  };
+
+  struct children_view {
+    Trie* node;
+    children_view(Trie* node_) : node(node_) {}
+    children_iterator begin() const { return children_iterator(node, 0, 0); }
+    children_iterator end() const { return children_iterator(node, bt_size, bt_size); }
+  };
+
+  auto children_w_val() { return children_view(this); }
+
+  Trie* get_node(const auto& s, bool create = false) {
+    Trie* tr = this;
+    for (auto c : s) {
+      auto cld = tr->get_child_val(c, create);
+      if (not cld) return nullptr;
+      tr = cld;
+    }
+    return tr;
+  }
+  Trie* get_node(const char* s, bool create = false) { return get_node(string(s), create); }
+
+  Trie* search(const auto& s) {
+    Trie* p = get_node(s);
+    if (p and not p->reside) p = nullptr;
+    return p;
+  }
+  Trie* search(const char* s) { return search(string(s)); }
+
+  Trie* insert(const auto& s) {
+    Trie* tr = get_node(s, true);
+    if (not tr->reside) {
+      tr->reside = true;
+      for (Trie* p = tr; p; p = p->parent) p->size_st++;
+    }
+    return tr;
+  }
+  Trie* insert(const char* s) { return insert(string(s)); }
+
+  void erase() {
+    if (reside) for (Trie* tr = this; tr; tr = tr->parent) tr->size_st--;
+    reside = false;
+  }
+
+  int get_offset() {
+    if constexpr (has_offset) return offset;
+    else {
+      Trie* p = parent;
+      if (not p) return -1;
+      for (int d = 0; d < bt_size; d++) if (p->get_child_offset(d) == this) return d;
+      assert(0);
+    }
+  }
+
+  S repr() {
+    S ret;
+    for (Trie* tr = this; true; tr = tr->parent) {
+      ll d = tr->get_offset();
+      if (d < 0) break;
+      ret.push_back(from + tr->get_offset());
+    }
+    reverse(ret.begin(), ret.end());
+    return ret;
+  }
+
+  void _show_sub(auto& vec) {
+    if (reside) vec.push_back(repr());
+    for (int i = 0; i < bt_size; i++) {
+      Trie* p = get_child_offset(i);
+      if (p) p->_show_sub(vec);
+    }
+  }
+
+  vector<S> show() {
+    vector<S> ret;
+    _show_sub(ret);
+    return ret;
+  }
+
+
+};
+
+
+/*
 template <typename T = ll>
 struct TrieNode {
-  /** このノードに対応する文字列が Trie に格納されている数 */
+  // このノードに対応する文字列が Trie に格納されている数 
   int _num;
-  /** このノード以下に存在する要素の数 */
+  // このノード以下に存在する要素の数 
   int _size;
-  /** ユーザデータ */
+  // ユーザデータ 
   T user;
   
-  /** コンストラクタ */
+  // コンストラクタ 
   TrieNode(int n = 0, int s = 0, const T& u = T())
     : _num(n), _size(s), user(u) {};
 };
 
 template <typename T = ll>
 struct Trie {
-  /** 最初の文字 */
+  // 最初の文字 
   char from;
-  /** 文字の種類数 */
+  // 文字の種類数 
   int br_size;
-  /** ノード．nodes[0] は，空文字列に対応する．*/
+  // ノード．nodes[0] は，空文字列に対応する．
   vector<TrieNode<T>> nodes;
-  /** 添字 
+  // 添字 
       若干奇妙ではあるが，第 i 番目のノードに対応する文字列を s とするとき，
       その親ノードの添字を index[i * (br_size + 1)] に格納し，
       j 番目の子供，つまり，s + (char)(from + j) に対応するノードの添字を index[i * (br_size + 1) + (1 + j)]
       に格納している．
       つまり，index は (1 + br_size) ずつのグループになっており，
       各グループには先頭に親の添字を，そのあとは from, (char)(from + 1), ... の添字を格納している．
-  */
+
   vector<int> index;
 
-  /** コンストラクタ */
+  // コンストラクタ 
   Trie(char from_, int br_size_) : from(from_), br_size(br_size_), nodes(1), index(br_size + 1, -1) {}
 
   int& _parent_index(int idx) { return index[idx * (br_size + 1)]; }
   int& _child_index(int idx, char ch) { return index[idx * (br_size + 1) + 1 + (ch - from)]; }
 
-  /** 親ノードの添字 */
+  // 親ノードの添字 
   int parent_index(int idx) { return _parent_index(idx); }
 
-  /** 子ノードの添字．create = true の時には，ノードが存在しなければ作成する */
+  // 子ノードの添字．create = true の時には，ノードが存在しなければ作成する 
   int child_index(int idx, char ch, bool create = false) {
     int i = _child_index(idx, ch);
     if (i >= 0) return i;
@@ -76,7 +236,7 @@ struct Trie {
     return new_idx;
   }
 
-  /** 文字列ノードの添字 (途中から) */
+  // 文字列ノードの添字 (途中から) 
   int prefixed_string_index(int idx, const string& s, bool create = false) {
     int cur = idx;
     for (size_t i = 0; i < s.size(); i++) {
@@ -86,22 +246,22 @@ struct Trie {
     return cur;
   }
 
-  /** 文字列ノードの添字 */
+  // 文字列ノードの添字 
   int string_index(const string& s, bool create = false) { return prefixed_string_index(0, s, create); }
 
-  /** 指定された添字を持つノードの文字列の存在個数 */
+  // 指定された添字を持つノードの文字列の存在個数 
   int num(int idx) { return idx < 0 ? 0 : nodes[idx]._num; }
 
-  /** 指定された添字を持つノード以下にある文字列の存在個数 */
+  // 指定された添字を持つノード以下にある文字列の存在個数 
   int size(int idx) { return idx < 0 ? 0 : nodes[idx]._size; }
 
-  /** 文字列の存在個数を返す */
+  // 文字列の存在個数を返す 
   int num_string(const string& s) { return num(string_index(s)); }
 
-  /** 指定された prefix を持つ文字列の存在個数を返す */
+  // 指定された prefix を持つ文字列の存在個数を返す 
   int num_prefix(const string& prefix) { return size(string_index(prefix)); }
 
-  /** 文字列を1個追加する．対応するノードの添字を返す */
+  // 文字列を1個追加する．対応するノードの添字を返す 
   int insert(const string& s) {
     int idx = string_index(s, true);
     nodes[idx]._num++;
@@ -109,7 +269,7 @@ struct Trie {
     return idx;
   }
   
-  /** 文字列を1個削除する */
+  // 文字列を1個削除する 
   void erase(const string& s) {
     int idx = string_index(s);
     if (idx < 0) throw runtime_error("Trie: tried to erase non-existing node.");
@@ -118,7 +278,7 @@ struct Trie {
     for (int i = idx; i >= 0; i = _parent_index(i)) nodes[i]._size--;
   }
 
-  /** 指定された添字のノードの文字列を返す．低効率デバッグ用 */
+  // 指定された添字のノードの文字列を返す．低効率デバッグ用 
   string node_to_str(int idx) {
     string ret;
     while (idx > 0) {
@@ -144,7 +304,7 @@ struct Trie {
     return ret;
   }
 
-  /** 格納されている文字列のリスト (vector<string>) を返す．デバッグ用 */
+  // 格納されている文字列のリスト (vector<string>) を返す．デバッグ用 
   vector<string> string_set() {
     return _sub_string_set(0, "");
   }
@@ -163,7 +323,7 @@ ostream& operator<<(ostream& ostr, Trie<T> trie) {
   return ostr;
 }
 
-/* Poorman's Binary Trie */
+// Poorman's Binary Trie
 
 string ull2binstr(unsigned long long x, int len = 64) {
   string ret(len, ' ');
@@ -176,6 +336,7 @@ unsigned long long binstr2ull(string s) {
   for (char c : s) ret = 2 * ret + (c - '0');
   return ret;
 }
+*/
 
 
 // @@ !! END ---- trie.cc
