@@ -12,7 +12,8 @@ using u64 = unsigned long long;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- trie.cc
 
-template <int bt_size, char from, bool compact = 2 < bt_size, bool has_offset = false>
+template <int bt_size, char from, typename User = monostate,
+  typename S = string, bool compact = 2 < bt_size, bool has_offset = true>
 struct Trie {
 
   Trie* parent = nullptr;
@@ -37,66 +38,120 @@ struct Trie {
 
   int size_st = 0;
 
-  Trie() = default;
-  Trie(Trie* p) : parent(p) {}
+  [[no_unique_address]] User user{};
 
-  Trie* get_child(int c, bool create) {
-    ll d = c - from;
+  Trie() = default;
+  Trie(Trie* p, int offset_) : parent(p) {
+    if constexpr (has_offset) offset = offset_;
+  }
+
+  Trie* get_child_val(int c, bool create = false) { return get_child_offset(c - from, create); }
+
+  Trie* get_child_offset(int d, bool create = false) {
     if constexpr(compact) {
       ll idx = popcount(c_pat & ((1ULL << d) - 1));
       if (c_pat >> d & 1) return cpt_children[idx];
       if (not create) return nullptr;
-      Trie* p = new Trie(this);
-      if constexpr (has_offset) p->offset = d;
-      cpt_children.insert(cpt_children.begin(), p);
+      Trie* p = new Trie(this, d);
+      cpt_children.insert(cpt_children.begin() + idx, p);
       c_pat |= 1ULL << d;
       return p;
     }else {
       Trie* p = children[d];
       if (p) return p;
       if (not create) return nullptr;
-      p = children[d] = new Trie(this);
+      p = children[d] = new Trie(this, d);
       return p;
     }
   }
 
-  Trie* _downward(const auto& s, bool create, bool res) {
+  struct children_iterator {
+    Trie* node;
+    int idx;
+    int offset;
+    explicit children_iterator(Trie* node_, int idx_, int offset_) : node(node_), idx(idx_), offset(offset_) {
+      _next_effective_child();
+    }
+    pair<Trie*, char> operator*() const {
+      Trie* p;
+      if constexpr (compact) p = node->cpt_children[idx];
+      else                   p = node->children[idx];
+      return make_pair(p, from + offset);
+    }
+    void _next_effective_child() {
+      if constexpr (compact) {
+        if constexpr (has_offset) {
+          if (idx < ssize(node->cpt_children)) offset = node->cpt_children[idx]->offset;
+          else offset = bt_size;
+        }else {
+          while (offset < bt_size and not (node->c_pat >> offset & 1)) offset++;
+        }
+      }else {
+        while (idx < bt_size and not node->children[idx]) idx++;
+        offset = idx;
+      }
+    }
+    const children_iterator& operator++() {
+      idx++;
+      offset++;
+      _next_effective_child();
+      return *this;
+    }
+    bool operator !=(const children_iterator& o) const { return node != o.node or offset != o.offset; }
+  };
+
+  struct children_view {
+    Trie* node;
+    children_view(Trie* node_) : node(node_) {}
+    children_iterator begin() const { return children_iterator(node, 0, 0); }
+    children_iterator end() const { return children_iterator(node, bt_size, bt_size); }
+  };
+
+  auto children_w_val() { return children_view(this); }
+
+  Trie* get_node(const auto& s, bool create = false) {
     Trie* tr = this;
     for (auto c : s) {
-      tr->size_st += res;
-      auto cld = tr->get_child(c, create);
+      auto cld = tr->get_child_val(c, create);
       if (not cld) return nullptr;
       tr = cld;
     }
     return tr;
   }
+  Trie* get_node(const char* s, bool create = false) { return get_node(string(s), create); }
 
-  Trie* search(const auto& s, bool create = false) {
-    return _downward(s, create, false);
+  Trie* search(const auto& s) {
+    Trie* p = get_node(s);
+    if (p and not p->reside) p = nullptr;
+    return p;
   }
+  Trie* search(const char* s) { return search(string(s)); }
 
   Trie* insert(const auto& s) {
-    Trie* tr = _downward(s, true, true);
-    tr->reside = true;
+    Trie* tr = get_node(s, true);
+    if (not tr->reside) {
+      tr->reside = true;
+      for (Trie* p = tr; p; p = p->parent) p->size_st++;
+    }
     return tr;
   }
+  Trie* insert(const char* s) { return insert(string(s)); }
 
   void erase() {
+    if (reside) for (Trie* tr = this; tr; tr = tr->parent) tr->size_st--;
     reside = false;
-    for (Trie* tr = this; tr; tr = tr->parent) tr->size_st--;
   }
 
   int get_offset() {
     if constexpr (has_offset) return offset;
-    Trie* p = parent;
-    if (not p) return -1;
-    for (int d = 0; d < bt_size; d++) {
-      if (p->c_pat >> d & 1 and p->get_child(from + d, false) == this) return d;
+    else {
+      Trie* p = parent;
+      if (not p) return -1;
+      for (int d = 0; d < bt_size; d++) if (p->get_child_offset(d) == this) return d;
+      assert(0);
     }
-    assert(0);
   }
 
-  template<typename S>
   S repr() {
     S ret;
     for (Trie* tr = this; true; tr = tr->parent) {
@@ -104,9 +159,24 @@ struct Trie {
       if (d < 0) break;
       ret.push_back(from + tr->get_offset());
     }
-    reverse(ALL(ret));
+    reverse(ret.begin(), ret.end());
     return ret;
   }
+
+  void _show_sub(auto& vec) {
+    if (reside) vec.push_back(repr());
+    for (int i = 0; i < bt_size; i++) {
+      Trie* p = get_child_offset(i);
+      if (p) p->_show_sub(vec);
+    }
+  }
+
+  vector<S> show() {
+    vector<S> ret;
+    _show_sub(ret);
+    return ret;
+  }
+
 
 };
 
