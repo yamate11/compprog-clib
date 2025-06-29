@@ -19,7 +19,7 @@ using namespace std;
     IntPartition part(5);  // Partitions of 5
 
     while (ip.get()) {  
-      for (int i = 0; i < 2; i++) cout << ip.at(i) << " ";
+      for (int i = 0; i < 2; i++) cout << ip[i] << " ";    // ip[i] or ip.at(i).  same results
       // or, equivalently,
       const vector<int>& v = ip.vec_view();
       for (int i = 0; i < 2; i++) cout << v[i] << " ";
@@ -44,6 +44,15 @@ using namespace std;
     // When ip.get() returns false, it's internal has gone back to the
     // init state, so you can continue the next round.
 
+   Results other than [0, 1, .., n -1]:
+
+     IntComb ip(4, 2, [100, 50, 90, 10]);  // [[100, 50], [100, 90], [100, 10], [50, 90], [50, 10], [90, 10]]
+
+     IntPerm<char> ip(3, 2, vector<char>{'a', 'b', 'c'});
+     // or, equivalently
+     IntPerm<char> ip(3, 2);
+     ip.set_mapping([](int i) -> "abc"[i]);
+
    For Debugging:
       const vector<int>& vec_view() const;
 
@@ -67,12 +76,13 @@ using namespace std;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- perm.cc
 
-template <bool dup>
+template <bool dup, typename T>
 struct IntPermBase {
   int n;
   int r;
   vector<int> vec;
   bool started;
+  vector<T> mapping;
 
   bool start_check() {
     if constexpr (dup) { if (not ((1 <= n and 0 <= r) or (n == 0 and r == 0))) return false; }
@@ -88,19 +98,44 @@ struct IntPermBase {
     return false;
   }
 
-  IntPermBase(int n_, int r_) : n(n_), r(r_), started(false) {}
+  IntPermBase(int n_, int r_) : n(n_), r(r_), started(false) {
+    if (n >= 0) {
+      mapping = vector<T>(n);
+      for (int i = 0; i < n; i++) {
+        if constexpr (is_integral<T>::value) mapping[i] = (T)i;
+        else mapping[i] = T();
+      }
+    }
+  }
+  IntPermBase(int n_, int r_, vector<T> mp) : n(n_), r(r_), started(false), mapping(move(mp)) {
+    if (ssize(mapping) != n) throw runtime_error("IntPermBase: incorrect mapping length");
+  }
 
-  int at(int i) const { return vec[i]; }
+  T at(int i) const { return mapping[vec[i]]; }
 
-  const vector<int>& vec_view() const { return vec; }
+  T operator[](int i) const { return at(i); }
+
+  void set_mapping(auto f) {
+    for (int i = 0; i < n; i++) mapping[i] = f(i);
+  }
+
+  vector<T> vec_view() const {
+    vector<T> res;
+    for (int i = 0; i < r; i++) res.push_back(mapping[vec[i]]);
+    return res;
+  }
 };
 
-struct IntPerm : IntPermBase<false> {
+template<typename T = int>
+struct IntPerm : IntPermBase<false, T> {
+  using Base = IntPermBase<false, T>;
+  using Base::vec, Base::r, Base::n, Base::started;
+
   vector<vector<int>> cands;
   vector<int> cidx;
 
   bool start_check() {
-    if (not IntPermBase<false>::start_check()) return false;
+    if (not IntPermBase<false, T>::start_check()) return false;
     iota(vec.begin(), vec.end(), 0);
     cands.resize(r);
     cidx.resize(r);
@@ -114,10 +149,11 @@ struct IntPerm : IntPermBase<false> {
   bool finish() {
     cands.resize(0);
     cidx.resize(0);
-    return IntPermBase<false>::finish();
+    return IntPermBase<false, T>::finish();
   }
 
-  IntPerm(int n_, int r_) : IntPermBase<false>(n_, r_) {}
+  IntPerm(int n_, int r_) : IntPermBase<false, T>(n_, r_) {}
+  IntPerm(int n_, int r_, vector<T> mp) : IntPermBase<false, T>(n_, r_, mp) {}
 
   bool get() {
     if (not started) return start_check();
@@ -143,14 +179,19 @@ struct IntPerm : IntPermBase<false> {
   }
 };
 
-struct IntComb : IntPermBase<false> {
+template<typename T = int>
+struct IntComb : IntPermBase<false, T> {
+  using Base = IntPermBase<false, T>;
+  using Base::vec, Base::r, Base::n, Base::started, Base::finish;
+
   bool start_check() {
-    if (not IntPermBase<false>::start_check()) return false;
+    if (not IntPermBase<false, T>::start_check()) return false;
     iota(vec.begin(), vec.end(), 0);
     return true;
   }
 
-  IntComb(int n_, int r_) : IntPermBase<false>(n_, r_) {}
+  IntComb(int n_, int r_) : IntPermBase<false, T>(n_, r_) {}
+  IntComb(int n_, int r_, vector<T> mp) : IntPermBase<false, T>(n_, r_, mp) {}
 
   bool get() {
     if (not started) return start_check();
@@ -163,8 +204,13 @@ struct IntComb : IntPermBase<false> {
   }
 };
 
-struct IntDupPerm : IntPermBase<true> {
-  IntDupPerm(int n_, int r_) : IntPermBase<true>(n_, r_) {}
+template<typename T = int>
+struct IntDupPerm : IntPermBase<true, T> {
+  using Base = IntPermBase<true, T>;
+  using Base::vec, Base::r, Base::n, Base::started, Base::finish, Base::start_check;
+
+  IntDupPerm(int n_, int r_) : IntPermBase<true, T>(n_, r_) {}
+  IntDupPerm(int n_, int r_, vector<T> mp) : IntPermBase<true, T>(n_, r_, mp) {}
 
   bool get() {
     if (not started) return start_check();
@@ -173,8 +219,13 @@ struct IntDupPerm : IntPermBase<true> {
   }
 };
 
-struct IntDupComb : IntPermBase<true> {
-  IntDupComb(int n_, int r_) : IntPermBase<true>(n_, r_) {}
+template<typename T = int>
+struct IntDupComb : IntPermBase<true, T> {
+  using Base = IntPermBase<true, T>;
+  using Base::vec, Base::r, Base::n, Base::started, Base::finish, Base::start_check;
+
+  IntDupComb(int n_, int r_) : IntPermBase<true, T>(n_, r_) {}
+  IntDupComb(int n_, int r_, vector<T> mp) : IntPermBase<true, T>(n_, r_, mp) {}
 
   bool get() {
     if (not started) return start_check();

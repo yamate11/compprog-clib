@@ -104,10 +104,10 @@ int main() {
         string s;
         vector<bool> v(n);
         for (ll i = 0; i < r; i++) {
-          assert(0 <= ip.at(i) and ip.at(i) < n);
-          assert(not v[ip.at(i)]);
-          v[ip.at(i)] = true;
-          s += 'a' + ip.at(i);
+          assert(0 <= ip[i] and ip[i] < n);
+          assert(not v[ip[i]]);
+          v[ip[i]] = true;
+          s += 'a' + ip[i];
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -252,6 +252,23 @@ int main() {
     test_run_twice(IntDupPerm(7, 3));
     test_run_twice(IntDupComb(7, 3));
     test_run_twice(IntPartition(10));
+  }
+
+  {
+    vector<ll> vec1{10, 40, 50};
+    IntPerm ip(3, 2, vec1);
+    assert(my_compare(ip, vvi{{10,40},{10,50},{40,10},{40,50},{50,10},{50,40}}));
+    vector<char> vec2{'a', 'b', 'c'};
+    IntComb ic(3, 2, vec2);
+    assert(my_compare(ic, vector<vector<char>>{{'a', 'b'}, {'a', 'c'}, {'b', 'c'}}));
+    using pll = pair<ll, ll>;
+    IntDupPerm dip(2, 2, vector<pll>{{1,3}, {2,4}});
+    assert(my_compare(dip, vector<vector<pll>>{{{1,3}, {1,3}}, {{1,3}, {2,4}}, {{2,4}, {1,3}}, {{2,4}, {2,4}}}));
+    IntDupComb dic(2, 2, vector<int>{-5, 5});
+    assert(my_compare(dic, vvi{{-5, -5}, {-5, 5}, {5, 5}}));
+    IntComb<pll> ic2(3, 2);
+    ic2.set_mapping([](int i) { return pll(-(i + 1), i + 1); });
+    assert(my_compare(ic2, vector<vector<pll>>{{{-1,1}, {-2,2}}, {{-1,1}, {-3,3}}, {{-2,2}, {-3,3}}}));
   }
 
   cerr << "ok\n";
