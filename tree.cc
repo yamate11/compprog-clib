@@ -32,12 +32,14 @@ struct Tree {
     nbr_t() : parent_idx(-1), pe() {}
   };
 
-  template<bool get_peer>
+  template<bool get_peer, bool excl_parent>
   struct nbr_iterator {
     const nbr_t& body;
     ll pe_idx;
     explicit nbr_iterator(const nbr_t& body_, ll pe_idx_) : body(body_), pe_idx(pe_idx_) {
-      if (pe_idx == body.parent_idx) pe_idx++;
+      if constexpr (excl_parent) {
+        if (pe_idx == body.parent_idx) pe_idx++;
+      }
     }
     auto operator*() const -> typename conditional<get_peer, ll, const pe_t&>::type {
       if constexpr (get_peer) return body.pe[pe_idx].peer;
@@ -45,18 +47,20 @@ struct Tree {
     }
     const nbr_iterator& operator++() {
       pe_idx++;
-      if (pe_idx == body.parent_idx) pe_idx++;
+      if constexpr (excl_parent) {
+        if (pe_idx == body.parent_idx) pe_idx++;
+      }
       return *this;
     }
     bool operator !=(const nbr_iterator& o) const { return pe_idx != o.pe_idx; }
   };
 
-  template<bool get_peer>
+  template<bool get_peer, bool excl_parent = true>
   struct children_view {
     const nbr_t& body;
     children_view(const nbr_t& body_) : body(body_) {}
-    nbr_iterator<get_peer> begin() const { return nbr_iterator<get_peer>(body, 0); }
-    nbr_iterator<get_peer> end() { return nbr_iterator<get_peer>(body, std::ssize(body.pe)); }
+    nbr_iterator<get_peer, excl_parent> begin() const { return nbr_iterator<get_peer, excl_parent>(body, 0); }
+    nbr_iterator<get_peer, excl_parent> end() { return nbr_iterator<get_peer, excl_parent>(body, std::ssize(body.pe));  }
   };
 
   ll numNodes;
@@ -107,7 +111,7 @@ struct Tree {
       if constexpr (use_depth) _depth[nd] = pt == -1 ? 0 : _depth[pt] + 1;
       if constexpr (use_stsize) _stsize[nd] = 1;
       if constexpr (use_euler) {
-        _euler_edge[euler_idx] = {edge, nd < pt};
+        _euler_edge[euler_idx] = {edge, 0};
         _euler_in[nd] = euler_idx;
         euler_idx++;
       }
@@ -120,7 +124,7 @@ struct Tree {
         }
       }
       if constexpr (use_euler) {
-        _euler_edge[euler_idx] = {edge, pt < nd};
+        _euler_edge[euler_idx] = {edge, 1};
         _euler_out[nd] = euler_idx;
         euler_idx++;
       }
@@ -129,7 +133,7 @@ struct Tree {
     dfs(dfs, root, -1, numNodes - 1);
   }
 
-  pe_t parent_pe(ll nd) { return _nbr[nd].pe[_nbr[nd].parent_idx]; }
+  pe_t parent_pe(ll nd) { return nd == root ? pe_t(-1, -1) : _nbr[nd].pe[_nbr[nd].parent_idx]; }
   ll parent(ll nd) { return nd == root ? -1 : parent_pe(nd).peer; }
   ll num_children(ll nd) { return _nbr[nd].pe.size() - (_nbr[nd].parent_idx == (ll)_nbr[nd].pe.size() ? 0 : 1); }
   pe_t child_pe(ll nd, ll idx) { return _nbr[nd].pe[idx < _nbr[nd].parent_idx ? idx : idx + 1]; }
@@ -137,6 +141,8 @@ struct Tree {
   ll child_edge(ll nd, ll idx) { return child_pe(nd, idx).edge; }
   auto children_pe(ll nd) { return children_view<false>(_nbr[nd]); }
   auto children(ll nd) { return children_view<true>(_nbr[nd]); }
+  auto neighbor_pe(ll nd) { return children_view<false, false>(_nbr[nd]); }
+  auto neighbor(ll nd) { return children_view<true, false>(_nbr[nd]); }
 
   ll stsize(ll nd) {
     if constexpr (use_stsize) return _stsize[nd];
@@ -162,7 +168,15 @@ struct Tree {
     return it == _edge_idx.end() ? -1 : it->second;
   }
 
-  pair<ll, ll> nodes_of_edge(ll e) { return _edges[e]; }
+  pair<ll, ll> nodes_of_edge(ll e, ll mode = 0) {
+    if (mode == -1) {
+      return _edges[e];
+    }else {
+      const auto& [x, y] = _edges[e];
+      if ((x == parent(y)) == (mode == 0)) return {x, y};
+      else return {y, x};
+    }
+  }
 
   void _set_euler() {
     _euler_in.resize(numNodes);
@@ -197,8 +211,7 @@ struct Tree {
       else if (idx == 2 * numNodes - 1) return {numNodes - 1, root, -1};
       else {
         auto [e, b] = _euler_edge[idx];
-        auto [x, y] = nodes_of_edge(e);
-        if (b) swap(x, y);
+        auto [x, y] = nodes_of_edge(e, b);
         return {e, x, y};
       }
     }

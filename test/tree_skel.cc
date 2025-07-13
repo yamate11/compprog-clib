@@ -53,8 +53,8 @@ int main(int argc, char *argv[]) {
     t2.add_edge(0, 2);
     assert(t2.edge_idx(0,1) == 0);
     assert(t2.edge_idx(2,0) == 1);
-    assert(t2.nodes_of_edge(0) == pll(0, 1));
-    assert(t2.nodes_of_edge(1) == pll(0, 2));
+    assert(t2.nodes_of_edge(0, -1) == pll(0, 1));
+    assert(t2.nodes_of_edge(1, -1) == pll(0, 2));
   }
 
   vector<TreeEdge>
@@ -130,8 +130,15 @@ int main(int argc, char *argv[]) {
         else                        tr.add_edge(j, i);
       }
       for (ll i = 0; i < N - 1; i++) {
-        auto [x, y] = tr.nodes_of_edge(i);
-        assert ((x == i + 1 and y == rec[i + 1]) or (x == rec[i + 1] and y == i + 1));
+        auto [xz, yz] = tr.nodes_of_edge(i, -1);
+        auto [x0, y0] = tr.nodes_of_edge(i, 0);
+        auto [x1, y1] = tr.nodes_of_edge(i, 1);
+        auto [xd, yd] = tr.nodes_of_edge(i);
+        assert(xz == rec[i + 1] and yz == i + 1);
+        assert((x0 == i + 1 and y0 == rec[i + 1]) or (x0 == rec[i + 1] and y0 == i + 1));
+        assert(x0 == tr.parent(y0));
+        assert(xd == x0 and yd == y0);
+        assert(x1 == y0 and y1 == x0);
       }
       for (ll i = 0; i < N; i++) {
         ll cnt = 0;
@@ -141,6 +148,7 @@ int main(int argc, char *argv[]) {
         assert(sts == tr.stsize(i));
         if (i == root) {
           assert (tr.parent(i) == -1);
+          assert (tr.parent_pe(i).peer == -1 and tr.parent_pe(i).edge == -1);
           assert ((ll)(tr.num_children(i)) == cnt);
           assert (tr.depth(i) == 0);
           assert (tr.stsize(i) == N);
@@ -157,11 +165,24 @@ int main(int argc, char *argv[]) {
             assert(nd == tr.parent(cld));
             assert(cld == tr.child(nd, nc));
             auto [p, e] = tr.parent_pe(cld);
-            assert(nd == p and tr.nodes_of_edge(e) == make_pair(min(nd, cld), max(nd, cld)));
+            assert(nd == p and tr.nodes_of_edge(e, -1) == make_pair(min(nd, cld), max(nd, cld)));
             assert(tr.child_pe(nd, nc).peer == cld and tr.child_pe(nd, nc).edge == e);
             nc++;
           }
           assert(nc == tr.num_children(nd));
+
+          bool found_parent = false;
+          ll c_cnt = 0;
+          for (ll c : tr.neighbor(nd)) {
+            if (c == tr.parent(nd)) found_parent = true;
+            else {
+              assert(nd == tr.parent(c));
+              c_cnt++;
+            }
+          }
+          assert(c_cnt == tr.num_children(nd));
+          assert(found_parent == (nd != root));
+
           ll i = 0;
           for (auto [cld, e1] : tr.children_pe(nd)) {
             auto [p, e2] = tr.parent_pe(cld);
@@ -171,6 +192,19 @@ int main(int argc, char *argv[]) {
             assert(e1 == tr.edge_idx(nd, cld));
             i++;
           }
+
+          found_parent = false;
+          c_cnt = 0;
+          for (auto [c2, e2] : tr.neighbor_pe(nd)) {
+            if (auto pe = tr.parent_pe(nd); pe.peer == c2 and pe.edge == e2) found_parent = true;
+            else {
+              auto pe2 = tr.parent_pe(c2);
+              assert(pe2.peer == nd and pe2.edge == e2);
+              c_cnt++;
+            }
+          }
+          assert(c_cnt == tr.num_children(nd));
+          assert(found_parent == (nd != root));
         }
       }
       for (ll x = 0; x < N; x++) {
@@ -467,7 +501,7 @@ int main(int argc, char *argv[]) {
           assert(tr.depth(pt) + 1 == tr.depth(nd));
           auto p = tr.parent_pe(nd);
           assert(p.peer == pt);
-          auto z = tr.nodes_of_edge(p.edge);
+          auto z = tr.nodes_of_edge(p.edge, -1);
           assert(pt < nd ? z == pll(pt, nd) : z == pll(nd, pt));
         }
         if (tr.num_children(nd) > 0) {
@@ -475,7 +509,7 @@ int main(int argc, char *argv[]) {
           assert(tr.depth(nd) + 1 == tr.depth(cld0));
           auto p = tr.child_pe(nd, 0);
           assert(cld0 == p.peer);
-          auto z = tr.nodes_of_edge(p.edge);
+          auto z = tr.nodes_of_edge(p.edge, -1);
           assert(nd < cld0 ? z == pll(nd, cld0) : z == pll(cld0, nd));
           assert(tr.stsize(nd) > tr.stsize(cld0));
         }
@@ -486,7 +520,7 @@ int main(int argc, char *argv[]) {
         for (auto p : tr.children_pe(nd)) {
           assert(tr.parent(p.peer) == nd);
           auto z = tr.nodes_of_edge(p.edge);
-          assert(z == pll(nd, p.peer) or z == pll(p.peer, nd));
+          assert(z == pll(nd, p.peer));
           assert(tr.edge_idx(nd, p.peer) == p.edge and tr.edge_idx(p.peer, nd) == p.edge);
           break;
         }
@@ -495,7 +529,7 @@ int main(int argc, char *argv[]) {
         if (nd != tr.root) {
           ll pt = tr.parent(nd);
           ll e = tr.edge_idx(nd, pt);
-          auto z = tr.nodes_of_edge(e);
+          auto z = tr.nodes_of_edge(e, -1);
           assert(nd < pt ? z == pll(nd, pt) : z == pll(pt, nd));
         }
       }
