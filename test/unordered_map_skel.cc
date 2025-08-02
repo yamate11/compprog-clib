@@ -46,8 +46,20 @@ int main() {
   }
 
   {
-      
-
+    UO_set(ll) ms1;
+    ms1.insert(8);
+    ms1.insert(10);
+    ms1.insert(8);
+    assert(ssize(ms1) == 2);
+    UO_multiset(int) mms2;
+    mms2.insert(5);
+    mms2.insert(10);
+    mms2.insert(5);
+    assert(ssize(mms2) == 3);
+    UO_map(int, vector<int>) mp3;
+    mp3[10] = vector<int>{5, 7};
+    mp3[5].push_back(2);
+    assert(ssize(mp3) == 2 and ssize(mp3[5]) == 1);
   }
 
   {

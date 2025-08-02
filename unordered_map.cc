@@ -18,10 +18,14 @@ using namespace std;
 #    // Now, mymap can be used almost same as unordered_map<T_key, T_value>
 ###
     
-    // The following also works.
     using mymap = unordered_map<T_key, T_value, safe_custom_hash>;
     using myset = unordered_set<T, safe_custom_hash>;
     using mymultiset = unordered_multiset<T, safe_custom_hash>;
+
+    // Some macros are also defined:
+    UO_map(ll, ll) mp;
+    UO_set(ll) ms;
+    UO_multiset(ll) mms;    
 
 */
 
@@ -50,5 +54,9 @@ struct safe_custom_hash {
         return splitmix64(x + FIXED_RANDOM);
     }
 };
+
+#define UO_map(T_key, T_value) unordered_map<T_key, T_value, safe_custom_hash>
+#define UO_set(T_key) unordered_set<T_key, safe_custom_hash>
+#define UO_multiset(T_key) unordered_multiset<T_key, safe_custom_hash>
 
 // @@ !! END ---- unordered_map.cc
