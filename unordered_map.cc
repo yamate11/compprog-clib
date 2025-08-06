@@ -18,14 +18,14 @@ using namespace std;
 #    // Now, mymap can be used almost same as unordered_map<T_key, T_value>
 ###
     
-    using mymap = unordered_map<T_key, T_value, safe_custom_hash>;
-    using myset = unordered_set<T, safe_custom_hash>;
-    using mymultiset = unordered_multiset<T, safe_custom_hash>;
-
-    // Some macros are also defined:
-    UO_map(ll, ll) mp;
-    UO_set(ll) ms;
-    UO_multiset(ll) mms;    
+  // defined: my_umap<T_key, T_value>, my_uset<T_key>, my_umultiset<T_key>.
+  //          for T_key = string and integer types (int, ll, unsigned, u64, ...)
+  // E.g.
+  my_umap<ll, ll> mp1;
+  my_uset<int> si2;
+  my_umultiset<u64> ms3;
+  my_umap<string, pll> mp4;
+  ...   
 
 */
 
@@ -40,23 +40,62 @@ using namespace std;
 using namespace __gnu_pbds;
 */
 
-struct safe_custom_hash {
-    static uint64_t splitmix64(uint64_t x) {
-        // http://xorshift.di.unimi.it/splitmix64.c
-        x += 0x9e3779b97f4a7c15;
-        x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
-        x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
-        return x ^ (x >> 31);
-    }
+template <typename T, typename Enable = void>
+struct safe_custom_hash;
 
-    size_t operator()(uint64_t x) const {
-        static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
-        return splitmix64(x + FIXED_RANDOM);
-    }
+// For integer types (int, ll, u64, unsigned, ....)
+template <typename T>
+struct safe_custom_hash<T, typename enable_if<is_integral<T>::value>::type> {
+  static uint64_t splitmix64(uint64_t x) {
+    // http://xorshift.di.unimi.it/splitmix64.c
+    x += 0x9e3779b97f4a7c15;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
+    return x ^ (x >> 31);
+  }
+
+  size_t operator()(uint64_t x) const {
+    static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
+    return splitmix64(x + FIXED_RANDOM);
+  }
 };
 
-#define UO_map(T_key, T_value) unordered_map<T_key, T_value, safe_custom_hash>
-#define UO_set(T_key) unordered_set<T_key, safe_custom_hash>
-#define UO_multiset(T_key) unordered_multiset<T_key, safe_custom_hash>
+// For string
+template <>
+struct safe_custom_hash<string, void> {
+  static uint64_t mix(uint64_t x) {
+    x += 0x9e3779b97f4a7c15ULL;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+    return x ^ (x >> 31);
+  }
+
+  size_t operator()(const string& s) const {
+    static const uint64_t seed = chrono::steady_clock::now().time_since_epoch().count();
+    uint64_t h = seed ^ 0x9e3779b97f4a7c15ULL;
+    const unsigned char* p = (const unsigned char*)s.data();
+    size_t n = s.size();
+    while (n >= 8) {
+      uint64_t v;
+      memcpy(&v, p, 8);
+      h = mix(h ^ v);
+      p += 8; n -= 8;
+    }
+    uint64_t tail = 0;
+    for (size_t i = 0; i < n; ++i) tail |= uint64_t(p[i]) << (8*i);
+    h = mix(h ^ tail);
+    return (size_t)h;
+  }
+};
+
+template <typename T_key, typename T_value>
+using my_umap = unordered_map<T_key, T_value, safe_custom_hash<T_key>>;
+
+template <typename T_key>
+using my_uset = unordered_set<T_key, safe_custom_hash<T_key>>;
+
+template <typename T_key>
+using my_umultiset = unordered_multiset<T_key, safe_custom_hash<T_key>>;
+
 
 // @@ !! END ---- unordered_map.cc
