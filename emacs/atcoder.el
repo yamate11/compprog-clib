@@ -1,7 +1,7 @@
 (setq atcoder-library-list
       '("NONE" "cmpNaive" "UnionFind" "UnionFindRel" "bit" "cht" "coordCompr" "debug"
 	"dinic" "fix" "FuncGraph" "bridge" "offDynConn" "UndoUnionFind"
-	"integer" "matrix" "misc" "mod" "segTree" "sieve" "strSearch"
+	"integer" "matrix" "misc" "mod" "segTree" "sieve" "strSearch" "algOp"
 	"util" "scc" "geometry" "binsearch" "dijkstra" "rerror"
 	"suffixArray" "board" "minCostFlow" "perm" "guessPoly" "ftwo"
 	"trie" "tree" "rollingHash" "fft" "doubling" "ipoint" "cumsum2d"
