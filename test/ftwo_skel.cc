@@ -43,7 +43,7 @@ int main() {
       while (true) {
         for (ll i = 0; i < sz2; i++) {
           for (ll j = 0; j < sz2; j++) {
-            mat1.at(i, j) = dist1(rng);
+            mat1.rs(i, j) = dist1(rng);
           }
         }
         auto [rank, det] = mat1.self_sweepout();
@@ -77,7 +77,7 @@ int main() {
       Matrix<Ftwo> mat2(sz1, sz2);
       for (ll i = 0; i < sz1; i++) {
         for (ll j = 0; j < sz2; j++) {
-          mat2.at(i, j) = (((basis[i] >> j) & 1) != 0) ? 1 : 0;
+          mat2.rs(i, j) = (((basis[i] >> j) & 1) != 0) ? 1 : 0;
         }
       }
       // DLOGK(mat2);
@@ -87,12 +87,12 @@ int main() {
       Matrix<Ftwo> mat3(sz1 + 1, sz2);
       for (ll i = 0; i < sz1; i++) {
         for (ll j = 0; j < sz2; j++) {
-          mat3.at(i, j) = mat1.at(i, j);
+          mat3.rs(i, j) = mat1.at(i, j);
         }
       }
       for (ll m = 0; m < sz1; m++) {
         for (ll j = 0; j < sz2; j++) {
-          mat3.at(sz1, j) = ((basis[m] >> j) != 0) ? 1 : 0;
+          mat3.rs(sz1, j) = ((basis[m] >> j) != 0) ? 1 : 0;
         }
         // DLOGK(mat3);
         auto [rank3, det3] = mat3.self_sweepout();

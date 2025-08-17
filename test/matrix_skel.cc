@@ -21,9 +21,9 @@ int main() {
     cerr << "equation" << endl;
     Matrix<ll> mat0({{0,1,0},{2,0,-1}});
     Matrix<ll> mat1 = Matrix<ll>(2,3);
-    mat1.at(0,1) = 1;
-    mat1.at(1,0) = 2;
-    mat1.at(1,2) = -1;
+    mat1.rs(0,1) = 1;
+    mat1.rs(1,0) = 2;
+    mat1.rs(1,2) = -1;
     assert(mat0 == mat1);
     assert(!(mat0 != mat1));
 
@@ -67,7 +67,7 @@ int main() {
     Matrix<ll> mat10 = Matrix<ll>::from_vvec(vec10);
     Matrix<ll> mat11(2, 3);
     for (int i = 0; i < 2; i++) for (int j = 0; j < 3; j++) {
-        mat11.at(i,j) = vec10.at(i).at(j);
+        mat11.rs(i,j) = vec10.at(i).at(j);
       }
     assert(mat10 == mat11);
 
@@ -136,7 +136,7 @@ int main() {
     Matrix<Fp> mat13  = {{2,5,7}, {4,-2,20}, {4, 6, 42}, {8,-7,7}};
     Matrix<Fp> mat13a = {{2,5,7}, {0,-12,6}, {0, 0, 26}, {0,0,0}};
     Matrix<Fp> mat13b = {{2,0,0}, {4,-12,0}, {4,-4,26}, {8,-27,0}};
-    mat13b.at(3,2) = Fp(-69) / Fp(2);
+    mat13b.rs(3,2) = Fp(-69) / Fp(2);
     auto [rank13, det13] = mat13.sweepout();
     assert(rank13 == 3 && det13 == Fp(2) * Fp(-12) * Fp(26));
     auto [rank13x, det13x] = mat13.self_transpose().sweepout();
@@ -164,7 +164,7 @@ int main() {
   {
     using Fp = FpB;
     Matrix<Fp> mat1a(3, 5);
-    for (int i = 0; i < 3; i++) for (int j = 0; j < 5; j++) mat1a.at(i, j) = 42;
+    for (int i = 0; i < 3; i++) for (int j = 0; j < 5; j++) mat1a.rs(i, j) = 42;
     assert(mat1a == Matrix<Fp>(3, 5, 42));
     Matrix<Fp> mat2a(2, 3, {1,2,3,4,5,6});
     Matrix<Fp> mat2b(0, 3, {1,2,3,4,5,6});
@@ -259,14 +259,14 @@ int main() {
         if (dt[j]) {
           cur_rank++;
           while (true) {
-            for (ll k = 0; k < m; k++) A.at(j, k) = Fp(randrange(-6, 7));
+            for (ll k = 0; k < m; k++) A.rs(j, k) = Fp(randrange(-6, 7));
             auto [chk, _] = A.sweepout();
             if ((ll)chk == cur_rank) break;
           }
         }else {
           for (ll p = 0; p < j; p++) {
             Fp c = Fp(randrange(-6, 7));
-            for (ll k = 0; k < m; k++) { A.at(j, k) += c * A.at(p, k); }
+            for (ll k = 0; k < m; k++) { A.rs(j, k) += c * A.at(p, k); }
           }
         }
       }
@@ -286,7 +286,7 @@ int main() {
         Matrix<Fp> B(n, m + 1);
         B.memcopy(A.part());
         while (true) {
-          for (ll k = 0; k < n; k++) B.at(k, m) = Fp(randrange(-10, 10));
+          for (ll k = 0; k < n; k++) B.rs(k, m) = Fp(randrange(-10, 10));
           auto [chk, _] = B.sweepout();
           // DLOGK(B);
           // DLOGK(chk);
@@ -315,7 +315,7 @@ int main() {
       ll cnt = 0;
       for (ll x = 0; x < (1LL << n); x++) {
         Matrix<Fp> v(n, 1);
-        for (ll i = 0; i < n; i++) v.at(i, 0) = (x >> i) & 1;
+        for (ll i = 0; i < n; i++) v.rs(i, 0) = (x >> i) & 1;
         if (mat * v == zero_m) cnt++;
       }
       assert((1LL << sz) == cnt);
@@ -327,7 +327,7 @@ int main() {
       ll n = randrange(1, 9);
       Matrix<Fp> mat(m, n);
       for (ll i = 0; i < m; i++) {
-        for (ll j = 0; j < n; j++) mat.at(i, j) = randrange(0, 2);
+        for (ll j = 0; j < n; j++) mat.rs(i, j) = randrange(0, 2);
       }
       check(mat, m, n);
     }
@@ -337,7 +337,7 @@ int main() {
       for (ll i = 0; i < m; i++) {
         for (ll j = 0; j < n; j++) {
           ll t = i * n + j;
-          mat.at(i, j) = (xx >> t) & 1;
+          mat.rs(i, j) = (xx >> t) & 1;
         }
       }
       check(mat, m, n);

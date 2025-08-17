@@ -59,8 +59,8 @@ int main(/* int argc, char *argv[] */) {
       Matrix<Fp> mat(numV, numE);
       for (ll i = 0; i < numE; i++) {
         auto [x, y] = adj[i];
-        mat.at(x, i) = 1;
-        mat.at(y, i) = -1;
+        mat.rs(x, i) = 1;
+        mat.rs(y, i) = -1;
       }
       auto optsol2 = mat.linSolution(Matrix<Fp>(0, 1, bs));
       if (optsol1.has_value()) {

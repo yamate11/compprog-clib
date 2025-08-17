@@ -134,7 +134,7 @@ fitFPS(const vector<typename Pol::value_type>& vec, int verify) {
       Matrix<T> mat(d, d);
       vector<T> bs(d);
       for (int i = 0; i < d; i++) {
-        for (int j = 0; j < d; j++) { mat.at(i, j) = vec[d - 1 + i - j]; }
+        for (int j = 0; j < d; j++) { mat.rs(i, j) = vec[d - 1 + i - j]; }
         bs[i] = vec[d + i];
       }
       // DLOGK(d, bs, mat);
