@@ -12,19 +12,13 @@ using namespace std;
   Thus, using gp_hash_table with safe_custom_hash may be the best practice.
 
   Usage:
-
-###     NOT WORKING PROPERLY with user defined struct
-#    using mymap = gp_hash_table<T_key, T_value, safe_custom_hash>;
-#    // Now, mymap can be used almost same as unordered_map<T_key, T_value>
-###
-    
-  // defined: my_umap<T_key, T_value>, my_uset<T_key>, my_umultiset<T_key>.
+  // defined: safe_umap<T_key, T_value>, safe_uset<T_key>, safe_umultiset<T_key>.
   //          for T_key = string and integer types (int, ll, unsigned, u64, ...)
   // E.g.
-  my_umap<ll, ll> mp1;
-  my_uset<int> si2;
-  my_umultiset<u64> ms3;
-  my_umap<string, pll> mp4;
+  safe_umap<ll, ll> mp1;
+  safe_uset<int> si2;
+  safe_umultiset<u64> ms3;
+  safe_umap<string, pll> mp4;
   ...   
 
 */
@@ -89,13 +83,13 @@ struct safe_custom_hash<string, void> {
 };
 
 template <typename T_key, typename T_value>
-using my_umap = unordered_map<T_key, T_value, safe_custom_hash<T_key>>;
+using safe_umap = unordered_map<T_key, T_value, safe_custom_hash<T_key>>;
 
 template <typename T_key>
-using my_uset = unordered_set<T_key, safe_custom_hash<T_key>>;
+using safe_uset = unordered_set<T_key, safe_custom_hash<T_key>>;
 
 template <typename T_key>
-using my_umultiset = unordered_multiset<T_key, safe_custom_hash<T_key>>;
+using safe_umultiset = unordered_multiset<T_key, safe_custom_hash<T_key>>;
 
 
 // @@ !! END ---- unordered_map.cc

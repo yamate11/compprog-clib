@@ -35,7 +35,7 @@ int main() {
   */
 
   {
-    my_umap<ll, ll> mp;
+    safe_umap<ll, ll> mp;
     mp[10] = mp[20] + 100;
     assert(mp.find(0) == mp.end());
     assert(mp.find(10) != mp.end());
@@ -45,24 +45,24 @@ int main() {
   }
 
   {
-    my_uset<ll> ms1;
+    safe_uset<ll> ms1;
     ms1.insert(8);
     ms1.insert(10);
     ms1.insert(8);
     assert(ssize(ms1) == 2);
-    my_umultiset<int> mms2;
+    safe_umultiset<int> mms2;
     mms2.insert(5);
     mms2.insert(10);
     mms2.insert(5);
     assert(ssize(mms2) == 3);
-    my_umap<int, vector<int>> mp3;
+    safe_umap<int, vector<int>> mp3;
     mp3[10] = vector<int>{5, 7};
     mp3[5].push_back(2);
     assert(ssize(mp3) == 2 and ssize(mp3[5]) == 1);
   }
 
   {
-    my_uset<ll> ms;
+    safe_uset<ll> ms;
     ms.insert(10000);
     ms.insert(20000);
     ms.insert(30000);
@@ -73,7 +73,7 @@ int main() {
   }
 
   {
-    my_umultiset<ll> mms;
+    safe_umultiset<ll> mms;
     mms.insert(10000);
     mms.insert(20000);
     mms.insert(30000);
@@ -89,7 +89,7 @@ int main() {
   
   {
     string s1 = "abc", s2 = "axx", s3 = "", s4 = "zzz";
-    my_umap<string, ll> mp{{s1, 10}, {s2, 20}, {s3, 30}};
+    safe_umap<string, ll> mp{{s1, 10}, {s2, 20}, {s3, 30}};
     assert(mp.contains(s2) and not mp.contains(s4));
     auto it = mp.find(s1);
     assert(it->second == 10);
