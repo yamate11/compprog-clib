@@ -32,9 +32,6 @@ int main() {
     mp[vec1] = 100;
     mp[vec2] = 200;
     mp[vec3] = 300;
-    auto it1 = mp.find(vec1);
-    auto it2 = mp.find(vec2);
-    auto it3 = mp.find(vec3);
     auto it4 = mp.find(vec4);
     assert(it4 != mp.end() and it4->second == 200);
     vec4[1] = 20;
