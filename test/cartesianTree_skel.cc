@@ -9,7 +9,7 @@ using pll = pair<ll, ll>;
 #define SIZE(v) ((ll)((v).size()))
 #define REPOUT(i, a, b, exp, sep) REP(i, (a), (b)) cout << (exp) << (i + 1 == (b) ? "" : (sep)); cout << "\n"
 
-// @@ !! LIM(cartesianProd random debug)
+// @@ !! LIM(cartesianTree random debug)
 
 int main() {
   ios_base::sync_with_stdio(false);
@@ -18,29 +18,29 @@ int main() {
 
   {
     vector<ll> vec{80, 90, 20, 50, 50, 40};
-    CartesianProduct cp(vec);
+    CartesianTree cp(vec);
     assert(cp.root == 2);
     assert(cp.left[2] == 0);
     assert(cp.left[0] == -1);
     assert(cp.right[2] == 5);
     assert(cp.left[5] == 3 or cp.left[5] == 4);
 
-    CartesianProduct cp1(vec, less<ll>());
+    CartesianTree cp1(vec, less<ll>());
     assert(cp1.root == 2);
 
-    CartesianProduct cp2(vec, [](ll a, ll b) { return a < b; });
+    CartesianTree cp2(vec, [](ll a, ll b) { return a < b; });
     assert(cp2.root == 2);
 
-    CartesianProduct<vector<ll>> cp3;
+    CartesianTree<vector<ll>> cp3;
     cp3.build(vec);
     assert(cp3.root == 2);
     
-    CartesianProduct cp4(vec, greater<ll>());
+    CartesianTree cp4(vec, greater<ll>());
     assert(cp4.root == 1);
     assert(cp4.right[1] == 3 or cp4.right[1] == 4);
 
     vector<ll> vec2;
-    CartesianProduct cp5(vec2);
+    CartesianTree cp5(vec2);
     assert(cp5.root == -1);
     assert(cp5.left.empty() and cp5.right.empty());
   }
@@ -66,13 +66,13 @@ int main() {
       REP(i, 0, n) vec[i] = rand.range(10, 10 + n);
       ll t = rand.range(0, 3);
       if (t == 0) {
-        CartesianProduct cp(vec);
+        CartesianTree cp(vec);
         check(cp, vec, less<ll>());
       }else if (t == 1) {
-        CartesianProduct cp(vec, [&](ll a, ll b) { return a < b; });
+        CartesianTree cp(vec, [&](ll a, ll b) { return a < b; });
         check(cp, vec, less<ll>());
       }else if (t == 2) {
-        CartesianProduct cp(vec, greater<ll>());
+        CartesianTree cp(vec, greater<ll>());
         check(cp, vec, greater<ll>());
       }
       

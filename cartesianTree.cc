@@ -4,14 +4,14 @@ typedef long long int ll;
 using namespace std;
 
 /*
-  Cartesian Product
+  Cartesian Tree
 
   Usage:
     vector<ll> vec{80, 90, 20, 50, 50, 40}
-    CartesianProduct cp(vec);
-    // CartesianProduct cp(vec, less<ll>()); ... same
-    // CartesianProduct cp(vec, [](ll a, ll b) { return a < b; }); ... same
-    // CartesianProduct<ll> cp; cp.build(vec);  ... same
+    CartesianTree cp(vec);
+    // CartesianTree cp(vec, less<ll>()); ... same
+    // CartesianTree cp(vec, [](ll a, ll b) { return a < b; }); ... same
+    // CartesianTree<ll> cp; cp.build(vec);  ... same
     assert(cp.root == 2);     // vec[2] is the least element
     assert(cp.left[2] == 0);  // least in vec[0:2] is vec[0]
     assert(cp.left[0] == -1); // "no such element" is expressed by -1
@@ -22,17 +22,17 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN() ---- cartesianProd.cc
+// @@ !! BEGIN() ---- cartesianTree.cc
 
 template<typename T>
-struct CartesianProduct {
+struct CartesianTree {
   int root;
   vector<int> left;
   vector<int> right;
 
-  CartesianProduct() : root(-1), left(), right() {}
+  CartesianTree() : root(-1), left(), right() {}
   template<typename Comp = less<typename T::value_type>>
-  CartesianProduct(const T& vec, Comp comp = Comp()) { build(vec, comp); }
+  CartesianTree(const T& vec, Comp comp = Comp()) { build(vec, comp); }
 
   template<typename Comp = less<typename T::value_type>>
   void build(const T& vec, Comp comp = Comp()) {
@@ -59,5 +59,5 @@ struct CartesianProduct {
   }
 };
 
-// @@ !! END ---- cartesianProd.cc
+// @@ !! END ---- cartesianTree.cc
 
