@@ -31,11 +31,11 @@ struct CartesianProduct {
   vector<int> right;
 
   CartesianProduct() : root(-1), left(), right() {}
-  template<class R, class Cmp = std::less<T>>
-  explicit CartesianProduct(const R& vec, Cmp comp = Cmp{}) { build(vec, comp); }
+  template<typename Comp = less<typename T::value_type>>
+  CartesianProduct(const T& vec, Comp comp = Comp()) { build(vec, comp); }
 
-  template<class R, class Cmp = std::less<T>>
-  void build(const R& vec, Cmp comp = Cmp{}) {
+  template<typename Comp = less<typename T::value_type>>
+  void build(const T& vec, Comp comp = Comp()) {
     int n = ssize(vec);
     root = -1;
     left = vector<int>(n, -1);
@@ -58,11 +58,6 @@ struct CartesianProduct {
     }
   }
 };
-
-template<class R>
-CartesianProduct(const R&) -> CartesianProduct<typename R::value_type>;
-template<class R, class Cmp>
-CartesianProduct(const R&, Cmp) -> CartesianProduct<typename R::value_type>;
 
 // @@ !! END ---- cartesianProd.cc
 

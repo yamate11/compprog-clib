@@ -18,7 +18,7 @@ int main() {
 
   {
     vector<ll> vec{80, 90, 20, 50, 50, 40};
-    CartesianProduct<ll> cp(vec, less<ll>());
+    CartesianProduct cp(vec);
     assert(cp.root == 2);
     assert(cp.left[2] == 0);
     assert(cp.left[0] == -1);
@@ -31,11 +31,11 @@ int main() {
     CartesianProduct cp2(vec, [](ll a, ll b) { return a < b; });
     assert(cp2.root == 2);
 
-    CartesianProduct<ll> cp3;
+    CartesianProduct<vector<ll>> cp3;
     cp3.build(vec);
     assert(cp3.root == 2);
     
-    CartesianProduct<ll> cp4(vec, greater<ll>());
+    CartesianProduct cp4(vec, greater<ll>());
     assert(cp4.root == 1);
     assert(cp4.right[1] == 3 or cp4.right[1] == 4);
 
