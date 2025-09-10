@@ -82,6 +82,17 @@ struct safe_custom_hash<string, void> {
   }
 };
 
+// For pair
+template <typename T1, typename T2>
+struct safe_custom_hash<pair<T1, T2>, void> {
+  size_t operator()(const pair<T1, T2>& x) const {
+    static const uint64_t frand = chrono::steady_clock::now().time_since_epoch().count();
+    static const uint64_t a = (frand ^ 0x9e3779b97f4a7c15) | 1;
+    static const uint64_t b = (frand ^ 0xbf58476d1ce4e5b9) | 1;
+    return a * safe_custom_hash<T1>{}(x.first) + b * safe_custom_hash<T2>{}(x.second);
+  }
+};
+
 template <typename T_key, typename T_value>
 using safe_umap = unordered_map<T_key, T_value, safe_custom_hash<T_key>>;
 

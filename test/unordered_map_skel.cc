@@ -95,6 +95,20 @@ int main() {
     assert(it->second == 10);
   }
 
+  {
+    using tp = pair<int, pair<bool, string>>;
+    auto cr = [](int i, bool b, string s) -> tp { return make_pair(i, make_pair(b, s)); };
+    safe_umap<tp, int> mp;
+    mp[cr(10, true, "happy")] = 3;
+    mp[cr(5, false, "fish")] = 7;
+    mp[cr(-4, true, "evening")] = 2;
+    assert(mp.contains(cr(10, true, "happy")));
+    auto it1 = mp.find(cr(5, true, "fish"));
+    assert(it1 == mp.end());
+    auto it2 = mp.find(cr(5, false, "fish"));
+    assert(it2 != mp.end() and it2->second == 7);
+  }
+
   cerr << "ok." << endl;
 }
 
