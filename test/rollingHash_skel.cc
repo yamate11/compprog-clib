@@ -92,50 +92,49 @@ int main(int argc, char *argv[] ) {
     RollingHash rh;
     string s1 = "abcdefgh";
     string s2 = "XXdefYYYZZ";
-    auto hashes1 = rh.hashes(s1);
-    auto hashes2 = rh.hashes(s2);
-    assert(rh.get(hashes1) != rh.get(hashes2));
-    assert(rh.get(hashes1, 3, 3) == rh.get(hashes2, 2, 3));
+    auto hashes1 = rh.precomp(s1);
+    auto hashes2 = rh.precomp(s2);
+    assert(hashes1.get() != hashes2.get());
+    assert(hashes1.get(3, 3) == hashes2.get(2, 3));
     string s3 = "xyz";
     string s4 = "Axyz";
     string s5 = "xyzA";
-    auto hashes3 = rh.hashes(s3);
-    auto hashes4 = rh.hashes(s4);
-    auto hashes5 = rh.hashes(s5);
-    assert(rh.hash_concat('A', rh.get(hashes3), s3.size()) == rh.get(hashes4));
-    assert(rh.hash_concat(rh.get(hashes3), 'A', 1) == rh.get(hashes5));
+    auto hashes3 = rh.precomp(s3);
+    auto hashes4 = rh.precomp(s4);
+    auto hashes5 = rh.precomp(s5);
+    assert(rh.hash_concat('A', hashes3.get(), s3.size()) == hashes4.get());
+    assert(rh.hash_concat(hashes3.get(), 'A', 1) == hashes5.get());
     string s6 = "abc";
     string s7 = "de";
     string s8 = "abcde";
-    u64 h6 = rh.hashvalue(s6);
-    u64 h7 = rh.hashvalue(s7);
-    u64 h8 = rh.hashvalue(s8);
+    RHVal h6 = rh.hashvalue(s6);
+    RHVal h7 = rh.hashvalue(s7);
+    RHVal h8 = rh.hashvalue(s8);
     assert(rh.hash_concat(h6, h7, ssize(s7)) == h8);
-    assert(h8 == rh_add(rh_mul(h6, rh.base_power(ssize(s7))), h7));
   }
 
   {
     RollingHash rh;
     const char* p = "Hello";
     string s(p);
-    u64 h1 = rh.hashvalue(s);
-    u64 h2 = rh.hashvalue(p);
+    RHVal h1 = rh.hashvalue(s);
+    RHVal h2 = rh.hashvalue(p);
     assert(h1 == h2);
-    auto hs1 = rh.hashes(s);
-    auto hs2 = rh.hashes(p);
-    assert(hs1 == hs2);
+    auto hs1 = rh.precomp(s);
+    auto hs2 = rh.precomp(p);
+    assert(hs1.vs == hs2.vs);
   }
 
   {
     RollingHash rh;
     string empty;
-    u64 h1 = rh.hashvalue(empty);
+    RHVal h1 = rh.hashvalue(empty);
     assert(h1 == 0);
     string abc = "abc";
-    auto hashes2 = rh.hashes(abc);
-    assert(rh.get(hashes2, 2, 0) == 0);
-    assert(rh.get(hashes2, 3) == 0);
-    u64 h3 = rh.hashvalue(string{});
+    auto hashes2 = rh.precomp(abc);
+    assert(hashes2.get(2, 0) == 0);
+    assert(hashes2.get(3) == 0);
+    RHVal h3 = rh.hashvalue(string{});
     assert(h3 == 0);
   }
 
@@ -147,13 +146,13 @@ int main(int argc, char *argv[] ) {
     for (ll i = 0; i < size; i++) {
       s[i] = dist(rng2);
     }
-    auto hashes0 = rh.hashes(s);
+    auto hashes0 = rh.precomp(s);
     for (ll i = 0; i < size; i++) {
       for (ll j = i; j <= size; j++) {
-	u64 hash1 = rh.get(hashes0, i, j - i);
+	RHVal hash1 = hashes0.get(i, j - i);
 	string t = s.substr(i, j - i);
-	auto hashes2 = rh.hashes(t);
-	u64 hash2 = rh.get(hashes2, 0, j - i);
+	auto hashes2 = rh.precomp(t);
+	RHVal hash2 = hashes2.get(0, j - i);
 	assert(hash1 == hash2);
       }
     }
@@ -171,13 +170,13 @@ int main(int argc, char *argv[] ) {
     int q0 = 5438;
     int len = 1e3;
     for (int j = 0; j < len; j++) v[p0 + j] = v[q0 + j];
-    auto hs = rh.hashes(v);
+    auto hs = rh.precomp(v);
     for (ll i = 0; i < sz - len; i++) {
       for (ll j = i + 1; j < sz - len; j++) {
         if (i == p0 && j == q0) {
-          assert(rh.get(hs, i, len) == rh.get(hs, j, len));
+          assert(hs.get(i, len) == hs.get(j, len));
         }else {
-          assert(rh.get(hs, i, len) != rh.get(hs, j, len));
+          assert(hs.get(i, len) != hs.get(j, len));
         }
       }
     }
@@ -190,9 +189,9 @@ int main(int argc, char *argv[] ) {
     vector<pll> vec{{2, 5}, {1, 0}, {3, 7}, {2, 5}, {1, 0}, {3, 7}, {4, 1}};
     for (int i = 0; i < 5e4; i ++) {
       auto rh = make_rolling_hash_gen<pll>(0, 1LL << 30, hash_elem);
-      auto hs = rh.hashes(vec);
-      assert(rh.get(hs, 0, 3) == rh.get(hs, 3, 3));
-      assert(rh.get(hs, 0, 4) != rh.get(hs, 3, 4));
+      auto hs = rh.precomp(vec);
+      assert(hs.get(0, 3) == hs.get(3, 3));
+      assert(hs.get(0, 4) != hs.get(3, 4));
     }
   }
 
@@ -205,19 +204,19 @@ int main(int argc, char *argv[] ) {
     ll size = 100;
     uniform_int_distribution<char> dist('a', 'z');
     uniform_int_distribution<int> dist_idx(0, size-1);
-    unordered_map<u64, string> mp;
+    safe_umap<RHVal, string> mp;
     for (ll k = 0; k < rep; k++) {
       string s(size, 0);
       for (ll i = 0; i < size; i++) {
         for (ll j = 0; j < size; j++) s[j] = dist(rng2);
       }
-      auto hashes = rh.hashes(s);
+      auto hashes = rh.precomp(s);
       for (ll i = 0; i < 10; i++) {
         int p = dist_idx(rng2);
         int q = dist_idx(rng2);
         if (p > q) swap(p, q);
         string t = s.substr(p, q-p);
-        u64 hash = rh.get(hashes, p, q-p);
+        RHVal hash = hashes.get(p, q-p);
         auto it = mp.find(hash);
         if (it == mp.end()) {
           mp[hash] = t;
@@ -249,6 +248,15 @@ int main(int argc, char *argv[] ) {
     }
   }
 
+  {
+    RollingHash rh;
+    vector<RollingHash::HashValues> hvs(3);
+    hvs[0] = rh.precomp("abcde");
+    hvs[1] = rh.precomp(vector<char>{'x', 'y', 'a', 'b', 'c'});
+    hvs[2] = rh.precomp("");
+    assert(hvs[0].get(0, 3) == hvs[1].get(2, 3));
+    assert(hvs[0].get(2, 0) == hvs[2].get());
+  }
 
   cerr << "ok\n";
   
