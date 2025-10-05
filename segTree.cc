@@ -1,6 +1,6 @@
 /*
   Segment Tree (non-recursive version; including laziness)
-  See https://yamate11.github.io/blog/posts/2023/12-03-segment-tree-lib/
+  https://yamate11.github.io/blog/posts/2023/12-03-segment-tree-lib/
  */
 
 //////////////////////////////////////////////////////////////////////
