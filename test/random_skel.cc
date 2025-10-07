@@ -33,6 +33,22 @@ int main() {
     }
     assert(cntAB == 10000 and 900 <= cntAC and cntAC <= 1100);
   }
+  {
+    vector<ll> vec(10);
+    ranges::iota(vec, 0);
+    Random rand;
+    ll cnt = 0;
+    for (int i = 0; i < 1000; i++) {
+      auto vec2 = vec;
+      rand.shuffle(vec2.begin(), vec2.end());
+      if (vec2[0] == 4) cnt++;
+      auto vec3 = vec2;
+      ranges::sort(vec3);
+      assert(vec == vec3);
+    }
+    assert(10 <= cnt and cnt <= 900);
+  }
+
 
   cerr << "ok\n";
 }

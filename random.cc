@@ -10,6 +10,8 @@ using ll = long long int;
 
     Random rand;   // non-deterministic seed
     ll x = rand.range(-3, 4);   // uniform distribution on {-3, -2, -1, 0, 1, 2, 3}
+    vector<ll> v = ...;
+    rand.shuffle(ALL(v));  // reorder v
 
     Random randA(314159);  // specified seed
     ll x = rand.range(-3, 4);   // same
@@ -36,6 +38,9 @@ struct Random {
     uniform_int_distribution<ll> dist(i, j - 1);
     return dist(rng);
   }
+
+  template<typename RandomIt>
+  void shuffle(RandomIt first, RandomIt last) { std::shuffle(first, last, rng); }
 
 };
 
