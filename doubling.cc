@@ -2,33 +2,103 @@
 #include <cassert>
 typedef long long int ll;
 using namespace std;
+using u64 = unsigned long long;
 
 /*
-    See https://yamate11.github.io/blog/posts/2022/12-10-doubling/
-
+  https://yamate11.github.io/blog/posts/2022/12-10-doubling/
 */
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- doubling.cc
 
+template<typename T = void, typename Add = void>
+struct Doubling {
+  static constexpr bool HAS_T = not is_void_v<T>;
+  using Node = conditional_t<HAS_T, pair<int, T>, int>;
+
+  int n{};
+  vector<vector<Node>> tbl;
+  [[no_unique_address]] conditional_t<HAS_T, T, monostate> unit{};
+  [[no_unique_address]] conditional_t<HAS_T, Add, monostate> add{};
+
+  int& nd_int(Node& nd) { if constexpr (HAS_T) return nd.first; else return nd; }
+
+  void prepare_tbl(u64 lim, const auto& nxt) {
+    int K = 64 - countl_zero(lim);
+    tbl.resize(K, vector<Node>(n));
+    for (int i = 0; i < n; i++) nd_int(tbl[0][i]) = nxt[i];
+  }
+
+  void fill_tbl(u64 lim) {
+    for (int k = 0; k + 1 < ssize(tbl); k++) {
+      for (int i = 0; i < n; i++) {
+        nd_int(tbl[k + 1][i]) = nd_int(tbl[k][nd_int(tbl[k][i])]);
+        if constexpr (HAS_T) tbl[k + 1][i].second = add(tbl[k][i].second, tbl[k][tbl[k][i].first].second);
+      }
+    }
+  }
+
+  Doubling() {}
+
+  Doubling(ll lim, int n_, const auto& nxt) requires (not HAS_T) : n(n_) {
+    prepare_tbl(lim, nxt);
+    fill_tbl(lim);
+  }
+
+  template<typename U = T, typename A = Add> requires (HAS_T)
+  Doubling(ll lim, int n_, const auto& nxt, const auto& mapping, U unit_, A add_)
+    : n(n_), unit(unit_), add(add_) {
+    prepare_tbl(lim, nxt);
+    for (int i = 0; i < n; i++) tbl[0][i].second = mapping[i];
+    fill_tbl(lim);
+  }
+
+  Node val(ll x, int i) {
+    Node ret;
+    nd_int(ret) = i;
+    if constexpr (HAS_T) ret.second = unit;
+    for (int k = 0; x > 0; x >>= 1, k++) {
+      if (x & 1) {
+        Node cur = tbl[k][nd_int(ret)];
+        nd_int(ret) = nd_int(cur);
+        if constexpr (HAS_T) ret.second = add(ret.second, cur.second);
+      }
+    }
+    return ret;
+  }
+
+};
+
+template<typename T, typename Add>
+auto make_doubling_with_monoid_unit_add(ll lim, int n, const auto& nxt, const auto& mapping, T unit, Add add) {
+  return Doubling<T, decltype(add)>(lim, n, nxt, mapping, unit, add);
+}
+template<typename T>
+auto make_doubling_with_monoid(ll lim, int n, const auto& nxt, const auto& mapping) {
+  return make_doubling_with_monoid_unit_add(lim, n, nxt, mapping, T(), plus<T>());
+}
+
+
+
+/*
 struct DoublingFRel { // from functional relation
   int n;
   vector<vector<int>> tbl;
 
-  void _init(long long lim, auto frel) {
-    int K = 64 - __builtin_clzll(lim);
+  void _init(ll lim, auto frel) {
+    int K = 64 - countl_zero((u64)lim);
     tbl.resize(K, vector<int>(n));
     for (int i = 0; i < n; i++) tbl[0][i] = frel(i);
     for (int k = 0; k + 1 < K; k++) for (int i = 0; i < n; i++) tbl[k + 1][i] = tbl[k][tbl[k][i]];
   }
 
-  DoublingFRel(long long lim, int n_, auto frel) : n(n_) { _init(lim, frel); }
-  static DoublingFRel from_container(long long lim, int n, auto vec) {
+  DoublingFRel(ll lim, int n_, auto frel) : n(n_) { _init(lim, frel); }
+  static DoublingFRel from_container(ll lim, int n, auto vec) {
     return DoublingFRel(lim, n, [&](int i) { return vec[i]; });
   }
 
-  int val(long long x, int i) { // Calculates frel^{(x)}(i).  Should be x <= lim.
+  int val(ll x, int i) { // Calculates frel^{(x)}(i).  Should be x <= lim.
     for (int k = 0; x > 0; x >>= 1, k++) if (x & 1) i = tbl[k][i];
     return i;
   }
@@ -51,7 +121,7 @@ struct DoublingCum {
   DoublingCum(const DoublingFRel& d_, auto mapping, T unit_, add_t add_)
     : d(d_), unit(unit_), add(add_) { _init(mapping); }
 
-  T val(long long x, int i) { // the monoid sum of x objs from i.  i.e. from i to i + x - 1.
+  T val(ll x, int i) { // the monoid sum of x objs from i.  i.e. from i to i + x - 1.
     T ret = unit;
     for (int k = 0; x > 0; x >>= 1, k++) if (x & 1) {
         ret = add(ret, tbl[k][i]);
@@ -61,8 +131,8 @@ struct DoublingCum {
   }
 };
 
-DoublingFRel doubling_from_func(long long lim, int n, auto func) { return DoublingFRel(lim, n, func); }
-DoublingFRel doubling_from_container(long long lim, int n, auto vec) {
+DoublingFRel doubling_from_func(ll lim, int n, auto func) { return DoublingFRel(lim, n, func); }
+DoublingFRel doubling_from_container(ll lim, int n, auto vec) {
   return DoublingFRel(lim, n, [&vec](int i) { return vec[i]; });
 }
 template<typename T, typename add_t = std::plus<T>>
@@ -73,6 +143,7 @@ template<typename T, typename add_t = std::plus<T>>
 auto doubling_cum_from_container(const DoublingFRel& d, auto vec_mapping, T unit = T(), add_t add = plus<T>()) {
   return DoublingCum<T, decltype(add)>(d, [&vec_mapping](int i) { return vec_mapping[i]; }, unit, add);
 }
+*/
 
 // @@ !! END ---- doubling.cc
 

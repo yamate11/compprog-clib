@@ -10,107 +10,110 @@ using pll = pair<ll, ll>;
 #define ALL(coll) (coll).begin(), (coll).end()
 #define SIZE(v) ((ll)((v).size()))
 #define REPOUT(i, a, b, exp, sep) REP(i, (a), (b)) { if (i != (a)) cout << (sep); cout << (exp); } cout << "\n"
+using u64 = unsigned long long;
 
-// @@ !! LIM(doubling)
+// @@ !! LIM(doubling random mod debug)
 
 int main(/* int argc, char *argv[] */) {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
   cout << setprecision(20);
   
-  random_device rd;
-  mt19937 rng(rd());
-  auto randrange = [&rng](ll i, ll j) -> ll {
-    uniform_int_distribution<ll> dist(i, j - 1);
-    return dist(rng);
-  };
+  Random rand;
+
+  { // interfaces
+    Doubling dobj(100, 4, vector<int>{1, 2, 3, 0});
+    assert(dobj.val(13, 0) == 1);
+    Doubling<int, plus<int>> dobj2(100, 4, vector<int>{1, 2, 3, 0}, vector<int>{0, 0, 0, 1}, 0, plus<int>());
+    auto [i2, x2] = dobj2.val(13, 0);
+    assert(i2 == 1 and x2 == 3);
+    ll big = 1e18;
+    auto dobj3 = make_doubling_with_monoid_unit_add(big, 4, vector<int>{1, 2, 3, 0}, vector<ll>{0, 0, 0, 1}, 0LL, plus<ll>());
+    auto [i3, x3] = dobj3.val(big, 0);
+    assert(i3 == 0 and x3 == big / 4);
+    auto dobj4 = make_doubling_with_monoid<ll>(big, 4, vector<int>{1, 2, 3, 0}, vector<ll>{0, 0, 0, 1});
+    auto [i4, x4] = dobj4.val(big - 1, 2);
+    assert(i4 == 1 and x4 == big / 4);
+  }
 
   { // ABC179-E  
     using vll = vector<ll>;
     auto func = [&](ll N, ll K, const vll& A) -> ll {
-      auto d1 = doubling_from_func(K, N, [&](int i) -> int { return (i + A[i]) % N; });
-      auto d2 = doubling_cum_from_container<ll>(d1, A);
-      return d2.val(K, 0);
+      vector<int> vf(N);
+      REP(i, 0, N) vf[i] = (i + A[i]) % N;
+      auto dobj = make_doubling_with_monoid<ll>(K, N, vf, A);
+      return dobj.val(K, 0).second;
     };
     assert(func(5, 3, vll({2, 1, 6, 3, 1})) == 11);
     assert(func(10, 1000000000000, vll({260522, 914575, 436426, 979445, 648772, 690081, 933447, 190629, 703497, 47202})));
   }
 
-  { // interfaces
-    ll r = 20;
-    ll n = 5;
-
-    auto f1 = [&](ll i) -> ll { return (i + 2) % n; };
-    vector<ll> v1{2, 3, 4, 0, 1};
-    deque<ll> v2{2, 3, 4, 0, 1};
-    auto m1 = [&](ll i) -> ll { return i * 10; };
-    vector<ll> mv1{0, 10, 20, 30, 40};
-    auto mymax = [](ll a, ll b) -> ll { return max(a, b); };
-    auto d1 = doubling_from_func(r, n, f1);
-    auto d2 = doubling_from_container(r, n, v1);
-    auto d3 = doubling_from_container(r, n, v2);
-    auto d4 = doubling_cum_from_func<ll>(d1, m1);
-    auto d5 = doubling_cum_from_container<ll>(d1, mv1);
-    auto d6 = doubling_cum_from_func<ll>(d1, m1, LLONG_MIN, mymax);
-    auto d7 = doubling_cum_from_container<ll>(d1, mv1, LLONG_MIN, mymax);
-    assert(d1.val(4, 0) == 3);
-    assert(d2.val(3, 1) == 2);
-    assert(d3.val(10, 0) == 0);
-    assert(d4.val(3, 3) == 50);
-    assert(d5.val(2, 1) == 40);
-    assert(d6.val(2, 1) == 30);
-    assert(d7.val(3, 0) == 40);
-  }
-
-
   {
     ll n = 10;
     ll K = 100;
     ll rep = 1000;
-    vector<ll> A(n), B(n);
-    REP(i, 0, n) {
-      A[i] = randrange(0, n);
-      B[i] = randrange(0, (ll)1e9);
-    }
-    auto naive = [&](ll r, ll x) -> ll {
-      REP(i, 0, r) x = A[x];
-      return x;
-    };
-    auto naive2 = [&](ll r, ll x) -> ll {
-      ll s = 0;
-      REP(i, 0, r) {
-        s += B[x];
-        x = A[x];
+
+    { // function only
+      REP(_r, 0, rep) {
+        vector<ll> A(n);
+        REP(i, 0, n) A[i] = rand.range(0, n);
+        Doubling d(K, n, A);
+        auto naive_f = [&](ll r, ll x) -> ll {
+          REP(i, 0, r) x = A[x];
+          return x;
+        };
+        REP(i, 0, n) {
+          ll r = rand.range(0, K + 1);
+          assert(d.val(r, i) == naive_f(r, i));
+        }
       }
-      return s;
-    };
-    auto d = doubling_from_container(K, n, A);
-    auto d2 =doubling_cum_from_container<ll>(d, B);
-    REP(i, 0, rep) {
-      ll r = randrange(0, K + 1);
-      ll x = randrange(0, n);
-      assert(naive(r, x) == d.val(r, x));
     }
-    REP(i, 0, rep) {
-      ll r = randrange(0, K + 1);
-      ll x = randrange(0, n);
-      assert(naive2(r, x) == d2.val(r, x));
+    { // monoid: Fp
+      using Fp = FpB;
+      REP(_r, 0, rep) {
+        vector<ll> A(n);
+        REP(i, 0, n) A[i] = rand.range(0, n);
+        vector<Fp> B(n);
+        REP(i, 0, n) B[i] = Fp(rand.range(0, (ll)1e9));
+        auto naive_m = [&](ll r, ll x) -> pair<int, Fp> {
+          Fp v = 0;
+          REP(i, 0, r) {
+            v += B[x];
+            x = A[x];
+          }
+          return {x, v};
+        };
+        auto d = make_doubling_with_monoid<Fp>(K, n, A, B);
+        REP(i, 0, n) {
+          ll r = rand.range(0, K + 1);
+          assert(d.val(r, i) == naive_m(r, i));
+        }
+      }
     }
-    REP(i, 0, rep) {
-      ll k = randrange(1, K + 1);
-      ll x = randrange(0, n);
-      auto d3 = doubling_from_container(k, n, A);
-      assert(naive(k, x) == d3.val(k, x));
-    }
-    REP(i, 0, rep) {
-      ll k = randrange(1, K + 1);
-      ll x = randrange(0, n);
-      auto d4 = doubling_from_container(k, n, A);
-      auto d5 = doubling_cum_from_container<ll>(d4, B);
-      assert(naive2(k, x) == d5.val(k, x));
+    { // monoid: min
+      REP(_r, 0, rep) {
+        vector<ll> A(n);
+        REP(i, 0, n) A[i] = rand.range(0, n);
+        vector<ll> B(n);
+        REP(i, 0, n) B[i] = rand.range(0, (ll)1e9);
+        auto naive_m = [&](ll r, ll x) -> pair<int, ll> {
+          ll v = 1e9;
+          REP(i, 0, r) {
+            v = min(v, B[x]);
+            x = A[x];
+          }
+          return {x, v};
+        };
+        auto mymin = [](ll a, ll b) -> ll { return min(a, b); };
+        auto d = make_doubling_with_monoid_unit_add(K, n, A, B, (ll)1e9, mymin);
+        REP(i, 0, n) {
+          ll r = rand.range(0, K + 1);
+          assert(d.val(r, i) == naive_m(r, i));
+        }
+      }
     }
   }
-
+  
   cout << "ok" << endl;
   return 0;
 }
