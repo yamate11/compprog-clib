@@ -45,6 +45,16 @@ int main() {
   }
 
   {
+    safe_umap<ll, ll, true> mp;
+    mp[10] = mp[20] + 100;
+    assert(mp.find(0) == mp.end());
+    assert(mp.find(10) != mp.end());
+    assert(mp.find(20) != mp.end());
+    assert(mp[10] == 100);
+    assert(mp[20] == 0);
+  }
+
+  {
     safe_uset<ll> ms1;
     ms1.insert(8);
     ms1.insert(10);
@@ -62,12 +72,24 @@ int main() {
   }
 
   {
+    safe_uset<ll, true> ms1;
+    ms1.insert(8);
+    ms1.insert(10);
+    ms1.insert(8);
+    assert(ssize(ms1) == 2);
+    safe_umap<int, vector<int>, true> mp3;
+    mp3[10] = vector<int>{5, 7};
+    mp3[5].push_back(2);
+    assert(ssize(mp3) == 2 and ssize(mp3[5]) == 1);
+  }
+
+  {
     safe_uset<ll> ms;
     ms.insert(10000);
     ms.insert(20000);
     ms.insert(30000);
-    assert(ms.contains(20000));
-    assert(not ms.contains(15000));
+    assert(ms.find(20000) != ms.end());
+    assert(ms.find(15000) == ms.end());
     ms.erase(20000);
     assert(ms.find(20000) == ms.end());
   }
@@ -89,8 +111,24 @@ int main() {
   
   {
     string s1 = "abc", s2 = "axx", s3 = "", s4 = "zzz";
-    safe_umap<string, ll> mp{{s1, 10}, {s2, 20}, {s3, 30}};
-    assert(mp.contains(s2) and not mp.contains(s4));
+    safe_umap<string, ll> mp;
+    mp[s1] = 10;
+    mp[s2] = 20;
+    mp[s3] = 30;
+    assert(mp.find(s2) != mp.end());
+    assert(mp.find(s4) == mp.end());
+    auto it = mp.find(s1);
+    assert(it->second == 10);
+  }
+
+  {
+    string s1 = "abc", s2 = "axx", s3 = "", s4 = "zzz";
+    safe_umap<string, ll, true> mp;
+    mp[s1] = 10;
+    mp[s2] = 20;
+    mp[s3] = 30;
+    assert(mp.find(s2) != mp.end());
+    assert(mp.find(s4) == mp.end());
     auto it = mp.find(s1);
     assert(it->second == 10);
   }
@@ -102,7 +140,21 @@ int main() {
     mp[cr(10, true, "happy")] = 3;
     mp[cr(5, false, "fish")] = 7;
     mp[cr(-4, true, "evening")] = 2;
-    assert(mp.contains(cr(10, true, "happy")));
+    assert(mp.find(cr(10, true, "happy")) != mp.end());
+    auto it1 = mp.find(cr(5, true, "fish"));
+    assert(it1 == mp.end());
+    auto it2 = mp.find(cr(5, false, "fish"));
+    assert(it2 != mp.end() and it2->second == 7);
+  }
+
+  {
+    using tp = pair<int, pair<bool, string>>;
+    auto cr = [](int i, bool b, string s) -> tp { return make_pair(i, make_pair(b, s)); };
+    safe_umap<tp, int, true> mp;
+    mp[cr(10, true, "happy")] = 3;
+    mp[cr(5, false, "fish")] = 7;
+    mp[cr(-4, true, "evening")] = 2;
+    assert(mp.find(cr(10, true, "happy")) != mp.end());
     auto it1 = mp.find(cr(5, true, "fish"));
     assert(it1 == mp.end());
     auto it2 = mp.find(cr(5, false, "fish"));

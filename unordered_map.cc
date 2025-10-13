@@ -21,6 +21,12 @@ using namespace std;
   safe_umap<string, pll> mp4;
   ...   
 
+  If the third template argument of safe_umap and the second of safe_uset is true, 
+  gp_hash_table is used instead of unordered_{map, set}.
+
+  safe_umap<pair<string, int>, int, true> mp5;   // gp_hash_table<pair<string, int>, int, safe_custom_hash<...>>
+  sefe_uset<int, true> mp6;                      // gp_hash_table<int, null_type, safe_custom_hash<int>>
+
 */
 
 //////////////////////////////////////////////////////////////////////
@@ -29,10 +35,8 @@ using namespace std;
 
 /* This code is based on https://codeforces.com/blog/entry/62393 */
 
-/*
 #include <ext/pb_ds/assoc_container.hpp>
 using namespace __gnu_pbds;
-*/
 
 template <typename T, typename Enable = void>
 struct safe_custom_hash;
@@ -93,12 +97,12 @@ struct safe_custom_hash<pair<T1, T2>, void> {
   }
 };
 
-template <typename T_key, typename T_value>
-using safe_umap = unordered_map<T_key, T_value, safe_custom_hash<T_key>>;
-
-template <typename T_key>
-using safe_uset = unordered_set<T_key, safe_custom_hash<T_key>>;
-
+template <typename T_key, typename T_value, bool useGP = false>
+using safe_umap = conditional_t<useGP, gp_hash_table<T_key, T_value, safe_custom_hash<T_key>>,
+                                unordered_map<T_key, T_value, safe_custom_hash<T_key>>>;
+template <typename T_key, bool useGP = false>
+using safe_uset = conditional_t<useGP, gp_hash_table<T_key, null_type, safe_custom_hash<T_key>>,
+                                unordered_set<T_key, safe_custom_hash<T_key>>>;
 template <typename T_key>
 using safe_umultiset = unordered_multiset<T_key, safe_custom_hash<T_key>>;
 
