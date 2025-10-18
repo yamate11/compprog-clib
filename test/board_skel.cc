@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (ll i = 0; i < 4; i++) {
-    assert(BrdIdx::nbr4.at((i+1)%4) == BrdIdx::nbr4.at(i).rotateQ());
+    assert(BrdIdx::nbr4[(i+1)%4] == BrdIdx::nbr4[i].rotateQ());
   }
 
   {

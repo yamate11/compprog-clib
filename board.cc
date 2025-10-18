@@ -67,8 +67,8 @@ using namespace std;
 struct BrdIdx {
   int r;
   int c;
-  BrdIdx(int r_, int c_) : r(r_), c(c_) {}
-  BrdIdx() : r(0), c(0) {}
+  constexpr BrdIdx(int r_, int c_) : r(r_), c(c_) {}
+  constexpr BrdIdx() : r(0), c(0) {}
 
   BrdIdx& operator +=(const BrdIdx& o) { r += o.r; c += o.c; return *this; }
   BrdIdx& operator -=(const BrdIdx& o) { r -= o.r; c -= o.c; return *this; }
@@ -87,17 +87,20 @@ struct BrdIdx {
   bool operator >(const BrdIdx& o) const { return o < *this; }
   bool operator >=(const BrdIdx& o) const { return o <= *this; }
 
-  BrdIdx rotateQ() { return BrdIdx(-c, r); } // counter-clockwise
+  BrdIdx rotateQ() const { return BrdIdx(-c, r); } // counter-clockwise
 
-  static vector<BrdIdx> nbr4, nbr4D, nbr5, nbr8, nbr9;
+  static const array<BrdIdx,4> nbr4;
+  static const array<BrdIdx,4> nbr4D;
+  static const array<BrdIdx,5> nbr5;
+  static const array<BrdIdx,8> nbr8;
+  static const array<BrdIdx,9> nbr9;
 };
 
-vector<BrdIdx>
-  BrdIdx::nbr4 ({      {1,0},      {0,1},       {-1,0},        {0,-1}       }),
-  BrdIdx::nbr4D({            {1,1},      {-1,1},       {-1,-1},       {1,-1}}),
-  BrdIdx::nbr5 ({{0,0},{1,0},      {0,1},       {-1,0},        {0,-1}       }),
-  BrdIdx::nbr8 ({      {1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}}),
-  BrdIdx::nbr9 ({{0,0},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}});
+inline const array<BrdIdx,4> BrdIdx::nbr4 {{      {1,0},      {0,1},       {-1,0},        {0,-1}       }};
+inline const array<BrdIdx,4> BrdIdx::nbr4D{{            {1,1},      {-1,1},       {-1,-1},       {1,-1}}};
+inline const array<BrdIdx,5> BrdIdx::nbr5 {{{0,0},{1,0},      {0,1},       {-1,0},        {0,-1}       }};
+inline const array<BrdIdx,8> BrdIdx::nbr8 {{      {1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}}};
+inline const array<BrdIdx,9> BrdIdx::nbr9 {{{0,0},{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}}};
 
 BrdIdx operator *(int k, const BrdIdx& o) { return o * k; }
 ostream& operator <<(ostream& os, const BrdIdx& i) {
