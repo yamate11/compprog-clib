@@ -6,7 +6,7 @@ using namespace std;
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
-// @@ !! LIM(mod power debug f:>> f:<<)
+// @@ !! LIM(power debug f:>> f:<< mod)
 
 template<int mod> void testf1(int dyn_mod);
 
@@ -95,6 +95,7 @@ int main() {
   }
 
   {  // __int128
+    // For this, you need to read "f:<<" and "f:>>" earlier than "mod".
     using Fp = FpG<0, __int128>;
     __int128 mod = 1152921504606847009LL;  // This is a prime.
     Fp::setMod(mod);
@@ -108,6 +109,7 @@ int main() {
     assert(Fp(x1) * Fp(x2) + Fp(x3) == Fp(x1 * x2 + x3));
     Fp z1 = Fp(1) / Fp(x1);
     assert(x1 * (__int128)z1 % mod == 1);
+
     stringstream ss1;
     ss1 << mod + 10;
     Fp f1;
@@ -115,6 +117,7 @@ int main() {
     stringstream ss2;
     ss2 << f1;
     assert(ss2.str() == "10");
+
   }
 
   {  // boost
