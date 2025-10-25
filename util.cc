@@ -46,6 +46,9 @@ ostream& operator<< (ostream& os, const tuple<T1,T2,T3,T4,T5,T6>& t);
 template <typename T>
 ostream& operator<< (ostream& os, const vector<T>& v);
 
+template <typename T, size_t N>
+ostream& operator<< (ostream& os, const array<T, N>& v);
+
 template <typename T, typename C>
 ostream& operator<< (ostream& os, const set<T, C>& v);
 
@@ -120,6 +123,18 @@ ostream& operator<< (ostream& os, const tuple<T1,T2,T3,T4,T5,T6>& t) {
 
 template <typename T>
 ostream& operator<< (ostream& os, const vector<T>& v) {
+  os << '[';
+  for (auto it = v.begin(); it != v.end(); it++) {
+    if (it != v.begin()) os << ", ";
+    os << *it;
+  }
+  os << ']';
+
+  return os;
+}
+
+template <typename T, size_t N>
+ostream& operator<< (ostream& os, const array<T, N>& v) {
   os << '[';
   for (auto it = v.begin(); it != v.end(); it++) {
     if (it != v.begin()) os << ", ";
@@ -270,6 +285,7 @@ operator<<(std::ostream& os, E e) {
 }
 
 // This is a very ad-hoc implementation...
+// Known problem: "1 << 127" cannot be handled.
 ostream& operator<<(ostream& os, const __int128& v) {
   unsigned __int128 a = v < 0 ? -v : v;
   ll i = 0;
@@ -336,6 +352,7 @@ vector<T> read_vector(istream& is) {
 }
 
 // This is a very ad-hoc implementation...
+// Known problem: "1 << 127" cannot be handled.
 istream& operator>>(istream& is, __int128& o) {
   string s; is >> s;
   o = 0;
