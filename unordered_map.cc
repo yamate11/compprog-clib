@@ -38,8 +38,11 @@ using namespace std;
 #include <ext/pb_ds/assoc_container.hpp>
 using namespace __gnu_pbds;
 
+#if !defined(__TEMPLATE_SAFE_CUSTOM_HASH__)
+#define __TEMPLATE_SAFE_CUSTOM_HASH__
 template <typename T, typename Enable = void>
 struct safe_custom_hash;
+#endif
 
 // For integer types (int, ll, u64, unsigned, ....)
 template <typename T>

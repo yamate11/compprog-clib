@@ -4,7 +4,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(ipoint)
+// @@ !! LIM(ipoint unordered_map)
 
 int main() {
 
@@ -45,6 +45,12 @@ int main() {
     assert(it3 != ump.end() && it3->second == 50);
     auto it4 = ump.find(IPoint(5, 3));
     assert(it4 == ump.end());
+    safe_umap<IPoint, ll> sump;
+    sump[IPoint(4, -2)] = 50;
+    auto it5 = sump.find(IPoint(4, -2));
+    assert(it5 != sump.end() && it5->second == 50);
+    auto it6 = sump.find(IPoint(5, 3));
+    assert(it6 == sump.end());
   }
 
   {

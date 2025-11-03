@@ -95,15 +95,26 @@ ostream& operator <<(ostream& os, const IPoint& p) {
   return os;
 }
 
+#if !defined(__TEMPLATE_SAFE_CUSTOM_HASH__)
+#define __TEMPLATE_SAFE_CUSTOM_HASH__
+template <typename T, typename Enable = void>
+struct safe_custom_hash;
+#endif
+
+template<>
+struct safe_custom_hash<IPoint, void> {
+  std::size_t operator()(const IPoint& p) const {
+    static const uint64_t frand = chrono::steady_clock::now().time_since_epoch().count();
+    static const uint64_t a = (frand ^ 0x9e3779b97f4a7c15) | 1;
+    static const uint64_t b = (frand ^ 0xbf58476d1ce4e5b9) | 1;
+    return a * (uint64_t)p.x + b * (uint64_t)p.y;
+  }
+};
+
 namespace std {
   template<>
   struct hash<IPoint> {
-    std::size_t operator()(const IPoint& p) const {
-      static const uint64_t frand = chrono::steady_clock::now().time_since_epoch().count();
-      static const uint64_t a = (frand ^ 0x9e3779b97f4a7c15) | 1;
-      static const uint64_t b = (frand ^ 0xbf58476d1ce4e5b9) | 1;
-      return a * (uint64_t)p.x + b * (uint64_t)p.y;
-    }
+    std::size_t operator()(const IPoint& p) const { return safe_custom_hash<IPoint, void>()(p); }
   };
 }
 
