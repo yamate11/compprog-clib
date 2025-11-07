@@ -67,10 +67,8 @@ struct Tree {
   ll root;
   vector<nbr_t> _nbr;
   vector<pair<ll, ll>> _edges;   // (x, y) in _edges => x < y
-  vector<ll> _parent;             // _parent[root] == -1
   vector<ll> _stsize;
   vector<ll> _depth;
-  unordered_map<ll, ll> _edge_idx;
   vector<ll> _euler_in;
   vector<ll> _euler_out;
   vector<pair<ll, bool>> _euler_edge;
@@ -157,15 +155,11 @@ struct Tree {
   ll _enc_node_pair(ll x, ll y) { return (x + 1) * (numNodes + 1) + (y + 1); }
 
   ll edge_idx(ll x, ll y) {
-    if (_edge_idx.empty()) {
-      for (ll i = 0; i < ssize(_edges); i++) {
-        auto [xx, yy] = _edges[i];
-        _edge_idx[_enc_node_pair(xx, yy)] = i;
-        _edge_idx[_enc_node_pair(yy, xx)] = i;
-      }
-    }
-    auto it = _edge_idx.find(_enc_node_pair(x, y));
-    return it == _edge_idx.end() ? -1 : it->second;
+    auto [py, ey] = parent_pe(y);
+    if (x == py) return ey;
+    auto [px, ex] = parent_pe(x);
+    if (y == px) return ex;
+    return -1LL;
   }
 
   pair<ll, ll> nodes_of_edge(ll e, ll mode = 0) {
@@ -314,7 +308,6 @@ struct Tree {
   void change_root(ll newRoot) {
     _stsize.clear();
     _depth.clear();
-    _edge_idx.clear();
     _euler_in.clear();
     _euler_out.clear();
     _lca_tbl.clear();
