@@ -98,17 +98,20 @@ void hadamard(vector<T>& f) { _trans_form<T, 1, 1, 1, -1, 1>(f); }
 template <typename T>
 void inv_hadamard(vector<T>& f) { _trans_form<T, 1, 1, 1, -1, 2>(f); }
 
-template<typename T>
-void zeta_upper(vector<T>& f) { _trans_form<T, 1, 1, 0, 1, 1>(f); }
-
-template<typename T>
-void moebius_upper(vector<T>& f) { _trans_form<T, 1, -1, 0, 1, 1>(f); }
-
-template<typename T>
-void zeta_lower(vector<T>& f) { _trans_form<T, 1, 0, 1, 1, 1>(f); }
-
-template<typename T>
-void moebius_lower(vector<T>& f) { _trans_form<T, 1, 0, -1, 1, 1>(f); }
+template<bool IS_LOWER, bool IS_ZETA>
+void gen_zeta(auto& vec) {
+  int n = countr_zero(vec.size());
+  assert(ssize(vec) == (1LL << n));
+  for (int i = 0; i < n; i++) {
+    for (int x = 0; x < ssize(vec); x++) {
+      if ((x >> i & 1) == IS_LOWER) { vec[x] += (IS_ZETA ? 1 : -1) * vec[x ^ 1LL << i]; }
+    }
+  }
+}
+void zeta_lower(   auto& vec) { return gen_zeta<true,  true >(vec); }
+void moebius_lower(auto& vec) { return gen_zeta<true,  false>(vec); }
+void zeta_upper(   auto& vec) { return gen_zeta<false, true >(vec); }
+void moebius_upper(auto& vec) { return gen_zeta<false, false>(vec); }
 
 template<typename T>
 void _conv_dest_form(vector<T>& x, vector<T>& y,
