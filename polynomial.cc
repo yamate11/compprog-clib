@@ -32,8 +32,7 @@ using namespace std;
         SparsePoly<T> Xn(int n);
   - Degree
         int d = (-1.0 + X*X).degree()        // d == 2
-        // The degree of the zero polynomial is zero; and the
-        // coefficient vector is empty.
+        // The degree of the zero polynomial is -1; and the coefficient vector is empty.
   - Coefficients
         double x = (-1.0 + 20*X + 30*X*X).getCoef(2) // 30
         double x = (-1.0 + 20*X + 30*X*X).getCoef(10) // 0
@@ -56,10 +55,11 @@ using namespace std;
   - Division by linear term X-c (for performance)
         auto [d, m] = p.divideLinear(c);   // p = (X-c) * d + m
   - Division in FPS (naive method)
-        Polynomial a = p.divFormalSeries(q, n)
+        Polynomial a = p.divFPS(q, n)
         //    a.degree() == n    (unless p is divisible by q)
         //    a.coef[i] is the [x^i](p/q) (as a formal power series) for i <= n
-        // T should be a field or q.coef[0] should be (T)1, but this is not checked.
+        // T should be a field, but this is not checked.
+        // q.coef(0) must not be zero.
   - Bostan-Mori method 
     computes the n-th coefficency of formal power series p/q.
     The following should hold:
@@ -75,15 +75,21 @@ using namespace std;
       Give the constructor a vector of pair of a power and a coefficient.
       E.g.,  3 - X^10 + 2X^20 ... SparsePoly<ll> sp({{0,3},{10,-1},{20,2}});
 
+      Getting a coefficient: sp.getCoef(int n)
+
       For 
           Polynomial<T, use_fft> p;
           SparsePoly<T> sp;
       the following operations are supported
-          p + sp, p - sp, p * sp
-          p.mult(sp, cutoff=-1)     p.selfMult(sp, cutoff=-1)
-          p.divFPS(sp, cutoff=-1)   p.selfDivFPS(sp, cutoff=-1)
-
-
+          q = p + sp;
+          q = p - sp;
+          q = p * sp;
+          q = p.mult(sp, cutoff=-1);
+          p.selfMult(sp, cutoff=-1);
+              When cutoff == -1, the result is cut off at p.degree() + sp.degree()
+          q = p.divFPS(sp, cutoff=-1);
+          p.selfDivFPS(sp, cutoff=-1);
+              When cutoff == -1, the result is cut off at p.degree()
  */
 
 //////////////////////////////////////////////////////////////////////
@@ -321,10 +327,26 @@ public:
       for (int k = 1; k <= min(i, q_deg); k++) {
         s -= ret[i - k] * q.coef[k];
       }
-      ret[i] = q.coef[0] == (T)1 ? s : s / q.coef[0];
+      ret[i] = s / q.coef[0];
     }
     return Polynomial(move(ret));
   }
+
+  Polynomial divFormalSeries(const SparsePoly<T>& q, int n) const {
+    vector<T> ret(n + 1);
+    int p_deg = degree();
+    // int q_deg = q.degree();
+    const T coef_0 = q.getCoef(0);
+    for (int i = 0; i <= n; i++) {
+      T s = i <= p_deg ? coef[i] : (T)0;
+      for (auto [k, t] : q.coef) {
+        if (0 < k and k <= i) s -= ret[i - k] * t;
+      }
+      ret[i] = s / coef_0;
+    }
+    return Polynomial(move(ret));
+  }
+
 
   T subBostanMori(const Polynomial& o, ll n) const {
     auto rev = [](vector<T> &f) -> void {
@@ -335,13 +357,17 @@ public:
       for (int i = 0; i < d; i++) f[i] = f[(i << 1) | bit];
       f.resize(d);
     };
-    if (o.coef[0] != (T)1) {
-      throw runtime_error("subBostanMori: o.coef[0] should be 1.");
+    if (o.coef[0] == (T)0) {
+      throw runtime_error("subBostanMori: o.coef[0] should not be 0.");
     }
     if (degree() >= o.degree()) {
       throw runtime_error("subBostanMori: broken: degree() < o.degree()");
     }
-    vector<T> p(coef), q(o.coef), q_rev(o.coef);
+    if (coef.empty()) return (T)0;
+    vector<T> p(coef), q(o.coef);
+    T c = q[0];
+    if (c != (T)1) for (int i = 0; i < (int)q.size(); i++) q[i] /= c;
+    auto q_rev = q;
     rev(q_rev);
     for (; n; n >>= 1) {
       p = coef_conv(move(p), q_rev);
@@ -350,11 +376,19 @@ public:
       shift(q, 0);
       q_rev = q; rev(q_rev);
     }
-    return p[0] / q[0];
+    return p[0] / (q[0] * c);
   }
 
   friend T bostanMori(const Polynomial& p, const Polynomial& q, ll n) {
-    return p.subBostanMori(q, n);
+    T x;
+    if (p.degree() >= q.degree()) {
+      auto [t, r] = p.divmod(q);
+      x = r.subBostanMori(q, n);
+      if (n <= t.degree()) x += t.getCoef(n);
+      return x;
+    }else {
+      return p.subBostanMori(q, n);
+    }
   }
 
 
@@ -538,6 +572,13 @@ struct SparsePoly {   // Sparse Polynomial
   SparsePoly& operator=(const Polynomial<T, use_fft>& p) {
     from_vec(p.coefVec());
     return *this;
+  }
+
+  T getCoef(ll n) const {
+    auto it = lower_bound(coef.begin(), coef.end(), coef_elm_t(n, (T)0),
+                          [](coef_elm_t x, coef_elm_t y) { return x.first < y.first; });
+    if (it != coef.end() and it->first == n) return it->second;
+    else return (T)0;
   }
 
   /*

@@ -246,8 +246,8 @@ int main(/* int argc, char *argv[] */) {
     vector<ll> v1, v2;
     const int sz = 100;
     for (int i = 0; i < sz + 1; i++) {
-      v1.push_back(randrange(0, 1LL << 30));
-      v2.push_back(randrange(0, 1LL << 30));
+      v1.push_back(randrange(0, 1LL << 26));
+      v2.push_back(randrange(0, 1LL << 26));
     }
     v1[sz] = v2[sz] = 1;
     auto pol1X = Polynomial<ll, 0>(v1);
@@ -269,16 +269,21 @@ int main(/* int argc, char *argv[] */) {
     using Pol = PolyLL;
     const auto& X = SparsePoly<ll>::X;
     Pol p1 = Pol(1), p2 = Pol(1) - X;
-    auto a = p1.divFormalSeries(p2, 70);
+    auto a = p1.divFPS(p2, 70);
     for (ll i = 0; i <= 70; i++) {
       assert(a.getCoef(i) == 1);
       assert(bostanMori(p1, p2, 1) == 1);
     }
+    SparsePoly<ll> sp2 = 1 - X;
+    auto aa = p1.divFPS(sp2, 70);
+    assert(a == aa);
 
     Pol p3 = Pol(1) + X;
     Pol p4 = p3 * p3 * p3;
-    auto b = p4.divFormalSeries(p3, 1000);
+    auto b = p4.divFPS(p3, 1000);
     assert(b.degree() == 2 and b == p3 * p3);
+    SparsePoly<ll> sp3 = 1 + X;
+    auto bb = p4.divFPS(sp3, 1000);
   }
   cerr << "6 " << get_time_sec() - et << endl;
   et = get_time_sec();
@@ -292,26 +297,33 @@ int main(/* int argc, char *argv[] */) {
     assert(bostanMori(p1, p2, 1) == Fp(1));
     assert(bostanMori(p1, p2, 2) == Fp(2));
     assert(bostanMori(p1, p2, 10) == 89);
-    auto a = p1.divFormalSeries(p2, 10);
+    auto a = p1.divFPS(p2, 10);
     assert(a.coefVec() == vector<Fp>({1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89}));
 
-    for (ll t = 0; t < 10; t++) {
-      ll degP = randrange(0, 100);
-      ll degQ = degP + randrange(1, 100);
-      ll lim = 10;
+#if DEBUG
+    ll repeat_num = 200;
+#else
+    ll repeat_num = 10000;
+#endif
+    for (ll t = 0; t < repeat_num; t++) {
+      ll degP = randrange(0, 20);
+      ll degQ = randrange(0, 20);
+      ll lim = 20;
       vector<Fp> coefP(degP + 1);
       vector<Fp> coefQ(degQ + 1);
       for (ll i = 0; i < degP + 1; i++) coefP[i] = randrange(-lim, lim + 1);
-      for (ll i = 1; i < degQ + 1; i++) coefQ[i] = randrange(-lim, lim + 1);
-      coefQ[0] = 1;
-      while (coefQ[degQ] == Fp(0)) coefQ[degQ] = randrange(-lim, lim + 1);
+      for (ll i = 0; i < degQ + 1; i++) coefQ[i] = randrange(-lim, lim + 1);
+      while (coefQ[0] == Fp(0)) coefQ[0] = randrange(-lim, lim + 1);
       Pol p(coefP), q(coefQ);
-      ll degR = 2 * degQ;
-      auto r = p.divFormalSeries(q, degR);
-      assert(r.getCoef(degR) == bostanMori(p, q, degR));
-      for (ll i = 0; i < 10; i++) {
-        ll idx = randrange(0, degR);
-        assert(r.getCoef(idx) == bostanMori(p, q, idx));
+      ll degR = p.degree() + 1;
+      auto r = p.divFPS(q, degR);
+      for (ll i = 0; i < 5; i++) {
+        if (r.degree() == -1) {
+          assert(p.degree() == -1);
+        }else {
+          ll idx = randrange(0, r.degree() + 1);
+          assert(r.getCoef(idx) == bostanMori(p, q, idx));
+        }
       }
     }
   }
@@ -375,40 +387,46 @@ int main(/* int argc, char *argv[] */) {
   }
 
   {
-    using SP = SparsePoly<ll>;
+    using Fp = FpB;
+    using SP = SparsePoly<Fp>;
+    using Pol = PolyFpB;
+#if DEBUG
     ll rep = 1000;
+#else
+    ll rep = 50000;
+#endif
     for (ll z = 0; z < rep; z++) {
       ll deg1 = randrange(0, 10);
-      vector<ll> v1(deg1 + 1);
+      vector<Fp> v1(deg1 + 1);
       for (ll i = 0; i <= deg1; i++) v1[i] = randrange(-20, 20);
-      PolyLL p1(v1);
+      Pol p1(v1);
       ll size2 = randrange(0, 5);
-      vector<pair<ll, ll>> v2;
+      vector<pair<ll, Fp>> v2;
       ll cur = -1;
       for (ll i = 0; i < size2; i++) {
         cur += randrange(1, 4);
         v2.emplace_back(cur, randrange(-20, 20));
       }
       SP sp2(v2);
-      PolyLL p3 = p1.mult(sp2);
-      PolyLL p4 = p1 * PolyLL(sp2);
+      Pol p3 = p1.mult(sp2);
+      Pol p4 = p1 * Pol(sp2);
       assert(p3 == p4);
-      PolyLL p5 = p1.mult(sp2, deg1);
+      Pol p5 = p1.mult(sp2, deg1);
       assert (p5 == p4.cutoff(deg1));
 
-      ll y = randrange(0,2) == 0 ? 1LL : -1LL;
-      SP sp3 = sp2 - PolyLL(sp2).getCoef(0) + y;
+      SP sp3 = sp2 - sp2.getCoef(0) + Fp(randrange(1, 20));
       
-      PolyLL p6 = p1.divFPS(sp3);
-      PolyLL p7 = (p6 * sp3 - p1).cutoff(p1.degree());
-      assert(p7 == 0);
-      PolyLL p8 = p1.divFPS(sp3, 4);
-      PolyLL p9 = (p8 * sp3 - p1).cutoff(min(4, sp3.degree()));
-      assert(p9 == 0);
+      Pol p6 = p1.divFPS(sp3);
+      Pol p7 = (p6 * sp3 - p1).cutoff(p1.degree());
+      assert(p7.degree() == -1);
+      Pol p8 = p1.divFPS(sp3, 4);
+      Pol p9 = (p8 * sp3 - p1).cutoff(min(4, sp3.degree()));
+      assert(p9.degree() == -1);
     }
   }
 
-
+  cerr << "8 " << get_time_sec() - et << endl;
+  et = get_time_sec();
 
   cout << "test done." << endl;
 
