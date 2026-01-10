@@ -274,6 +274,11 @@ int main(/* int argc, char *argv[] */) {
       assert(a.getCoef(i) == 1);
       assert(bostanMori(p1, p2, 1) == 1);
     }
+
+    Pol p3 = Pol(1) + X;
+    Pol p4 = p3 * p3 * p3;
+    auto b = p4.divFormalSeries(p3, 1000);
+    assert(b.degree() == 2 and b == p3 * p3);
   }
   cerr << "6 " << get_time_sec() - et << endl;
   et = get_time_sec();

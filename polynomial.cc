@@ -57,7 +57,7 @@ using namespace std;
         auto [d, m] = p.divideLinear(c);   // p = (X-c) * d + m
   - Division in FPS (naive method)
         Polynomial a = p.divFormalSeries(q, n)
-        //    a.degree() == n
+        //    a.degree() == n    (unless p is divisible by q)
         //    a.coef[i] is the [x^i](p/q) (as a formal power series) for i <= n
         // T should be a field or q.coef[0] should be (T)1, but this is not checked.
   - Bostan-Mori method 
