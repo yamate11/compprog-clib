@@ -45,8 +45,8 @@ using namespace std;
   - Value at t
         T v = p.atval(T t);
   - Cutoff
-        p.cutoff(deg) is the polynomial for the degrees up to deg.
-        (mainly for FPS)
+        p.selfCutoff(deg);   // p's degree becomes deg (unless p's original degree was less than deg)
+        q = p.cutoff(deg);   // a copying version (maybe uncommonly used)
   - Division (divmod)
         auto [d, m] = p.divmod(q);
         // p == q * d + m, degree(m) < degree(q)
