@@ -55,13 +55,11 @@ using namespace std;
             - the coefficient of the highest degree of q is (T)1.
   - Division by linear term X-c (for performance)
         auto [d, m] = p.divideLinear(c);   // p = (X-c) * d + m
-  - Formal Power Series for division (naive method)
+  - Division in FPS (naive method)
         Polynomial a = p.divFormalSeries(q, n)
         //    a.degree() == n
-        //    a.coef[i] is the [x^i](p/q) (as a formal power series) 
-        //         for i <= n
-        // T should be a field or q.coef[0] should be (T)1, but this
-        // is not checked.
+        //    a.coef[i] is the [x^i](p/q) (as a formal power series) for i <= n
+        // T should be a field or q.coef[0] should be (T)1, but this is not checked.
   - Bostan-Mori method 
     computes the n-th coefficency of formal power series p/q.
     The following should hold:
