@@ -28,6 +28,7 @@ using namespace std;
 
         Comb<FpA> cb(1000);          // args upto 1000 (=: nMax), inclusive.
         FpA x = cb.fact(1000);       // factorial
+        FpA x1 = cb.inv_fact(1000);  // 1 / 1000!
         FpA y = cb.binom(500, 300);  // combination.    binom(int n, int r).  Valid only for 0 <= n <= nMax.
                                      // When 0 < r or n < r, it returns 0 (that conforms to the definition).
         FpA yy = cb.binom_dup(300, 500); // combination with duplicate (== binom(300+500-1, 500))
@@ -170,6 +171,7 @@ public:
     for (int i = nMax; i >= 1; i--) vInvFact[i-1] = i * vInvFact[i];
   }
   T fact(int n) { return vFact[n]; }
+  T inv_fact(int n) { return vInvFact[n]; }
   T binom(int n, int r) {
     if (r < 0 || r > n) return (T)0;
     return vFact[n] * vInvFact[r] * vInvFact[n-r];

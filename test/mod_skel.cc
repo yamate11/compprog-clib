@@ -69,6 +69,7 @@ int main() {
     using Fp = FpG<97>;
     Comb<Fp> cb(6);
     assert(cb.fact(4) == Fp(24));
+    assert(cb.inv_fact(4) * Fp(24) == 1);
     assert(cb.perm(5,3) == Fp(60));
     assert(cb.binom(6,2) == Fp(15));
     assert(cb.binom(6,4) == Fp(15));
