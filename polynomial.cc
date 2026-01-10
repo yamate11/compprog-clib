@@ -318,7 +318,7 @@ public:
     return { Polynomial(div_coef), Polynomial(mod_coef) };
   }
 
-  Polynomial divFormalSeries(const Polynomial& q, int n) const {
+  Polynomial divFPS(const Polynomial& q, int n) const {
     vector<T> ret(n + 1);
     int p_deg = degree();
     int q_deg = q.degree();
@@ -331,22 +331,6 @@ public:
     }
     return Polynomial(move(ret));
   }
-
-  Polynomial divFormalSeries(const SparsePoly<T>& q, int n) const {
-    vector<T> ret(n + 1);
-    int p_deg = degree();
-    // int q_deg = q.degree();
-    const T coef_0 = q.getCoef(0);
-    for (int i = 0; i <= n; i++) {
-      T s = i <= p_deg ? coef[i] : (T)0;
-      for (auto [k, t] : q.coef) {
-        if (0 < k and k <= i) s -= ret[i - k] * t;
-      }
-      ret[i] = s / coef_0;
-    }
-    return Polynomial(move(ret));
-  }
-
 
   T subBostanMori(const Polynomial& o, ll n) const {
     auto rev = [](vector<T> &f) -> void {
