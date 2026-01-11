@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(coordCompr)
+// @@ !! LIM(coordCompr unordered_map)
 
 
 int main(int argc, char *argv[]) {
@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
     CoordCompr cc;
     cc.add(0);
     cc.add(vector<ll>({10, -10}));
+    cc.build();
     assert(cc.c(0) == 1);
     assert(cc.c(10) == 2);
     assert(cc.c(-10) == 0);
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
 
   {
     using pll = pair<ll, ll>;
-    CoordCompr<pll, map<pll, int>> cc;
+    CoordCompr<pll> cc;
     cc.add({5, 1});
     cc.add({2, 4});
     cc.add({3, 3});
@@ -68,8 +69,6 @@ int main(int argc, char *argv[]) {
     assert(cc.d(3) == pll(5, 1));
   }
   
-
-
   cout << "Test done." << endl;
 
 }
