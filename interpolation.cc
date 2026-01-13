@@ -71,7 +71,7 @@ Pol lagrangePol(const vector<typename Pol::value_type>& vs) {
   for (int i = 0; i <= k; i++) {
     T c = vs[i] / (fact[i] * fact[k - i]);
     if ((k - i) % 2 != 0) c = -c;
-    auto [d, m] = aux.divideLinear(i);
+    auto [d, m] = aux.divmodLinear(i);
     assert(m == (T)0);
     ret += d * c;
   }

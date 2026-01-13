@@ -52,19 +52,23 @@ using namespace std;
         - Either of the following should hold, but not checked in divmod()
             - T is a field, or
             - the coefficient of the highest degree of q is (T)1.
-  - Division by linear term X-c (for performance)
-        auto [d, m] = p.divideLinear(c);   // p = (X-c) * d + m
-  - Division in FPS (naive method)
-        Polynomial a = p.divFPS(q, n)
-        //    a.degree() == n    (unless p is divisible by q)
-        //    a.coef[i] is the [x^i](p/q) (as a formal power series) for i <= n
+  - Divmod by linear term X-c (for performance)
+        auto [d, m] = p.divmodLinear(c);   // p = (X-c) * d + m
+  - Inverse in FPS
+        Polynomial a = p.inverse(n);
+        //    a.degree() <= n
+        //    a * p:  coeff is one for degree 0 and zero for degrees 1 to n
         // T should be a field, but this is not checked.
         // q.coef(0) must not be zero.
+        // O(n log n)
+  - Division in FPS 
+        Polynomial a = p.divide(q, n);
+        //    implemented as (q.inverse() * p).cutoff(n)
   - Bostan-Mori method 
     computes the n-th coefficency of formal power series p/q.
     The following should hold:
          - deg(p) < deg(q)
-         - q.coef[0] == 1
+         - q.coef[0] has the inverse.
     - signature: 
         friend T bostanMori(const Polynomial& p, const Polynomial& q, int n);
     - usage:   
@@ -87,8 +91,8 @@ using namespace std;
           q = p.mult(sp, cutoff=-1);
           p.selfMult(sp, cutoff=-1);
               When cutoff == -1, the result is cut off at p.degree() + sp.degree()
-          q = p.divFPS(sp, cutoff=-1);
-          p.selfDivFPS(sp, cutoff=-1);
+          q = p.divide(sp, cutoff=-1);
+          p.selfDivide(sp, cutoff=-1);
               When cutoff == -1, the result is cut off at p.degree()
  */
 
@@ -268,7 +272,7 @@ public:
     return Polynomial(move(new_coef));
   }
 
-  T selfDivideLinear(T c) {
+  T selfDivmodLinear(T c) {
     if (coef.empty()) { return (T)0; }
     T x = coef.back();
     for (ll i = coef.size() - 2; i >= 0; i--) {
@@ -280,9 +284,9 @@ public:
     return x;
   }
 
-  pair<Polynomial, T> divideLinear(T c) const {
+  pair<Polynomial, T> divmodLinear(T c) const {
     Polynomial ret(*this);
-    T t = ret.selfDivideLinear(c);
+    T t = ret.selfDivmodLinear(c);
     return {ret, t};
   }
 
@@ -318,19 +322,18 @@ public:
     return { Polynomial(div_coef), Polynomial(mod_coef) };
   }
 
-  Polynomial divFPS(const Polynomial& q, int n) const {
-    vector<T> ret(n + 1);
-    int p_deg = degree();
-    int q_deg = q.degree();
-    for (int i = 0; i <= n; i++) {
-      T s = i <= p_deg ? coef[i] : (T)0;
-      for (int k = 1; k <= min(i, q_deg); k++) {
-        s -= ret[i - k] * q.coef[k];
-      }
-      ret[i] = s / q.coef[0];
+  Polynomial inverse(int n) const {
+    Polynomial g{(T)1 / coef[0]};
+    ll k = 1;
+    while (n >= k) {
+      g = g * 2 - g * g * cutoff(2 * k);
+      k = 2 * k;
     }
-    return Polynomial(move(ret));
+    g.selfCutoff(n);
+    return g;
   }
+
+  Polynomial divide(const Polynomial& q, int n) const { return ((*this) * q.inverse(n)).selfCutoff(n); }
 
   T subBostanMori(const Polynomial& o, ll n) const {
     auto rev = [](vector<T> &f) -> void {
@@ -341,12 +344,9 @@ public:
       for (int i = 0; i < d; i++) f[i] = f[(i << 1) | bit];
       f.resize(d);
     };
-    if (o.coef[0] == (T)0) {
-      throw runtime_error("subBostanMori: o.coef[0] should not be 0.");
-    }
-    if (degree() >= o.degree()) {
-      throw runtime_error("subBostanMori: broken: degree() < o.degree()");
-    }
+
+    if (o.coef[0] == (T)0) { throw runtime_error("subBostanMori: o.coef[0] should not be 0."); }
+    if (degree() >= o.degree()) { throw runtime_error("subBostanMori: degree() < o.degree() should hold."); }
     if (coef.empty()) return (T)0;
     vector<T> p(coef), q(o.coef);
     T c = q[0];
@@ -363,18 +363,7 @@ public:
     return p[0] / (q[0] * c);
   }
 
-  friend T bostanMori(const Polynomial& p, const Polynomial& q, ll n) {
-    T x;
-    if (p.degree() >= q.degree()) {
-      auto [t, r] = p.divmod(q);
-      x = r.subBostanMori(q, n);
-      if (n <= t.degree()) x += t.getCoef(n);
-      return x;
-    }else {
-      return p.subBostanMori(q, n);
-    }
-  }
-
+  friend T bostanMori(const Polynomial& p, const Polynomial& q, ll n) { return p.subBostanMori(q, n); }
 
   Polynomial& operator +=(T t) {
     coef[0] += t;
@@ -436,12 +425,12 @@ public:
   Polynomial& operator *=(const SP& o) { return selfMult(o, -1); }
 
   // the constant term of o should have the inverse.
-  Polynomial& selfDivFPS(const SP& o, int lim = -1) {
-    if (o.coef.empty()) throw runtime_error("selfDivFPS: o.coef.empty");
+  Polynomial& selfDivide(const SP& o, int lim = -1) {
+    if (o.coef.empty()) throw runtime_error("selfDivide: o.coef.empty");
     auto [i, t0] = o.coef.front();
-    if (i != 0) throw runtime_error("selfDivFPS: no constant factor");
+    if (i != 0) throw runtime_error("selfDivide: no constant factor");
     T invt = (T)1 / t0;
-    if (invt * t0 != (T)1) throw runtime_error("selfDivFPS: no inverse");
+    if (invt * t0 != (T)1) throw runtime_error("selfDivide: no inverse");
     if (lim < 0) lim = degree();
     else if (lim > degree()) coef.resize(lim + 1);
     auto work = move(coef);
@@ -457,9 +446,9 @@ public:
     return *this;
   }
 
-  Polynomial divFPS(const SP& o, int lim = -1) const {
+  Polynomial divide(const SP& o, int lim = -1) const {
     Polynomial p(*this);
-    return p.selfDivFPS(o, lim);
+    return p.selfDivide(o, lim);
   }
 
   Polynomial operator +(SP t) const { return Polynomial(*this) += t; }

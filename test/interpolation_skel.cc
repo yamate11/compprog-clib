@@ -65,7 +65,7 @@ int main(/* int argc, char *argv[] */) {
       if (vp[deg_p] == 0) vp[deg_p] = randrange(1, 10);
       Pol p(vp);
       Pol q(vq);
-      Pol a = p.divFPS(Pol::SP(q), 3 * deglim);
+      Pol a = p.divide(Pol::SP(q), 3 * deglim);
       auto optsol = fitFPS<Pol>(a.coefVec(), deglim);
       assert(optsol);
       auto [p1, q1] = *optsol;

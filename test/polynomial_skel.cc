@@ -74,8 +74,8 @@ int main(/* int argc, char *argv[] */) {
     assert(pzero + p5 == p5);
     assert(pzero - p5 == -p5);
     assert(pzero * p5 == pzero);
-    DLOGK(p5 - p5);
-    DLOGK(pzero);
+    // DLOGK(p5 - p5);
+    // DLOGK(pzero);
     assert(p5 - p5 == pzero);
     assert(p5 * 0 == pzero);
     assert(p5 + 0 == p5);
@@ -168,11 +168,11 @@ int main(/* int argc, char *argv[] */) {
       PolyFpB q(vq), d(vd), m(vm);
       auto p = q * d + m;
       auto [dd, mm] = p.divmod(q);
-      DLOGK(p, q, d, m, dd, mm);
+      // DLOGK(p, q, d, m, dd, mm);
       assert(d == dd && m == mm);
       if (q.degree() == 1) {
-        auto [ddd, mmm] = p.divideLinear(-q.getCoef(0) / q.getCoef(1));
-        DLOGK(p, q, d, m, ddd, mmm);
+        auto [ddd, mmm] = p.divmodLinear(-q.getCoef(0) / q.getCoef(1));
+        // DLOGK(p, q, d, m, ddd, mmm);
         assert(ddd == q.getCoef(1) * d && PolyFpB(mmm) == m);
       }
     }
@@ -195,8 +195,8 @@ int main(/* int argc, char *argv[] */) {
       auto [dd, mm] = p.divmod(q);
       assert(d == dd && m == mm);
       if (q.degree() == 1 && q.getCoef(1) == 1) {
-        auto [ddd, mmm] = p.divideLinear(-q.getCoef(0));
-        DLOGK(p, q, d, m, ddd, mmm);
+        auto [ddd, mmm] = p.divmodLinear(-q.getCoef(0));
+        // DLOGK(p, q, d, m, ddd, mmm);
         assert(ddd == d && PolyLL(mmm) == m);
       }
     }
@@ -269,21 +269,22 @@ int main(/* int argc, char *argv[] */) {
     using Pol = PolyLL;
     const auto& X = SparsePoly<ll>::X;
     Pol p1 = Pol(1), p2 = Pol(1) - X;
-    auto a = p1.divFPS(p2, 70);
+    auto a = p1.divide(p2, 70);
+    // DLOGK(a);
     for (ll i = 0; i <= 70; i++) {
       assert(a.getCoef(i) == 1);
       assert(bostanMori(p1, p2, 1) == 1);
     }
     SparsePoly<ll> sp2 = 1 - X;
-    auto aa = p1.divFPS(sp2, 70);
+    auto aa = p1.divide(sp2, 70);
     assert(a == aa);
 
     Pol p3 = Pol(1) + X;
     Pol p4 = p3 * p3 * p3;
-    auto b = p4.divFPS(p3, 1000);
+    auto b = p4.divide(p3, 1000);
     assert(b.degree() == 2 and b == p3 * p3);
     SparsePoly<ll> sp3 = 1 + X;
-    auto bb = p4.divFPS(sp3, 1000);
+    auto bb = p4.divide(sp3, 1000);
   }
   cerr << "6 " << get_time_sec() - et << endl;
   et = get_time_sec();
@@ -297,7 +298,7 @@ int main(/* int argc, char *argv[] */) {
     assert(bostanMori(p1, p2, 1) == Fp(1));
     assert(bostanMori(p1, p2, 2) == Fp(2));
     assert(bostanMori(p1, p2, 10) == 89);
-    auto a = p1.divFPS(p2, 10);
+    auto a = p1.divide(p2, 10);
     assert(a.coefVec() == vector<Fp>({1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89}));
 
 #if DEBUG
@@ -315,14 +316,16 @@ int main(/* int argc, char *argv[] */) {
       for (ll i = 0; i < degQ + 1; i++) coefQ[i] = randrange(-lim, lim + 1);
       while (coefQ[0] == Fp(0)) coefQ[0] = randrange(-lim, lim + 1);
       Pol p(coefP), q(coefQ);
-      ll degR = p.degree() + 1;
-      auto r = p.divFPS(q, degR);
-      for (ll i = 0; i < 5; i++) {
-        if (r.degree() == -1) {
-          assert(p.degree() == -1);
-        }else {
-          ll idx = randrange(0, r.degree() + 1);
-          assert(r.getCoef(idx) == bostanMori(p, q, idx));
+      ll n = randrange(1, 20);
+      auto r = q.inverse(n);
+      assert((q * r).selfCutoff(n) == Pol(1));
+      auto r2 = p.divide(q, n);
+      // DLOGK(n, p, q, r2, r2 * q);
+      assert((r2 * q).selfCutoff(n) == p.cutoff(n));
+      if (p.degree() < q.degree()) {
+        for (ll i = 0; i < 5; i++) {
+          ll idx = randrange(0, n + 1);
+          assert(r2.getCoef(idx) == bostanMori(p, q, idx));
         }
       }
     }
@@ -416,10 +419,10 @@ int main(/* int argc, char *argv[] */) {
 
       SP sp3 = sp2 - sp2.getCoef(0) + Fp(randrange(1, 20));
       
-      Pol p6 = p1.divFPS(sp3);
+      Pol p6 = p1.divide(sp3);
       Pol p7 = (p6 * sp3 - p1).cutoff(p1.degree());
       assert(p7.degree() == -1);
-      Pol p8 = p1.divFPS(sp3, 4);
+      Pol p8 = p1.divide(sp3, 4);
       Pol p9 = (p8 * sp3 - p1).cutoff(min(4, sp3.degree()));
       assert(p9.degree() == -1);
     }
