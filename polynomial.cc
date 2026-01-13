@@ -322,11 +322,15 @@ public:
     return { Polynomial(div_coef), Polynomial(mod_coef) };
   }
 
-  Polynomial inverse(int n) const {
+  /* Still to be improved.
+     See: https://www.dropbox.com/scl/fi/0jqy84259k46lxy54bevf/fps.paper?rlkey=t08b4ndj17wcledhe7nfecejl&dl=0
+     also https://nyaannyaan.github.io/library/fps/ntt-friendly-fps.hpp
+   */
+  Polynomial inverse(int n) const {  
     Polynomial g{(T)1 / coef[0]};
     ll k = 1;
     while (n >= k) {
-      g = g * 2 - g * g * cutoff(2 * k);
+      g = (g * 2 - g * g * cutoff(2 * k - 1)).cutoff(2 * k - 1);
       k = 2 * k;
     }
     g.selfCutoff(n);
