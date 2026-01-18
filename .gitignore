@@ -21,3 +21,6 @@ cans3
 /yosupo-test/tests/**/din_*.txt
 /yosupo-test/tests/**/dexp_*.txt
 /yosupo-test/tests/**/Makefile
+/yosupo-test/tests/**/*_t
+/yosupo-test/tests/**/*_t.cc
+/yosupo-test/tests/**/*_t.d
