@@ -274,9 +274,9 @@ def make_makefile(inserted):
             lib = defAt[l]
             if lib not in insertedArc:
                 insertedArc.add(lib)
-                cont += f' ../{lib}.cc'
+                cont += f' {clibdir}/{lib}.cc'
         else:
-            cont += f' ../{l}.cc'
+            cont += f' {clibdir}/{l}.cc'
     cont += '\n'
     # cont += f'\n\tlibins -M -o {args.outfile} -i {args.infile}'
     with open(makefile_name, 'w') as wfp:
@@ -287,7 +287,12 @@ def main():
 
     parseCommandLine()
 
-    clibdir = args.clib_dir or f'{topDir}/clib'
+    if args.clib_dir:
+        clibdir = args.clib_dir
+    elif 'proj/compprog-clib' in os.getcwd():
+        clibdir = '/home/y-tanabe/proj/compprog-clib'
+    else:
+        clibdir = args.clib_dir or f'{topDir}/clib'
     depCache = f'{clibdir}/.lib_depend'
 
     if args.cache_update:
