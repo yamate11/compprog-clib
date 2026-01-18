@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-import sys, argparse, os, re
+import sys
+sys.path.append('/home/y-tanabe/proj/compprog-clib/tool')
+
+import argparse, os, re
 from subprocess import run
 from argparse import Namespace
 import util
@@ -8,7 +11,7 @@ from util import warn, die, getPage, debug
 import time
 from shutil import copyfile
 
-ptopdir = os.path.normpath(f'{os.path.dirname(__file__)}/..')
+ptopdir = '/home/y-tanabe/proj/compprog-clib'
 lc_dir = '/home/y-tanabe/proj/library-checker-problems'
 generate_cmd = f'{lc_dir}/generate.py'
 test_top = f'{ptopdir}/yosupo-test/tests'
@@ -16,9 +19,12 @@ test_top = f'{ptopdir}/yosupo-test/tests'
 def makeMakefile(path: str) -> None:
     with open(path, 'w', encoding='UTF-8') as wfp:
         print('''
+### If you want to build with debug options, invoke make as:
+###     make DEBUG=yes
+
 CXX := g++
 
-ifeq ($(DEBUG),)
+ifneq ($(DEBUG),yes)
   DEBUGFLAGS := -O2
 else
   DEBUGFLAGS := -g -O0 -D_GLIBCXX_DEBUG -DDEBUG=1 -fsanitize=address,undefined -fno-sanitize-recover -fno-omit-frame-pointer
@@ -27,19 +33,45 @@ else
   endif
 endif
 
+# WARNINGS := -Wall -Wno-format-security -Wshadow -Wconversion -fconcepts
 WARNINGS := -Wall -Wno-format-security -Wshadow -fconcepts
 
 CXXFLAGS := -std=gnu++23 $(DEBUGFLAGS) $(WARNINGS)
 
 CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/lib/boost_1_73_0
-CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/proj/compprog/clib/ac-library
+CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/proj/compprog-clib/ac-library
 CXXFLAGS := $(CXXFLAGS) $(if $(CMPNAIVE),-DCMPNAIVE=1)
 CXXFLAGS := $(CXXFLAGS)
 
-all: cans
+skels := $(wildcard *_skel.cc)
+ts := $(patsubst %_skel.cc,%_t.cc,$(skels))
+pars := $(patsubst %_skel.cc,/home/y-tanabe/proj/compprog-clib/%.cc,$(skels))
+makefiles := $(patsubst %_skel.cc,%_t.d,$(skels))
+execsSub := $(patsubst %_skel.cc,%_t,$(skels))
+execs := $(execsSub) convolutionS_t
+
+all: c_t
+
+include $(makefiles)
+
+%_t.cc %_t.d &: %_skel.cc
+	/home/y-tanabe/proj/compprog-clib/tool/libins --clib-dir /home/y-tanabe/proj/compprog-clib -M -o $*_t.cc -i $*_skel.cc --orig-lineno
+
+%: %.cc
+	$(CXX) -o $@ $(CXXFLAGS) $<
+
+convolutionS_t: convolution_t.cc
+	$(CXX) -o convolutionS_t $(CXXFLAGS) -DTEST_CONSTANT_MOD=1 convolution_t.cc
+
+
+# If you need intermediate %_.cc files, uncomment the following line.
+# .PRECIOUS:  %_t.cc
 
 clean:
-	$(RM) cans.o cans cans.exe *~ *.stackdump core
+	$(RM) $(ts) $(execs) $(makefiles) *~ \#*
+
+check:
+	echo $(execs)
 ''', file=wfp)
 
 def makeSource(path: str) -> None:
@@ -88,7 +120,7 @@ def main():
                     file_in_path = f'{ppath}/in/{file_in}'
                     copyfile(file_in_path, f'{destdir}/din_{base}.txt')
                     copyfile(file_out_path, f'{destdir}/dexp_{base}.txt')
-        src_path = f'{destdir}/cans.cc'
+        src_path = f'{destdir}/c_skel.cc'
         if os.path.exists(src_path):
             warn(f'Warning: {src_path} exists.  It was not overwritten.')
         else:

@@ -326,6 +326,7 @@ public:
      See: https://www.dropbox.com/scl/fi/0jqy84259k46lxy54bevf/fps.paper?rlkey=t08b4ndj17wcledhe7nfecejl&dl=0
      also https://nyaannyaan.github.io/library/fps/ntt-friendly-fps.hpp
    */
+  // This works, but very slow.   (Library Checker: 334ms)
   Polynomial inverse(int n) const {  
     Polynomial g{(T)1 / coef[0]};
     ll k = 1;
@@ -383,9 +384,23 @@ public:
     return Polynomial(move(vec));
   }
 
+  // This works, but very slow.   (Library Checker: 454ms)
   Polynomial log(int n) const {
     if (coef[0] != 1) throw runtime_error("polynomial: log: coef[0] must be one.");
     return differential().divide(*this, n).integral();
+  }
+
+  // This works, but very slow.   (Library Checker: 975ms)
+  Polynomial exp(int n) const {
+    if (coef[0] != 0) throw runtime_error("polynomial: exp: coef[0] must be zero.");
+    Polynomial g((T)1);
+    ll k = 1;
+    while (n >= k) {
+      g = (g * (Polynomial((T)1) - g.log(2 * k - 1) + this->cutoff(2 * k - 1))).cutoff(2 * k - 1);
+      k = 2 * k;
+    }
+    g.selfCutoff(n);
+    return g;
   }
 
   Polynomial& operator +=(T t) {
