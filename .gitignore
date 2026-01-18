@@ -18,3 +18,6 @@ cans3
 /boost
 /html
 /tool/tmp
+/yosupo-test/tests/**/din_*.txt
+/yosupo-test/tests/**/dexp_*.txt
+/yosupo-test/tests/**/Makefile

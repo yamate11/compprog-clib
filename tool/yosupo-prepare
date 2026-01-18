@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+
+import sys, argparse, os, re
+from subprocess import run
+from argparse import Namespace
+import util
+from util import warn, die, getPage, debug
+import time
+from shutil import copyfile
+
+ptopdir = os.path.normpath(f'{os.path.dirname(__file__)}/..')
+lc_dir = '/home/y-tanabe/proj/library-checker-problems'
+generate_cmd = f'{lc_dir}/generate.py'
+test_top = f'{ptopdir}/yosupo-test/tests'
+
+def makeMakefile(path: str) -> None:
+    with open(path, 'w', encoding='UTF-8') as wfp:
+        print('''
+CXX := g++
+
+ifeq ($(DEBUG),)
+  DEBUGFLAGS := -O2
+else
+  DEBUGFLAGS := -g -O0 -D_GLIBCXX_DEBUG -DDEBUG=1 -fsanitize=address,undefined -fno-sanitize-recover -fno-omit-frame-pointer
+  ifneq ($(DEBUG_LIB),)
+    DEBUGFLAGS := $(DEBUGFLAGS) -DDEBUG_LIB=1
+  endif
+endif
+
+WARNINGS := -Wall -Wno-format-security -Wshadow -fconcepts
+
+CXXFLAGS := -std=gnu++23 $(DEBUGFLAGS) $(WARNINGS)
+
+CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/lib/boost_1_73_0
+CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/proj/compprog/clib/ac-library
+CXXFLAGS := $(CXXFLAGS) $(if $(CMPNAIVE),-DCMPNAIVE=1)
+CXXFLAGS := $(CXXFLAGS)
+
+all: cans
+
+clean:
+	$(RM) cans.o cans cans.exe *~ *.stackdump core
+''', file=wfp)
+
+def makeSource(path: str) -> None:
+    with open(path, 'w', encoding='UTF-8') as wfp:
+        print('''#include <bits/stdc++.h>
+#include <cassert>
+using namespace std;
+using ll = long long int;
+using u64 = unsigned long long;
+using pll = pair<ll, ll>;
+// #include <atcoder/all>
+// using namespace atcoder;
+#define REP(i, a, b) for (ll i = (a); i < (b); i++)
+#define REPrev(i, a, b) for (ll i = (a); i >= (b); i--)
+#define ALL(coll) (coll).begin(), (coll).end()
+#define SIZE(v) ((ll)((v).size()))
+#define REPOUT(i, a, b, exp, sep) REP(i, (a), (b)) cout << (exp) << (i + 1 == (b) ? "" : (sep)); cout << "\\n"
+
+// @@ !! LIM()
+
+int main(/* int argc, char *argv[] */) {
+  ios_base::sync_with_stdio(false);
+  cin.tie(nullptr);
+  cout << setprecision(20);
+
+  return 0;
+}
+''', file=wfp)
+
+def main():
+    args = parseArgs()
+    for p in args.pid:
+        cp = run([generate_cmd, '-p', p])
+        if cp.returncode != 0:
+            die(f'{generate_cmd} failed.')
+        destdir = f'{test_top}/{p}'
+        os.makedirs(destdir, exist_ok=True)
+        ppath = f'{lc_dir}/{p}'
+        for file_in in os.listdir(f'{ppath}/in'):
+            if file_in.endswith('.in'):
+                base = file_in[:-3]
+                file_out_path = f'{ppath}/out/{base}.out'
+                if not os.path.exists(file_out_path):
+                    warn(f'Cannot find {file_out_path}.  Skipped.')
+                else:
+                    file_in_path = f'{ppath}/in/{file_in}'
+                    copyfile(file_in_path, f'{destdir}/din_{base}.txt')
+                    copyfile(file_out_path, f'{destdir}/dexp_{base}.txt')
+        src_path = f'{destdir}/cans.cc'
+        if os.path.exists(src_path):
+            warn(f'Warning: {src_path} exists.  It was not overwritten.')
+        else:
+            makeSource(src_path)
+        makefile_path = f'{destdir}/Makefile'
+        if os.path.exists(makefile_path):
+            warn(f'Warning: {makefile_path} exists.  It was not overwritten.')
+        else:
+            makeMakefile(makefile_path)
+        
+
+def parseArgs() -> Namespace:
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='''
+'''
+    )
+    parser.add_argument(
+        'pid', type=str, nargs='*',
+        help='problem id such as graph/shortest_path')
+    return parser.parse_args()
+
+main()

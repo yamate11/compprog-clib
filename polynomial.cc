@@ -369,6 +369,25 @@ public:
 
   friend T bostanMori(const Polynomial& p, const Polynomial& q, ll n) { return p.subBostanMori(q, n); }
 
+  Polynomial differential() const {
+    if (coef.empty()) return Polynomial();
+    vector<T> vec(coef.size() - 1);
+    for (size_t i = 1; i < coef.size(); i++) vec[i - 1] = i * coef[i];
+    return Polynomial(move(vec));
+  }
+
+  Polynomial integral() const {
+    vector<T> vec(coef.size() + 1);
+    vec[0] = (T)0;
+    for (size_t i = 0; i < coef.size(); i++) vec[i + 1] = coef[i] / (i + 1);
+    return Polynomial(move(vec));
+  }
+
+  Polynomial log(int n) const {
+    if (coef[0] != 1) throw runtime_error("polynomial: log: coef[0] must be one.");
+    return integral(differential() / *this);
+  }
+
   Polynomial& operator +=(T t) {
     coef[0] += t;
     normalize();
