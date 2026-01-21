@@ -16,6 +16,7 @@
   du.ceil(1234)      // 10000, the smallest power of 10 that does not fall below 1234
   du.d_at(1234, 0)   // 4,  du.d_at(1234, 1) == 3,  du.d_at(1234, 2) == 2, du.d_at(1234, 3) == 1
   du.v_at(1234, 0)   // 4,  du.v_at(1234, 1) == 30, du.d_at(1234, 2) == 200, du.d_at(1234, 3) == 1000
+  // d_at() counts from right to left, while to_vector() arranges left to right.
   du.to_vector(1234) // vector<ll>{1, 2, 3, 4}
   du.to_string(1234) // "1234"
   du.from_vector(vector<ll>{1, 2, 3, 4}) // 1234
