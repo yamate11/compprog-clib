@@ -305,6 +305,7 @@ def mkstruct(namebase, c_fields, idx, order, istr, ostr):
             out += f'\n    if ({s} {op1} o.{s}) return true;'
             out += f'\n    if ({s} {op2} o.{s}) return false;'
         out += '\n    return false;\n  }'
+        out += f'\n  bool operator>(const {tp}& o) const {{ return o < *this; }}'
 
     out += '\n};'
     return out
@@ -350,7 +351,7 @@ def g_inpNbrList(param):
 
 def g_defStruct(param):
     d = mkdic(param, [('structname', None), ('fields', None)],
-              {'idx': None, 'ord': None, 'istr': True, 'ostr': True})
+              {'idx': None, 'ord': None, 'istr': False, 'ostr': True})
     struct = mkstruct(d['structname'], mk_fields_list(d['fields']), idx=d['idx'],
                       order=mk_hered_list(d['ord']), istr=d['istr'], ostr=d['ostr'])
     return struct

@@ -110,7 +110,7 @@ using namespace std;
       nbr3[v].emplace_back(u, cost, desc, i);
     }
 
-  @DefStruct(structname, fields, idx=None, ord=None, istr=True, ostr=True) 
+  @DefStruct(structname, fields, idx=None, ord=None, istr=False, ostr=True) 
 
     Define a struct.  It is recommended to put this in the top level.
     Parameter filelds are list of either a field name or a pair of field name and its type.
