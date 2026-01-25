@@ -116,10 +116,11 @@ using namespace std;
     Parameter filelds are list of either a field name or a pair of field name and its type.
     If ord is defined, it should be a list of field names or (field name, True/False) pairs.
       The '<' relation is defined in the order of the field listed, either ascending (if False) or
-      descending (if True).
+      descending (if True).  OMITTED FIELDS WILL BE USED FOR DEFINING ORDER, since "less" requires
+      strong ordering that is consistent with equality.
 
     
-    // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii)
+    // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii, istr=True)
     struct SS2_t {
       ll a;
       char c;
@@ -135,12 +136,16 @@ using namespace std;
         ostr << "(" << t.a << ", " << t.c << ")";
         return ostr;
       }
-      bool operator<(const SS2_t& o) const {
-        if (c > o.c) return true;
-        if (a < o.a) return true;
-        if (iii < o.iii) return true;
-        return false;
+      strong_ordering operator<=>(const SS2_t& t) const {
+        if (auto r = t.c   <=>   c;   r != 0) return r;
+        if (auto r =   a   <=> t.a;   r != 0) return r;
+        if (auto r =   iii <=> t.iii; r != 0) return r;
+        return strong_ordering::equal;
       }
+      bool operator==(const SS2_t& t) const {
+        return c == t.c and a == t.a and iii == t.iii;
+      }
+      
     };
 
 
