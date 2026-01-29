@@ -1,18 +1,22 @@
 /*
   Mo's algorithm
-    Asks queries in the form of [l_i, r_i), where 0 <= l_i < r_i <= N.
+    Answers queries in the form of [l_i, r_i), where 0 <= l_i < r_i <= N, for i \in [0, Q).
+    Complexity is O(N sqrt(Q)).
 
   Typical Usage:
     Mo mo(N);  // N is as above
     ...
-    REP(i, 0, M) mo.add_query(L[i], R[i]);   // half-open interval [L[i], R[i])
+    REP(i, 0, Q) mo.add_query(L[i], R[i]);   // half-open interval [L[i], R[i])
     vector<ll> ans(Q);
-    auto in_left = [&](ll i) -> void { ...; };  // what you need to do when i steps into the range from the left.
-                         // If you happen to need cr as well, capture mo and access mo.cr.  (i == mo.cl)
-    auto in_right = [&](ll i) -> void {...; };
-    auto out_left = [&](ll i) -> void { ...; };
-    auto out_right = [&](ll i) -> void { ...; };
+    auto in_left = [&](ll x) -> void { ...; };  
+      // Write what you need to do when x steps into the range as the left boundary.
+      // If you need the right boundary, use mo.cr.  (x == mo.cl)
+    auto in_right = [&](ll x) -> void {...; };
+      // In some cases in_left == in_right, others not.
+    auto out_left = [&](ll x) -> void { ...; };
+    auto out_right = [&](ll x) -> void { ...; };
     auto calc = [&](ll q) -> void { ans[q] = ....; };
+      // Substitute the answer into ans[q].
     mo.run(in_left, in_right, out_left, out_right, calc);
     // or    mo.run(in_, out_, calc);   in case in_left == in_right and out_left == out_right
     REPOUT(q, 0, Q, ans[q], "\n");
