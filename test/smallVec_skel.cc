@@ -34,9 +34,13 @@ int main() {
     mp[vec3] = 300;
     auto it4 = mp.find(vec4);
     assert(it4 != mp.end() and it4->second == 200);
-    vec4[1] = 20;
+    vec4[1] = 7;
     it4 = mp.find(vec4);
     assert(it4 == mp.end());
+    vec2[1] = vec4[1];
+    assert(vec2[1] == 7);
+    vec2[1] = vec2[2] = vec2[3] = 2;
+    assert(vec2[1] == vec2[2] and vec2[2] == vec2[3] and vec2[3] == 2);
   }
 
   {
@@ -82,6 +86,10 @@ int main() {
     vec4[0] = 5;
     it = mp.find(vec4);
     assert(it == mp.end());
+    vec4[0] = vec2[1];
+    assert(vec4[0] == 13);
+    vec2[1] = vec2[2] = vec2[3] = 2;
+    assert(vec2[1] == vec2[2] and vec2[2] == vec2[3] and vec2[3] == 2);
   }
 
 

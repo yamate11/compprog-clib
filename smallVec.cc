@@ -22,7 +22,8 @@ struct small_vector_u64 {
     small_vector_u64& x;
     int i;
     Subst(small_vector_u64& x_, int i_) : x(x_), i(i_) {}
-    Subst operator=(ll t) { x.set(i, t); return *this; }
+    Subst& operator=(ll t) { x.set(i, t); return *this; }
+    Subst& operator=(const Subst& o) { return (*this) = ll(o); }
     operator ll() const { return x.at(i); }
   };
 
@@ -73,7 +74,8 @@ struct small_vector_string {
     small_vector_string& x;
     int i;
     Subst(small_vector_string& x_, int i_) : x(x_), i(i_) {}
-    Subst operator=(ll t) { x.impl[i] = t; return *this; }
+    Subst& operator=(ll t) { x.impl[i] = t; return *this; }
+    Subst& operator=(const Subst& o) { return (*this) = ll(o); }
     operator ll() const { return ll(x.impl[i]); }
   };
 
