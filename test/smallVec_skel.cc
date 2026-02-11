@@ -41,6 +41,21 @@ int main() {
     assert(vec2[1] == 7);
     vec2[1] = vec2[2] = vec2[3] = 2;
     assert(vec2[1] == vec2[2] and vec2[2] == vec2[3] and vec2[3] == 2);
+    
+    myvec vec5{3, 6, 9};
+    assert(vec5[0] == 3 and vec5[1] == 6 and vec5[2] == 9);
+    myvec vec5a{3LL, 6LL, 9LL};
+    assert(vec5a[0] == 3 and vec5a[1] == 6 and vec5a[2] == 9);
+    myvec vec6(vector{2, 5, 8, 11}, 3);
+    assert(vec6[0] == 2 and vec6[1] == 5 and vec6[2] == 8);
+    myvec vec6a(vector<ll>{2, 5, 8, 11}, 3);
+    assert(vec6a[0] == 2 and vec6a[1] == 5 and vec6a[2] == 8);
+
+    myvec vec7;
+    vec7 = vec5;
+    myvec vec8(vec5);
+    assert(vec7 == vec5 and vec8 == vec5);
+
   }
 
   {
@@ -88,8 +103,23 @@ int main() {
     assert(it == mp.end());
     vec4[0] = vec2[1];
     assert(vec4[0] == 13);
-    vec2[1] = vec2[2] = vec2[3] = 2;
-    assert(vec2[1] == vec2[2] and vec2[2] == vec2[3] and vec2[3] == 2);
+    vec3[0] = vec3[1] = vec3[2] = 2;
+    assert(vec3[0] == 2 and vec3[1] == 2 and vec3[2] == 2);
+
+    small_vector_string vec5{3, 6, 9};
+    assert(vec5[0] == 3 and vec5[1] == 6 and vec5[2] == 9);
+    small_vector_string vec5a{3LL, 6LL, 9LL};
+    assert(vec5a[0] == 3 and vec5a[1] == 6 and vec5a[2] == 9);
+    small_vector_string vec6(vector{2, 5, 8, 11}, 3);
+    assert(vec6[0] == 2 and vec6[1] == 5 and vec6[2] == 8);
+    small_vector_string vec6a(vector<ll>{2, 5, 8, 11}, 3);
+    assert(vec6a[0] == 2 and vec6a[1] == 5 and vec6a[2] == 8);
+
+    small_vector_string vec7;
+    vec7 = vec5;
+    small_vector_string vec8(vec5);
+    assert(vec7 == vec5 and vec8 == vec5);
+
   }
 
 

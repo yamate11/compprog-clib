@@ -15,7 +15,15 @@ using namespace std;
 template<int bits>
 struct small_vector_u64 {
   u64 impl;
+
   small_vector_u64(u64 impl_ = 0) : impl(impl_) {}
+  small_vector_u64(const small_vector_u64& o) : impl(o.impl) {}
+  small_vector_u64(initializer_list<int> init) : impl(0) {
+    int i = 0;
+    for (int x : init) set(i++, x);
+  }
+  small_vector_u64(const auto& v, int k) : impl(0) { for (int i = 0; i < k; i++) set(i, v[i]); }
+
   constexpr u64 mask() const { return (1ULL << bits) - 1; }
 
   struct Subst {
@@ -68,6 +76,8 @@ struct small_vector_string {
   small_vector_string(ll sz, ll init = 0) : impl(sz, (char)init) {}
   small_vector_string(const string& impl_) : impl(impl_) {}
   small_vector_string(string&& impl_) : impl(move(impl_)) {}
+  small_vector_string(initializer_list<int> init) : impl() { for (int x : init) impl += (char)x; }
+  small_vector_string(const auto& v, int k) : impl() { for (int i = 0; i < k; i++) impl += (char)(v[i]); }
 
   // We employ Subst struct so that "cerr << vec[0];" produces "0" rather than "^@".
   struct Subst {
