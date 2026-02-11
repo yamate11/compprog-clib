@@ -186,6 +186,7 @@ struct IntDirProd {
   IntDirProd(const vector<INT>& lim_) : lim(lim_), r(lim.size()), started(false) {}
 
   int at(int i) const { return vec[i]; }
+  int operator[](int i) const { return at(i); }
 
   const vector<INT>& vec_view() const { return vec; }
 

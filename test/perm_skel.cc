@@ -104,7 +104,7 @@ int main() {
         string s;
         vector<bool> v(n);
         for (ll i = 0; i < r; i++) {
-          assert(0 <= ip[i] and ip[i] < n);
+          assert(0 <= ip[i] and ip[i] < n and ip[i] == ip.at(i));
           assert(not v[ip[i]]);
           v[ip[i]] = true;
           s += 'a' + ip[i];
@@ -127,7 +127,7 @@ int main() {
         string s;
         ll last = -1;
         for (ll i = 0; i < r; i++) {
-          assert(0 <= ic.at(i) and ic.at(i) < n);
+          assert(0 <= ic.at(i) and ic.at(i) < n and ic.at(i) == ic[i]);
           assert(last < ic.at(i));
           last = ic.at(i);
           s += 'a' + ic.at(i);
@@ -150,7 +150,7 @@ int main() {
       while (idp.get()) {
         string s;
         for (ll i = 0; i < r; i++) {
-          assert(0 <= idp.at(i) and idp.at(i) < n);
+          assert(0 <= idp.at(i) and idp.at(i) < n and idp.at(i) == idp[i]);
           s += 'a' + idp.at(i);
         }
         assert(ss.find(s) == ss.end());
@@ -172,7 +172,7 @@ int main() {
         string s;
         ll last = -1;
         for (ll i = 0; i < r; i++) {
-          assert(0 <= idc.at(i) and idc.at(i) < n);
+          assert(0 <= idc.at(i) and idc.at(i) < n and idc.at(i) == idc[i]);
           assert(last <= idc.at(i));
           last = idc.at(i);
           s += 'a' + idc.at(i);
@@ -188,6 +188,26 @@ int main() {
     chkDupComb(6, 3);
     chkDupComb(8, 5);
     chkDupComb(3, 8);
+  }
+  {
+    auto chkDirProd = [&](const auto& vec) -> void {
+      IntDirProd idp(vec);
+      set<string> ss;
+      while (idp.get()) {
+        string s;
+        for (ll i = 0; i < ssize(vec); i++) {
+          assert(0 <= idp[i] and idp[i] < vec[i] and idp[i] == idp.at(i));
+          s += 'a' + idp.at(i);
+        }
+        assert(ss.find(s) == ss.end());
+        ss.insert(s);
+      }
+      ll num = 1;
+      for (ll x : vec) num *= x;
+      assert((ll)ss.size() == num);
+    };
+    chkDirProd(vector{4, 1, 2});
+    chkDirProd(vector{2, 3, 5});
   }
   {
     auto count_partition = [&](ll n) {
