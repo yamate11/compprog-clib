@@ -19,7 +19,7 @@ int main() {
     assert(du.pow(1) == 10);
     assert(du.pow(6) == 1000000);
     assert(du.pow(18) == 1000000000000000000);
-    assert(du.width(0) == 1);
+    assert(du.width(0) == 0);
     assert(du.width(1) == 1);
     assert(du.width(2) == 1);
     assert(du.width(9) == 1);
@@ -44,10 +44,16 @@ int main() {
     assert(du.d_at(1234, 1) == 3);
     assert(du.d_at(1234, 2) == 2);
     assert(du.d_at(1234, 3) == 1);
-    assert(du.v_at(1234, 0) == 4);
-    assert(du.v_at(1234, 1) == 30);
-    assert(du.v_at(1234, 2) == 200);
-    assert(du.v_at(1234, 3) == 1000);
+
+    assert(du.d_at( 94283,  1)       ==    8);
+    assert(du.d_at( 94283, -2)       ==    4);
+    assert(du.d_sub(94283,  1,  3)   ==  428);
+    assert(du.d_sub(94283,  1, -2)   ==   83);
+    assert(du.d_sub(94283, -2,  2)   ==   94);
+    assert(du.d_sub(94283, -2, -4)   == 4283);
+    assert(du.d_sub(94283,  1,  100) == 9428);
+    assert(du.d_sub(94283,  1, -100) ==   83);
+    
     assert(du.to_string(0) == "0");
     assert(du.to_string(1) == "1");
     assert(du.to_string(123) == "123");
@@ -56,11 +62,29 @@ int main() {
     assert(du.from_string("00230") == 230);
     assert(du.to_vector(0) == vector<ll>{0});
     assert(du.to_vector(1) == vector<ll>{1});
-    assert(du.to_vector(123) == (vector<ll>{1, 2, 3}));
+    assert(du.to_vector(123) == (vector<ll>{3, 2, 1}));
     assert(du.from_vector(vector<ll>{0}) == 0);
-    assert(du.from_vector((vector<ll>{2, 3, 0})) == 230);
-    assert(du.from_vector((vector<ll>{0, 0, 2, 3, 0})) == 230);
+    assert(du.from_vector((vector<ll>{3, 0, 2})) == 203);
+    assert(du.from_vector((vector<ll>{0, 0, 2, 3, 0})) == 3200);
   }
+
+  {
+    digit_util du(2);
+    assert(du.pow(0) == 1);
+    assert(du.pow(4) == 16);
+    assert(du.width(0) == 0);
+    assert(du.width(1) == 1);
+    assert(du.width(2) == 2);
+    assert(du.width(3) == 2);
+    assert(du.width(4) == 3);
+    assert(du.floor(0) == 0);
+    assert(du.floor(1) == 1);
+    assert(du.floor(3) == 2);
+    assert(du.ceil(0) == 0);
+    assert(du.ceil(1) == 1);
+    assert(du.ceil(3) == 4);
+  }
+
 
   {
     digit_util du(3);
@@ -72,8 +96,6 @@ int main() {
     assert(du.d_at(79, 0) == 1);
     assert(du.d_at(79, 1) == 2);
     assert(du.d_at(79, 3) == 2);
-    assert(du.v_at(79, 1) == 6);
-    assert(du.v_at(79, 3) == 54);
     assert(du.to_string(83) == "10002");
     assert(du.from_string("10002") == 83);
   }
