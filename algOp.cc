@@ -75,14 +75,16 @@ using namespace std;
      Examples:
 
        Min-Plus algebra over long long:
+          ll big = 1e18;
           struct MinPlusLL {
             using value_type = ll;
-            static value_type zero(      const value_type& u)                      { return LLONG_MAX; }
+            static value_type zero(      const value_type& u)                      { return big; }
             static value_type one(       const value_type& u)                      { return 0; }
             static value_type add(       const value_type& u, const value_type& v) { return min(u, v); }
             static void       subst_mult(      value_type& u, const value_type& v) { u += v; }
           };
           using MMP = MyAlg<MinPlusLL>;
+       (If you use LLONG_MAX for zero(), you will very likely encounter an overflow for the plus operation.)
        You cannot define subt() or subst_subt() because no such operation is available in this semiring.
 
        2x2 matrix over double:
