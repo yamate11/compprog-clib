@@ -190,6 +190,36 @@ int main() {
     chkDupComb(3, 8);
   }
   {
+    auto chkBoxBall = [&](ll box, ll ball) -> void {
+      IDCBoxBall idcbb(box, ball);
+      set<vector<int>> ss;
+      while (idcbb.get()) {
+        vector<int> v(box);
+        ll s = 0;
+        for (ll i = 0; i < box; i++) {
+          ll c = idcbb.at(i);
+          DLOGK(box, ball, i, c, idcbb.vec_view(), ball, idcbb[i]);
+          assert(0 <= c and c <= ball and idcbb[i] == c);
+          v[i] = c;
+          s += c;
+        }
+        assert(s == ball);
+        assert(v == idcbb.vec_view());
+        assert(ss.find(v) == ss.end());
+        ss.insert(move(v));
+      }
+      ll num = 1;
+      for (ll i = 0; i < ball; i++) num = num * (box + ball - 1 - i);
+      for (ll i = 0; i < ball; i++) num = num / (ball - i);
+      assert((ll)ss.size() == num);
+    };
+    chkBoxBall(3, 5);
+    chkBoxBall(6, 4);
+    chkBoxBall(1, 4);
+    chkBoxBall(4, 1);
+  }
+
+  {
     auto chkDirProd = [&](const auto& vec) -> void {
       IntDirProd idp(vec);
       set<string> ss;

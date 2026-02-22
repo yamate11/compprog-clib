@@ -176,6 +176,25 @@ struct IntDupComb : IntPermBase<true, T> {
   }
 };
 
+struct IDCBoxBall {
+  int box;
+  int ball;
+  IntDupComb<> idc;
+  vector<int> numBalls;
+  IDCBoxBall(int box_, int ball_) : box(box_), ball(ball_), idc(box, ball) {}
+  bool get() {
+    bool b = idc.get();
+    if (not b) return false;
+    numBalls = vector<int>(box);
+    for (int i = 0; i < ball; i++) numBalls[idc.at(i)]++;
+    return true;
+  }
+  int at(int i) const { return numBalls[i]; }
+  int operator[](int i) const { return at(i); }
+  vector<int> vec_view() const { return numBalls; }
+};
+
+
 template<typename INT>
 struct IntDirProd {
   vector<INT> lim;
