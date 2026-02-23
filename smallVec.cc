@@ -115,6 +115,4 @@ struct safe_custom_hash<small_vector_string, void> {
   }
 };
 
-
-
 // @@ !! END ---- smallVec.cc
