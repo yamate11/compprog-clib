@@ -6,15 +6,28 @@
   Typical Usage:
     Mo mo(N);  // N is as above
     ...
-    REP(i, 0, Q) mo.add_query(L[i], R[i]);   // half-open interval [L[i], R[i])
+    REP(i, 0, Q) mo.add_query(L[i], R[i]);   // half-open interval [L[i], R[i]) 
+
+    // You need to define five (sometimes three) functions: in_left, in_right, out_left, out_right and calc.
+    // Then, you execute mo.run(in_left, in_right, out_left, out_right, calc).
+    // Sometimes, you can just use the same function for in_left and in_right, and for out_left and out_right.
+    // In such cases, three argument version mo.run(in, out, calc) can be used.
+    // Typically, you maintain some data in the first four functions, and set ans[q] in the function calc.
+
     vector<ll> ans(Q);
     auto in_left = [&](ll x) -> void { ...; };  
       // Write what you need to do when x steps into the range as the left boundary.
       // If you need the right boundary, use mo.cr.  (x == mo.cl)
+      // I.e., the range changes from [x + 1, mo.cr) to [x, mo.cr)
     auto in_right = [&](ll x) -> void {...; };
-      // In some cases in_left == in_right, others not.
+      // "x" steps in from the right boundary.
+      // The range changes from [mo.cl, x) to [mo.cl, x + 1)
     auto out_left = [&](ll x) -> void { ...; };
+      // "x" steps out from the left boundary.
+      // The range changes from [x, mo.cr) to [x + 1, mo.cr)
     auto out_right = [&](ll x) -> void { ...; };
+      // "x" steps out from the right boundary.
+      // The range changes from [mo.cl, x + 1) to [mo.cl, x)
     auto calc = [&](ll q) -> void { ans[q] = ....; };
       // Substitute the answer into ans[q].
     mo.run(in_left, in_right, out_left, out_right, calc);
