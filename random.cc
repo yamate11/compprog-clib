@@ -39,6 +39,25 @@ struct Random {
     return dist(rng);
   }
 
+  double rand(double a, double b) {
+    if (!(a <= b)) {
+      throw std::runtime_error("Random.rand: invalid range");
+    }
+    std::uniform_real_distribution<double> dist(a, b);
+    return dist(rng);
+  }
+
+  pair<ll, ll> select2(ll i, ll j) {
+    if (j - i < 2) {
+      throw std::runtime_error("Random.select2: range too small");
+    }
+    ll x = range(i, j);
+    ll y = range(i, j - 1);
+    if (y >= x) ++y;
+    if (x > y) swap(x, y);
+    return {x, y};
+  }
+
   template<typename RandomIt>
   void shuffle(RandomIt first, RandomIt last) { std::shuffle(first, last, rng); }
 
