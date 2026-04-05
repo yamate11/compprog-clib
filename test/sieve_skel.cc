@@ -102,6 +102,17 @@ int main() {
     }
   }
 
+  {
+    auto primes = sieve(16); // up to 13.  17 is not included.
+    auto pr = prfac(173, primes);
+    // 173 is a prime.  13*13 < 173 < 17*17.
+    // This is legal, as all primes less than sqrt(173) is included in primes, but the library cannot prove it.
+    // Thus, a warning is issued with DEBUG=yes, but we let it pass blindly without DEBUG.
+#if DEBUG
+    cerr << "For sieve_t: A warning message is expected with DEBUG=yes.  It should dismiss by unsetting DEBUG." << endl;
+#endif
+  }
+
   {  // prime factorization using Pollard's rho algorithm
     Random rand;
 

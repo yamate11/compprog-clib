@@ -112,7 +112,10 @@ vector<pair<ll, int>> _prfac_sub(ll n, auto& mit) {
   while (x > 1) {
     ll p = mit.next();
     if (p < 0) {
-      throw runtime_error("_prfac_sub: prime range too small");
+#if DEBUG
+      cerr << "_prfac_sub: Runtime Warning: prime range CAN BE too small." << endl;
+#endif
+      break;
     }
     if (p * p > x) break;
     int r = 0;
