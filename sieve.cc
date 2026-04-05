@@ -22,6 +22,7 @@ using namespace std;
     // Returns the prime factorization results.
     // The latter is naturally faster.
     // primes should contain prime numbers at least up to sqrt(m)
+    //    If you use exact ceil(sqrt(m)), you can see warning messages, which is inevitable.
     // divSieve should contain divisors upto m.
     // Performance of `` REP(i, 1, N) prfac(i, primes) ''
     //   i = 1<<17 (1.3e5) ... 40 ms,  i = 1<<20 (1.0e6) ... 510 ms,   i = 1<<22 (4.2e6) ... 2900 ms
