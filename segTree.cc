@@ -4,8 +4,8 @@
  */
 
 //////////////////////////////////////////////////////////////////////
-// See help of libins command for dependency spec syntax.
 // @@ !! BEGIN(f:<<) ---- segTree.cc
+// https://github.com/yamate11/compprog-clib/blob/master/segTree.cc
 
 // It seems that we should keep the size power of two,
 // considering the binary search.

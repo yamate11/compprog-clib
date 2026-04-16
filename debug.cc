@@ -39,6 +39,8 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN(f:<<)
+// https://github.com/yamate11/compprog-clib/blob/master/debug.cc
+
 template <class... Args>
 string dbgFormat(const char* fmt, Args... args) {
   size_t len = snprintf(nullptr, 0, fmt, args...);
