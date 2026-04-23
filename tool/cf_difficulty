@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import re
+import sys
+import requests
+
+
+def parse_problem_url(url: str) -> tuple[int, str]:
+    patterns = [
+        r"^https?://codeforces\.com/problemset/problem/(\d+)/([A-Za-z0-9]+)$",
+        r"^https?://codeforces\.com/contest/(\d+)/problem/([A-Za-z0-9]+)$",
+        r"^https?://codeforces\.com/gym/(\d+)/problem/([A-Za-z0-9]+)$",
+    ]
+    for pat in patterns:
+        m = re.match(pat, url)
+        if m:
+            return int(m.group(1)), m.group(2)
+    raise ValueError("Codeforces の問題 URL として解釈できません")
+
+
+def get_problem_rating(contest_id: int, index: str) -> int | None:
+    url = "https://codeforces.com/api/problemset.problems"
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+
+    if data.get("status") != "OK":
+        raise RuntimeError("Codeforces API が OK を返しませんでした")
+
+    for prob in data["result"]["problems"]:
+        if prob.get("contestId") == contest_id and prob.get("index") == index:
+            return prob.get("rating")
+
+    raise LookupError("その問題が API の problemset.problems 内で見つかりませんでした")
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        print(f"usage: {sys.argv[0]} PROBLEM_URL", file=sys.stderr)
+        sys.exit(1)
+
+    problem_url = sys.argv[1]
+
+    try:
+        contest_id, index = parse_problem_url(problem_url)
+        rating = get_problem_rating(contest_id, index)
+        if rating is None:
+            print("difficulty: (rating が付いていません)")
+        else:
+            print(f"difficulty: {rating}")
+    except Exception as e:
+        print(f"error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
