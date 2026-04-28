@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-import subprocess
+import os
 import time
+import subprocess
+import argparse
+import re
 import urllib.request
 import urllib.error
 
@@ -11,6 +14,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.window import WindowTypes
+from selenium.webdriver.support.ui import WebDriverWait
+
+from cf_extract_samples import extract_codeforces_samples, Sample
+from cf_problem_list import extract_codeforces_contest_problems, ContestProblemList
 
 from util import debug, warn, die
 
@@ -95,17 +103,131 @@ def get_driver_with_auto_launch() -> webdriver.Chrome:
         ) from e2
 
 
-def main() -> None:
-    debug(1)
-    driver = get_driver_with_auto_launch()
-    debug(2)
+def fetch_in_temporary_tab(driver: webdriver.Chrome, url: str, wait_sec: float = 10.0) -> str:
+    # いま見ているタブを覚えておく
+    original_handle = driver.current_window_handle
+
+    # 新しいタブを開いて，そこへ切り替える
+    driver.switch_to.new_window(WindowTypes.TAB)
+    new_handle = driver.current_window_handle
+
     try:
-        url = "https://codeforces.com/problemset/problem/4/A"
         driver.get(url)
-        print(driver.title)
+
+        # とりあえず「読み込み完了」まで待つ例
+        WebDriverWait(driver, wait_sec).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+
+        # 必要な情報を取得
+        html = driver.page_source
+        return html
+
+    finally:
+        # 一時タブだけ閉じる
+        driver.close()
+
+        # 元のタブへ戻る
+        driver.switch_to.window(original_handle)
+
+def doQuest(driver: webdriver.Chrome, qid: str, url: str) -> None:
+    if not os.path.exists(qid):
+        os.mkdir(qid)
+    p = f'{qid}/q.html'
+    page = fetch_in_temporary_tab(driver, url)
+    with open(p, 'w', encoding='UTF-8') as wfp:
+        print(page, end='', file=wfp)
+    with open(p, 'r', encoding='UTF-8') as fp:
+        page = fp.read()
+        # It may seem that in the case of
+        # "not (fKeep and os.apth.exists(p)" you do not need to read again,
+        # but this code forces translation from \r\n to \n.
+    samples = extract_codeforces_samples(page)
+    print(samples)
+
+    makeMakefile(f'{qid}/Makefile')
+    makeSource(f'{qid}/cans.cc')
+
+def problem_name_in_url(url: string) -> string:
+    if not (mo := re.search(r'/([^/]+)$', url)):
+        die(f'Unknown URL format: {url}')
+    return mo[1]
+
+def main() -> None:
+    args = parseArgs()
+
+    qdict = {}
+    if args.url:
+        qdict = {problem_name_in_url(args.url): args.url}
+    for q in qdict:
+        if os.path.exists(q):
+            die(f'File or directory {q} exists.')
+
+    driver = get_driver_with_auto_launch()
+    try:
+        # url = "https://codeforces.com/problemset/problem/4/A"
+        # html = fetch_in_temporary_tab(driver, url)
+        # print(f'length is {len(html)}')
+        if qdict:
+            warn('Processing ', end='')
+            for q in qdict:
+                warn(q, end='... ')
+                doQuest(driver, q, qdict[q])
+            warn('Done.')
+
     finally:
         driver.quit()
 
 
-main()
+def parseArgs() -> Namespace:
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='''
+Reads Codeforces questions, extracts input/output examples, makes a makefile 
+and cans.cc.  A directory for each problem is created and files are placed into it.
+This command uses a Chrome browser under control of selenium.
+
+
+Examples:
+  * cfqread
+      Just invokes a browser for later uses, if it is not running.
+  * cfqread --url=https://codeforces.com/contest/2208/problem/A
+      Reads a single question into the current directory.
+  * [Not Yet Implemented] cfqread --contest abc398 a b c
+      Reads questions a, b and c of Contest abc398.
+  * [Not Yet Implemented] cfqread d e
+      Reads questions d and e.  If qread has been executed in this directory,
+      the same contest is used.  Otherwise, the name of the current directory
+      is assumed as the contest name.
+  * [Not Yet] cfqread --all_questions
+      Reads all questions of the contest.
+'''
+    )
+    parser.add_argument(
+        '--url', type=str,
+        help='''Problem URL.  If specified, --all_questions, --contest 
+        and quest are ignored.
+        The question identifier is taken from the last part of the URL.
+        ''')
+    # parser.add_argument(
+    #     '--contest', type=str,
+    #     help='''Contest identifier, such as abc147 or tdpc.
+    #     If not specified, it is taken from the most recently specified name,
+    #     which has been saved into ./.contestName, or the directory name.
+    #     ''')
+    # # It is dangerous to define one character '-c' option, because when
+    # # the user mistakingly typed `-contest abc`, it is interpreted as
+    # # `-c ontest abc`.
+    # parser.add_argument(
+    #     '-a', '--all_questions', action='store_true',
+    #     help='All questions will be retrieved.')
+    # parser.add_argument(
+    #     'quest', type=str, nargs='*',
+    #     help='question identifier such as a or f')
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    main()
+
+
 
