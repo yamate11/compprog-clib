@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import subprocess
+import time
+import urllib.request
+import urllib.error
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import WebDriverException
+
+from util import debug, warn, die
+
+PORT = 9222
+
+CHROMEDRIVER = "/home/y-tanabe/lib/chromedriver-147-0-7727-116"
+DEBUGGER_ADDRESS = f"127.0.0.1:{PORT}"
+DEBUGGER_URL = f"http://{DEBUGGER_ADDRESS}/json/version"
+
+WINDOWS_CHROME = "/mnt/c/pkg/chrome_for_testing/147.0.7727.116/chrome.exe"
+WINDOWS_PROFILE = r"C:\Users\y-tanabe\var\chromeRemoteProfile"
+
+
+def is_debugger_ready(timeout_sec: float = 1.0) -> bool:
+    try:
+        with urllib.request.urlopen(DEBUGGER_URL, timeout=timeout_sec) as resp:
+            return resp.status == 200
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return False
+
+
+def launch_windows_chrome() -> subprocess.Popen[str]:
+    cmd = [
+        WINDOWS_CHROME,
+        f"--remote-debugging-port={PORT}",
+        f"--user-data-dir={WINDOWS_PROFILE}",
+    ]
+    # stdout/stderr を捨て，WSL 側の端末をあまり汚さない
+    return subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def wait_for_debugger(max_wait_sec: float = 10.0, interval_sec: float = 0.5) -> bool:
+    deadline = time.time() + max_wait_sec
+    while time.time() < deadline:
+        if is_debugger_ready():
+            return True
+        time.sleep(interval_sec)
+    return False
+
+
+def attach_driver() -> webdriver.Chrome:
+    if not is_debugger_ready():
+        raise RuntimeError(f'debugger is not ready: {DEBUGGER_URL}')
+
+    opts = Options()
+    opts.debugger_address = DEBUGGER_ADDRESS
+
+    service = Service(CHROMEDRIVER)
+    d = webdriver.Chrome(service=service, options=opts)
+    return d
+
+def get_driver_with_auto_launch() -> webdriver.Chrome:
+    try:
+        return attach_driver()
+    except (WebDriverException, RuntimeError) as e1:
+        print("最初の attach に失敗しました。Chrome for Testing を起動して再試行します。")
+        print(f"  reason: {e1}")
+
+    proc = launch_windows_chrome()
+
+    if not wait_for_debugger():
+        raise RuntimeError(
+            "Chrome for Testing を起動しましたが，"
+            f"{DEBUGGER_URL} が応答しませんでした。"
+        )
+
+    try:
+        return attach_driver()
+    except WebDriverException as e2:
+        # 起動した Chrome をこのスクリプトで残したくないなら terminate を試みる
+        if proc.poll() is None:
+            try:
+                proc.terminate()
+            except OSError:
+                pass
+        raise RuntimeError(
+            "Chrome 起動後の attach にも失敗しました。"
+        ) from e2
+
+
+def main() -> None:
+    debug(1)
+    driver = get_driver_with_auto_launch()
+    debug(2)
+    try:
+        url = "https://codeforces.com/problemset/problem/4/A"
+        driver.get(url)
+        print(driver.title)
+    finally:
+        driver.quit()
+
+
+main()
+
