@@ -199,20 +199,25 @@ Examples:
         The question identifier is taken from the last letter of the URL.
         ''')
     parser.add_argument(
-        '--contest', type=str,
+        '-c', '--contest', type=str,
         help='''Contest identifier, such as abc147 or tdpc.
         If not specified, it is taken from the most recently specified name,
         which has been saved into ./.contestName, or the directory name.
         ''')
-    # It is dangerous to define one character '-c' option, because when
-    # the user mistakingly typed `-contest abc`, it is interpreted as
-    # `-c ontest abc`.
     parser.add_argument(
         '-a', '--all_questions', action='store_true',
         help='All questions will be retrieved.')
     parser.add_argument(
         'quest', type=str, nargs='*',
         help='question identifier such as a or f')
+
+    # Without the following code, "-contest" would mistakingly be treated as
+    # "-c ontest" ("ontest" is the argument for "-c").
+    for arg in sys.argv[1:]:
+        if arg.startswith('-') and not arg.startswith('--') and len(arg) > 2:
+            parser.error(f'invalid option spelling: {arg!r} '
+                         f'(Did you mean "--{arg[1:]}"?)')    
+
     return parser.parse_args()
 
 main()
