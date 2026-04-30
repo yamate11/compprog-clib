@@ -7,6 +7,7 @@ import time
 import subprocess
 import argparse
 import re
+import shutil
 import urllib.request
 import urllib.error
 
@@ -23,7 +24,7 @@ from selenium.webdriver.chrome.service import Service
 from cf_extract_samples import extract_codeforces_samples, Sample
 from cf_problem_list import extract_codeforces_contest_problems, ContestProblemList
 
-from util import debug, warn, die
+from util import debug, warn, die, getTopDir
 
 PORT = 9222
 
@@ -135,6 +136,7 @@ def wait_until_page_source_stabilizes(driver, wait_sec: float = 10.0,
 def fetch_a_page(driver: webdriver.Chrome, url: str, wait_sec: float = 10.0) -> str:
 
     # debug('---------------- 1 ----------------')
+    warn('Getting the page...', end='')
     driver.get(url)
 
     # # The following code does not work in this environment (attaching to remote Chrome)
@@ -154,6 +156,7 @@ def fetch_a_page(driver: webdriver.Chrome, url: str, wait_sec: float = 10.0) -> 
     #         EC.presence_of_element_located((By.CSS_SELECTOR, "table.problems, div.datatable"))
     #     )
 
+    warn(' Waiting the page stabilized...', end='')
     wait_until_page_source_stabilizes(driver)
 
     html = driver.page_source
@@ -172,10 +175,23 @@ def doQuest(driver: webdriver.Chrome, qid: str, url: str) -> None:
         # "not (fKeep and os.apth.exists(p)" you do not need to read again,
         # but this code forces translation from \r\n to \n.
     samples = extract_codeforces_samples(page)
-    print(samples)
+    # debug(samples)
 
-    makeMakefile(f'{qid}/Makefile')
-    makeSource(f'{qid}/cans.cc')
+    def qprint(zid: str, item: Sample | SplitCase) -> None:
+        def sub(tp: str, cont: str) -> None:
+            with open(f'{qid}/{tp}_{zid}.txt', 'w', encoding='UTF-8') as wfp:
+                print(cont, end='', file=wfp)
+        sub('din',  item.input_text)
+        sub('dexp', item.output_text)
+
+    for [sno, item] in enumerate(samples, start=1):
+        qprint(str(sno), item)
+        if (sc := item.split_cases):
+            for [cno, citem] in enumerate(sc, start=0):
+                qprint(str(sno) + chr(ord('a') + cno), citem)
+
+    shutil.copyfile(f'{getTopDir()}/zCodeForces/Makefile', f'{qid}/Makefile')
+    shutil.copyfile(f'{getTopDir()}/zCodeForces/cans.cc', f'{qid}/cans.cc')
 
 def problem_name_in_url(url: string) -> string:
     if not (mo := re.search(r'/([^/]+)$', url)):
@@ -198,11 +214,10 @@ def main() -> None:
         # html = fetch_in_temporary_tab(driver, url)
         # print(f'length is {len(html)}')
         if qdict:
-            warn('Processing ', end='')
             for q in qdict:
-                warn(q, end='... ')
+                warn('Processing', q, end='... ')
                 doQuest(driver, q, qdict[q])
-            warn('Done.')
+                warn('Done.')
 
     finally:
         driver.quit()
