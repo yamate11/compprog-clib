@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import sys
 import os
 import time
 import subprocess
-import argparse
+from argparse import Namespace, ArgumentParser, RawDescriptionHelpFormatter
 import re
 import shutil
 import urllib.request
@@ -21,7 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from cf_extract_samples import extract_codeforces_samples, Sample
+from cf_extract_samples import extract_codeforces_samples, Sample, SplitCase
 from cf_problem_list import extract_codeforces_contest_problems, ContestProblemList
 
 from util import debug, warn, die, getTopDir
@@ -35,6 +36,16 @@ DEBUGGER_URL = f"http://{DEBUGGER_ADDRESS}/json/version"
 WINDOWS_CHROME = "/mnt/c/pkg/chrome_for_testing/147.0.7727.116/chrome.exe"
 WINDOWS_PROFILE = r"C:\Users\y-tanabe\var\chromeRemoteProfile"
 
+_args: Namespace | None = None
+_driver: webdriver.Chrome | None = None
+
+def args() -> Namespace:
+    assert _args is not None
+    return _args
+
+def driver() -> webdriver.Chrome:
+    assert _driver is not None
+    return _driver
 
 def is_debugger_ready(timeout_sec: float = 1.0) -> bool:
     try:
@@ -44,7 +55,7 @@ def is_debugger_ready(timeout_sec: float = 1.0) -> bool:
         return False
 
 
-def launch_windows_chrome() -> subprocess.Popen[str]:
+def launch_windows_chrome() -> subprocess.Popen[bytes]:
     cmd = [
         WINDOWS_CHROME,
         f"--remote-debugging-port={PORT}",
@@ -68,7 +79,8 @@ def wait_for_debugger(max_wait_sec: float = 10.0, interval_sec: float = 0.5) -> 
     return False
 
 
-def attach_driver() -> webdriver.Chrome:
+def attach_driver() -> None:
+    global _driver
     if not is_debugger_ready():
         raise RuntimeError(f'debugger is not ready: {DEBUGGER_URL}')
 
@@ -76,12 +88,12 @@ def attach_driver() -> webdriver.Chrome:
     opts.debugger_address = DEBUGGER_ADDRESS
 
     service = Service(CHROMEDRIVER)
-    d = webdriver.Chrome(service=service, options=opts)
-    return d
+    _driver = webdriver.Chrome(service=service, options=opts)
 
-def get_driver_with_auto_launch() -> webdriver.Chrome:
+def set_driver_with_auto_launch() -> None:
     try:
-        return attach_driver()
+        attach_driver()
+        return
     except (WebDriverException, RuntimeError) as e1:
         print("最初の attach に失敗しました。Chrome for Testing を起動して再試行します。")
         print(f"  reason: {e1}")
@@ -95,7 +107,8 @@ def get_driver_with_auto_launch() -> webdriver.Chrome:
         )
 
     try:
-        return attach_driver()
+        attach_driver()
+        return
     except WebDriverException as e2:
         # 起動した Chrome をこのスクリプトで残したくないなら terminate を試みる
         if proc.poll() is None:
@@ -107,8 +120,7 @@ def get_driver_with_auto_launch() -> webdriver.Chrome:
             "Chrome 起動後の attach にも失敗しました。"
         ) from e2
 
-
-def wait_until_page_source_stabilizes(driver, wait_sec: float = 10.0,
+def wait_until_page_source_stabilizes(wait_sec: float = 10.0,
                                       interval_sec: float = 0.3,
                                       stable_count_needed: int = 4) -> None:
     """
@@ -120,7 +132,7 @@ def wait_until_page_source_stabilizes(driver, wait_sec: float = 10.0,
     stable_count = 0
 
     while time.time() < deadline:
-        cur_len = len(driver.page_source)
+        cur_len = len(driver().page_source)
         # debug(f'--- cur_len = {cur_len}, stable_count = {stable_count} ------------------------')
         if cur_len == prev_len:
             stable_count += 1
@@ -133,11 +145,11 @@ def wait_until_page_source_stabilizes(driver, wait_sec: float = 10.0,
 
     raise TimeoutException("page_source が安定しませんでした")
 
-def fetch_a_page(driver: webdriver.Chrome, url: str, wait_sec: float = 10.0) -> str:
+def fetch_a_page(url: str, wait_sec: float = 10.0, diagNL : bool = True) -> str:
 
     # debug('---------------- 1 ----------------')
     warn('Getting the page...', end='')
-    driver.get(url)
+    driver().get(url)
 
     # # The following code does not work in this environment (attaching to remote Chrome)
     # # though it is a typical code in ordinary Selenium environment.
@@ -157,16 +169,20 @@ def fetch_a_page(driver: webdriver.Chrome, url: str, wait_sec: float = 10.0) -> 
     #     )
 
     warn(' Waiting the page stabilized...', end='')
-    wait_until_page_source_stabilizes(driver)
+    wait_until_page_source_stabilizes()
+    warn(' Done.', end=('\n' if diagNL else ''))
 
-    html = driver.page_source
+    html = driver().page_source
     return html
 
-def doQuest(driver: webdriver.Chrome, qid: str, url: str) -> None:
+def doQuest(qid: str, url: str) -> None:
+    # debug(f'---------------- doQuest, {qid=}, {url=} ----------------')
+    qid = qid.lower()
+    warn('Processing', qid, end='... ')
     if not os.path.exists(qid):
         os.mkdir(qid)
     p = f'{qid}/q.html'
-    page = fetch_a_page(driver, url)
+    page = fetch_a_page(url)
     with open(p, 'w', encoding='UTF-8') as wfp:
         print(page, end='', file=wfp)
     with open(p, 'r', encoding='UTF-8') as fp:
@@ -193,39 +209,69 @@ def doQuest(driver: webdriver.Chrome, qid: str, url: str) -> None:
     shutil.copyfile(f'{getTopDir()}/zCodeForces/Makefile', f'{qid}/Makefile')
     shutil.copyfile(f'{getTopDir()}/zCodeForces/cans.cc', f'{qid}/cans.cc')
 
-def problem_name_in_url(url: string) -> string:
+def problem_name_in_url(url: str) -> str:
     if not (mo := re.search(r'/([^/]+)$', url)):
         die(f'Unknown URL format: {url}')
-    return mo[1]
+    return mo[1].lower()
+
+def get_contest_name(cname: str | None) -> str:
+    cn_file = ".contestName"
+    if cname:
+        with open(cn_file, 'w') as wfp:
+            print(cname, file=wfp)
+        return cname
+    if os.path.exists(cn_file):
+        with open(cn_file, 'r') as fp:
+            return fp.readline().strip()
+    dname = os.path.basename(os.getcwd())
+    if (mo := re.match(r'c(\d+)$', dname)):
+        return mo[1]
+    die('Failed to determine the contest name.')
+
+def get_qdict() -> dict[str, str]:
+    if args().url:
+        return {problem_name_in_url(args().url): args().url}
+    ret : dict[str, str] = {}
+    qids : list[str] = []
+    contname = get_contest_name(args().contest)
+    contest_url = f'https://codeforces.com/contest/{contname}'
+    if args().quest:
+        qids = args().quest
+    elif args().all_questions:
+        page_content = fetch_a_page(contest_url)
+        with open('qlist.html', 'w') as wfp:
+            print(page_content, file=wfp)
+        qids = extract_codeforces_contest_problems(page_content).problem_ids
+    for qid in qids:
+        ret[qid.lower()] = f'{contest_url}/problem/{qid.upper()}'
+    return ret
 
 def main() -> None:
-    args = parseArgs()
+    global _args
+    _args = parseArgs()
 
-    qdict = {}
-    if args.url:
-        qdict = {problem_name_in_url(args.url): args.url}
+    if args().all_questions and args().quest:
+        die('When -a is specified, question ids should not be given.')
+
+    set_driver_with_auto_launch()
+
+    qdict = get_qdict()
     for q in qdict:
         if os.path.exists(q):
             die(f'File or directory {q} exists.')
 
-    driver = get_driver_with_auto_launch()
     try:
-        # url = "https://codeforces.com/problemset/problem/4/A"
-        # html = fetch_in_temporary_tab(driver, url)
-        # print(f'length is {len(html)}')
         if qdict:
             for q in qdict:
-                warn('Processing', q, end='... ')
-                doQuest(driver, q, qdict[q])
-                warn('Done.')
+                doQuest(q, qdict[q])
 
     finally:
-        driver.quit()
+        driver().quit()
 
 
 def parseArgs() -> Namespace:
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+    parser = ArgumentParser(
+        formatter_class=RawDescriptionHelpFormatter,
         description='''
 Reads Codeforces questions, extracts input/output examples, makes a makefile 
 and cans.cc.  A directory for each problem is created and files are placed into it.
@@ -237,13 +283,13 @@ Examples:
       Just invokes a browser for later uses, if it is not running.
   * cfqread --url=https://codeforces.com/contest/2208/problem/A
       Reads a single question into the current directory.
-  * [Not Yet Implemented] cfqread --contest abc398 a b c
-      Reads questions a, b and c of Contest abc398.
-  * [Not Yet Implemented] cfqread d e
+  * cfqread --contest 2215 a b1 b2 c
+      Reads questions a, b1, b2 and c of Contest 2215.
+  * cfqread d e
       Reads questions d and e.  If qread has been executed in this directory,
       the same contest is used.  Otherwise, the name of the current directory
       is assumed as the contest name.
-  * [Not Yet] cfqread --all_questions
+  * cfqread --all_questions
       Reads all questions of the contest.
 '''
     )
@@ -253,21 +299,26 @@ Examples:
         and quest are ignored.
         The question identifier is taken from the last part of the URL.
         ''')
-    # parser.add_argument(
-    #     '--contest', type=str,
-    #     help='''Contest identifier, such as abc147 or tdpc.
-    #     If not specified, it is taken from the most recently specified name,
-    #     which has been saved into ./.contestName, or the directory name.
-    #     ''')
-    # # It is dangerous to define one character '-c' option, because when
-    # # the user mistakingly typed `-contest abc`, it is interpreted as
-    # # `-c ontest abc`.
-    # parser.add_argument(
-    #     '-a', '--all_questions', action='store_true',
-    #     help='All questions will be retrieved.')
-    # parser.add_argument(
-    #     'quest', type=str, nargs='*',
-    #     help='question identifier such as a or f')
+    parser.add_argument(
+        '-c', '--contest', type=str,
+        help='''Contest identifier, such as 2226.
+        If not specified, it is taken from the most recently specified name,
+        which has been saved into ./.contestName, or the directory name.
+        ''')
+    parser.add_argument(
+        '-a', '--all_questions', action='store_true',
+        help='All questions will be retrieved.')
+    parser.add_argument(
+        'quest', type=str, nargs='*',
+        help='question identifier such as a or f')
+
+    # Without the following code, "-contest" would mistakingly be treated as
+    # "-c ontest" ("ontest" is the argument for "-c").
+    for arg in sys.argv[1:]:
+        if arg.startswith('-') and not arg.startswith('--') and len(arg) > 2:
+            parser.error(f'invalid option spelling: {arg!r} '
+                         f'(Did you mean "--{arg[1:]}"?)')    
+
     return parser.parse_args()
 
 if __name__ == "__main__":
