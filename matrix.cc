@@ -238,7 +238,7 @@ struct Matrix {
   Matrix inverse() const { return inv().value(); } // for general operation of Ring / Semi Ring
 
   template<bool ret_kernel = false>
-  optional<pair<Matrix, vector<Matrix>>> linSolution(const Matrix& bs) const {
+  optional<pair<Matrix, vector<Matrix>>> _linSolution(const Matrix& bs) const {
     if (dimI != bs.dimI or bs.dimJ != 1) throw domain_error("linSolution: invalid bs");
     Matrix work(dimI, dimJ + 1);
     work.memcopy(part());
@@ -282,6 +282,12 @@ struct Matrix {
     }
     return make_pair(move(sol), move(kernel));
   }
+  optional<Matrix> linSolution(const Matrix& bs) const {
+    auto x = _linSolution(bs);
+    if (x) return x->first;
+    else return nullopt;
+  }
+  optional<pair<Matrix, vector<Matrix>>> linSolution_ex(const Matrix& bs) const { return _linSolution<true>(bs); }
 
   friend istream& operator >>(istream& is, Matrix& mat) {
     is >> mat.dimI >> mat.dimJ;

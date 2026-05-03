@@ -139,9 +139,9 @@ fitFPS(const vector<typename Pol::value_type>& vec, int verify) {
       }
       // DLOGK(d, bs, mat);
       Matrix<T> mm(0, 1, bs);
-      auto optsol = mat.template linSolution<false>(mm);
+      auto optsol = mat.linSolution(mm);
       if (!optsol) continue;
-      auto& [sol, _] = *optsol;
+      auto sol = *optsol;
       // DLOGK(d, sol);
       if (checkSol(sol)) {
         vector<T> q(sol.dimI + 1);

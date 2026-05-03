@@ -211,7 +211,7 @@ int main() {
     Matrix<Fp> mat1({{1,2,3}, {4,5,6}, {3,1,2}});
     Matrix<Fp> vec1({{14,26,11}});
     vec1.self_transpose();
-    auto optsol1 = mat1.linSolution<true>(vec1);
+    auto optsol1 = mat1.linSolution_ex(vec1);
     assert(optsol1.has_value());
     auto [sol1, kernel1] = optsol1.value();
     assert(kernel1.size() == 0);
@@ -230,7 +230,7 @@ int main() {
     mat2.memcopy(vv6.part(), 3, 0);
     Matrix<Fp> vv7(0, 1, {1,2,3,4,5,6});
     auto vec2 = mat2 * vv7;
-    auto optsol2 = mat2.linSolution<true>(vec2);
+    auto optsol2 = mat2.linSolution_ex(vec2);
     assert(optsol2.has_value());
     auto [sol2, kernel2] = optsol2.value();
     assert(kernel2.size() == 4);
@@ -274,9 +274,9 @@ int main() {
       for (ll p = 0; p < m; p++) {
         z = z + Fp(randrange(-6, 7)) * A.colVec(p);
       }
-      auto optsol10 = A.linSolution(z);
+      auto optsol10 = A.linSolution_ex(z);
       assert(optsol10.has_value());
-      auto [sol10, kernel10] = optsol10.value();
+      auto [sol10, kernel10] = *optsol10;
       assert(A * sol10 == z);
       auto zero_mat = Matrix<Fp>(n, 1);
       for (const auto& kk : kernel10) {
@@ -294,8 +294,6 @@ int main() {
         }
         auto z2 = B.colVec(m);
         auto optsol11 = A.linSolution(z2);
-        // DLOGK(A);
-        // DLOGK(z2);
         assert(!optsol11.has_value());
       }
     }
@@ -307,7 +305,7 @@ int main() {
     
     auto check = [&](const Matrix<Fp>& mat, ll m, ll n) -> void {
       Matrix<Fp> bs(m, 1);
-      auto optsol = mat.linSolution<true>(bs);
+      auto optsol = mat.linSolution_ex(bs);
       assert(optsol);
       auto [_, kernel] = *optsol;
       ll sz = kernel.size();
