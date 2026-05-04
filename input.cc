@@ -82,13 +82,13 @@ using namespace std;
       fwd[u].emplace_back(v);
     }
 
-    // @InpNbrList(N, N - 1, fwd2, dec=1, bwd=back) [gk8ZeH0v]
+    // @InpNbrList(N, N - 1, fwd2, dec=1, bwd=back)
     auto fwd2 = vector(N, vector(0, int()));
-    auto bwd = vector(N, vector(0, int()));
+    auto back = vector(N, vector(0, int()));
     for (int i = 0; i < N - 1; i++) {
       int u, v; cin >> u >> v; u -= 1; v -= 1;
       fwd2[u].emplace_back(v);
-      bwd[v].emplace_back(u);
+      back[v].emplace_back(u);
     }
 
     // @InpNbrList(N, M, nbr3, read=(cost, (desc, string)), idx=eid, dec=1)
@@ -97,9 +97,10 @@ using namespace std;
       ll cost;
       string desc;
       int eid;
-      nbr3_t() {}
-      nbr3_t(int nd_, ll cost_, string desc_) : nd(nd_), cost(cost_), desc(desc_) {}
-      nbr3_t(int nd_, ll cost_, string desc_, int eid_) : nd(nd_), cost(cost_), desc(desc_), eid(eid_) {}
+      ostream& operator<<(ostream& ostr) const {
+        return ostr << "(" << nd << ", " << cost << ", " << desc << ")";
+      }
+      auto operator<=>(const nbr3_t&) const = default;
     };
     auto nbr3 = vector(N, vector(0, nbr3_t()));
     for (int i = 0; i < M; i++) {
@@ -112,40 +113,31 @@ using namespace std;
 
   @DefStruct(structname, fields, idx=None, ord=None, istr=False, ostr=True) 
 
-    Define a struct.  It is recommended to put this in the top level.
+    Define a struct (or rather, an aggregate).  It is recommended to put this in the top level.
     Parameter filelds are list of either a field name or a pair of field name and its type.
     If ord is defined, it should be a list of field names or (field name, True/False) pairs.
       The '<' relation is defined in the order of the field listed, either ascending (if False) or
-      descending (if True).  OMITTED FIELDS WILL BE USED FOR DEFINING ORDER, since "less" requires
+      descending (if True).  OMITTED FIELDS ARE ALSO USED FOR DEFINING ORDER, since "less" requires
       strong ordering that is consistent with equality.
-
     
     // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii, istr=True)
-    struct SS2_t {
+    struct SS2 {
       ll a;
       char c;
       int iii;
-      SS2_t() {}
-      SS2_t(ll a_, char c_) : a(a_), c(c_) {}
-      SS2_t(ll a_, char c_, int iii_) : a(a_), c(c_), iii(iii_) {}
-      friend istream& operator>>(istream& istr, SS2_t& t) {
-        istr >> t.a >> t.c;
-        return istr;
+      istream& operator>>(istream& istr) {
+        return istr >> a >> c;
       }
-      friend ostream& operator<<(ostream& istr, const SS2_t& t) {
-        ostr << "(" << t.a << ", " << t.c << ")";
-        return ostr;
+      ostream& operator<<(ostream& ostr) const {
+        return ostr << "(" << a << ", " << c << ")";
       }
-      strong_ordering operator<=>(const SS2_t& t) const {
-        if (auto r = t.c   <=>   c;   r != 0) return r;
-        if (auto r =   a   <=> t.a;   r != 0) return r;
-        if (auto r =   iii <=> t.iii; r != 0) return r;
-        return strong_ordering::equal;
+      strong_ordering operator<=>(const SS2& o) const {
+        if (auto r_ = o.c   <=>   c;   r_ != 0) return r_;
+        if (auto r_ =   a   <=> o.a;   r_ != 0) return r_;
+        if (auto r_ =   iii <=> o.iii; r_ != 0) return r_;
+        return std::strong_ordering::equal;
       }
-      bool operator==(const SS2_t& t) const {
-        return c == t.c and a == t.a and iii == t.iii;
-      }
-      
+      bool operator==(const SS2&) const = default;
     };
 
 

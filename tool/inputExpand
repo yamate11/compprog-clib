@@ -264,33 +264,23 @@ def mk_fields_list(param):
     return c_fields
 
 def mkstruct(namebase, c_fields, idx, order, istr, ostr):
-    tp = namebase + '_t'
-    plist = ', '.join([f'{t} {v}_ = {t}()' for (v, t) in c_fields])
-    init_list = ', '.join([f'{v}({v}_)' for (v, t) in c_fields])
-    read_list = ' >> '.join([f't.{v}' for (v, t) in c_fields])
-    write_list = ' << ", " << '.join([f't.{v}' for (v, t) in c_fields])
+    tp = namebase
+    read_list = ' >> '.join([f'{v}' for (v, t) in c_fields])
+    write_list = ' << ", " << '.join([f'{v}' for (v, t) in c_fields])
 
     out = f'struct {tp} {{'
-
     out += '\n' + '\n'.join([f'  {t} {v};' for (v, t) in c_fields])
     if idx:
         out += f'\n  int {idx};'
 
-    if idx:
-        out += f'\n  {tp}({plist}, int {idx}_ = 0) : {init_list}, {idx}({idx}_) {{}}'
-    else:
-        out += f'\n  {tp}({plist}) : {init_list} {{}}'
-
     if istr:
-        out += f'''\n  friend istream& operator>>(istream& istr, {tp}& t) {{
-    istr >> {read_list};
-    return istr;
+        out += f'''\n  istream& operator>>(istream& istr) {{
+    return istr >> {read_list};
   }}'''
 
     if ostr:
-        out += f'''\n  friend ostream& operator<<(ostream& ostr, const {tp}& t) {{
-    ostr << "(" << {write_list} << ")";
-    return ostr;
+        out += f'''\n  ostream& operator<<(ostream& ostr) const {{
+    return ostr << "(" << {write_list} << ")";
   }}'''
 
     if order:
@@ -309,10 +299,12 @@ def mkstruct(namebase, c_fields, idx, order, istr, ostr):
         for (s, flag) in o_fields:
             if flag: (sL, sR) = (f'o.{s}', s)
             else:    (sL, sR) = (s, f'o.{s}')
-            out += f'\n    if (auto r = {sL} <=> {sR}; r != 0) return r;'
+            out += f'\n    if (auto r_ = {sL} <=> {sR}; r_ != 0) return r_;'
         out += '\n    return std::strong_ordering::equal;'
         out += '\n  }'
-        out += f'\n  bool operator==(const {tp}& o) const = default;'
+        out += f'\n  bool operator==(const {tp}&) const = default;'
+    else:
+        out += f'\n  auto operator<=>(const {tp}&) const = default;'
 
     out += '\n};'
     return out
@@ -322,7 +314,7 @@ def g_inpNbrList(param):
         return f'auto {name} = vector({szNode}, vector(0, {tp}()));'
     d = mkdic(param, [('sizeNode', None), ('sizeEdge', None), ('varname', None)],
               {'dir': False, 'bwd': None, 'dec': None, 'read': None, 'idx': None, 'ord': None,
-               'istr': False, 'ostr': False})
+               'istr': False, 'ostr': True})
     sdec = mksdec('u', d["dec"]) + ' ' + mksdec('v', d["dec"]);
     vn = d['varname']
     szNode = d['sizeNode']
@@ -335,8 +327,8 @@ def g_inpNbrList(param):
     if d['read'] or d['idx']:
         c_fields_R = mk_fields_list(d['read'])
         lst = [('nd', 'int')] + c_fields_R
-        struct = mkstruct(vn, lst, idx=d['idx'], order=mk_hered_list(d['ord']), istr=d['istr'], ostr=d['ostr'])
         tp = vn + '_t'
+        struct = mkstruct(tp, lst, idx=d['idx'], order=mk_hered_list(d['ord']), istr=d['istr'], ostr=d['ostr'])
         for (n, t) in c_fields_R:
             i_read += f'\n  {t} {n}; cin >> {n};'
         eaa = [n for (n, t) in c_fields_R]
