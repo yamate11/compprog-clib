@@ -161,7 +161,7 @@ void test2() {
   auto sub = [&](auto& ivec) {
     ll sz = ivec.size();
     auto add = plus<int>();
-    auto appl = [&](ll f, ll x) -> ll { return f; };
+    auto appl = [&](ll f, ll) -> ll { return f; };
     auto st = make_seg_tree<ll>(0, add, ivec);
     Naive<ll, ll, decltype(add), decltype(appl)> nv(0, add, appl, ivec);
     ll rep = 1000;
@@ -256,7 +256,7 @@ void test4() {
     auto add = [](ll x, ll y) -> ll { return min(x, y); };
     auto st = make_seg_tree<ll>(LLONG_MAX, add);
     st.set_data(ivec);
-    auto appl_nv = [](ll f, ll x) -> ll { return f; };
+    auto appl_nv = [](ll f, ll) -> ll { return f; };
     Naive<ll, ll, decltype(add), decltype(appl_nv)> nv(LLONG_MAX, add, appl_nv, ivec);
     ll rep = 1000;
     for (ll r = 0; r < rep; r++) {
@@ -521,7 +521,7 @@ void test10() {
   assert(st2.query(0, 7) == 21);
 };
 
-int main(int argc, char *argv[]) {
+int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
   cout << setprecision(20);

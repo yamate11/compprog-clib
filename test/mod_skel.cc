@@ -87,7 +87,7 @@ int main() {
     using Fp = FpG<100>;
     Fp a = Fp(50) / Fp(7); // should be OK
     try {
-      if (a != Fp(50) / Fp(75));  // should generate a runtime error as (75, 100) != 1
+      if (a != Fp(50) / Fp(75)) {}  // should generate a runtime error as (75, 100) != 1
       cerr << "Should not reach here." << endl;
       assert(0);
     }catch(const runtime_error& e) {

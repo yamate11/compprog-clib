@@ -9,7 +9,7 @@ using pll = pair<ll, ll>;
 // @@ !! LIM(mod debug tree)
 
 
-int main(int argc, char *argv[]) {
+int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
   cout << setprecision(20);
@@ -396,7 +396,7 @@ int main(int argc, char *argv[]) {
     T6 ret = make_pair(card, perm);
     return ret;
   };
-  auto mod6 = [&](T6 t, ll n, ll c) -> T6 {
+  auto mod6 = [&](T6 t, ll, ll) -> T6 {
     return make_pair(t.first + 1, t.second);
   };
   vector<TreeEdge> edge6({{0,1}, {1,2}, {2,3}, {2,4}, {2,5}, {5,6}, {5,7}});
@@ -456,8 +456,8 @@ int main(int argc, char *argv[]) {
     auto myadd = [&](const sta& p1, const sta& p2) -> sta {
       return sta(p1.first * p2.first , p1.second + p2.second);
     };
-    auto mod1 = [&](sta p, ll nd, ll cd) -> sta { return sta(p.first / cb.fact(p.second), p.second); };
-    auto mod2 = [&](sta p, ll nd) -> sta { return sta(p.first * cb.fact(p.second), p.second + 1); };
+    auto mod1 = [&](sta p, ll, ll) -> sta { return sta(p.first / cb.fact(p.second), p.second); };
+    auto mod2 = [&](sta p, ll) -> sta { return sta(p.first * cb.fact(p.second), p.second + 1); };
     auto result = reroot(tr, unit, myadd, mod1, mod2);
     vector<ll> expected{40, 280, 840, 120, 120, 504, 72, 72};
     for (ll i = 0; i < N; i++) assert(result[i].first == expected[i]);

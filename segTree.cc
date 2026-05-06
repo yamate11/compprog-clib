@@ -295,9 +295,9 @@ auto make_seg_tree_lazy(DAT unit_dat, OP unit_op, auto add, auto comp, auto appl
   return ret_t(unit_dat, unit_op, add, comp, appl, initdat);
 }
 
-void* dummy_comp(void* x, void* y) { return nullptr; }
+void* dummy_comp(void*, void*) { return nullptr; }
 template<typename DAT>
-DAT dummy_appl(void* x, const DAT& y) { return y; }
+DAT dummy_appl(void*, const DAT& y) { return y; }
 
 template<typename DAT>
 auto make_seg_tree(DAT unit_dat, auto add, const vector<DAT>& initdat = vector<DAT>()) {

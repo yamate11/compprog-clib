@@ -127,8 +127,8 @@ const T inverse(const T& t) {
 }
 
 #ifdef BOOST_MP_CPP_INT_HPP
-template<> const cpp_int zero(const cpp_int& t) { return cpp_int(0); }
-template<> const cpp_int one(const cpp_int& t) { return cpp_int(1); }
+template<> const cpp_int zero(const cpp_int&) { return cpp_int(0); }
+template<> const cpp_int one(const cpp_int&) { return cpp_int(1); }
 #endif // BOOST_MP_CPP_INT_HPP
 
 // begin -- detection ideom

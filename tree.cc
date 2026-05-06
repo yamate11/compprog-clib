@@ -361,7 +361,7 @@ auto reroot(Tree& tree, const M& unit, auto add, auto mod1, auto mod2) {
 
 template <typename M>
 vector<M> reroot(Tree& tree, const M& unit, auto add, auto mod1) {
-  return reroot<M>(tree, unit, add, mod1, [](const M& m, ll i) -> M { return m; });
+  return reroot<M>(tree, unit, add, mod1, [](const M& m, ll) -> M { return m; });
 }
 
 // @@ !! END() ---- tree.cc
