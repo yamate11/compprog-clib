@@ -75,6 +75,7 @@ using namespace std;
      Examples:
 
        Min-Plus algebra over long long:
+       (**** SEE ALSO https://yamate11.github.io/blog/posts/2024/03-30-matrix/ ****)
           ll big = 1e18;
           struct MinPlusLL {
             using value_type = ll;
