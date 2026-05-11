@@ -19,7 +19,7 @@ int main(/* int argc, char *argv[] */) {
     const OP unit_op = nullopt;
     auto xAdd = [](DAT x, DAT y) -> DAT { return min(x, y); };
     auto xComp = [](OP h, OP g) -> OP { return h.has_value() ? h : g; };
-    auto xAppl = [](int k, OP f, DAT x) -> DAT { return f.value_or(x); };
+    auto xAppl = [](int, OP f, DAT x) -> DAT { return f.value_or(x); };
     auto dst = make_dyn_seg_tree(0, 64, unit_dat, unit_op, xAdd, xComp, xAppl);
 
     dst.update(11, 12, 100);
@@ -86,7 +86,7 @@ int main(/* int argc, char *argv[] */) {
     const OP unit_op = nullopt;
     auto xAdd = [](DAT x, DAT y) -> DAT { return min(x, y); };
     auto xComp = [](OP h, OP g) -> OP { return h.has_value() ? h : g; };
-    auto xAppl = [](int k, OP f, DAT x) -> DAT { return f.value_or(x); };
+    auto xAppl = [](int, OP f, DAT x) -> DAT { return f.value_or(x); };
     run_test(unit_dat, unit_op, xAdd, xComp, xAppl);
   }
 

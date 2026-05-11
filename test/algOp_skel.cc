@@ -13,8 +13,8 @@ int main() {
       using value_type = ll;
       static ll add(const ll& u, const ll& v) { return min(u, v); }
       static void subst_mult(ll& u, const ll& v) { u += v; }
-      static ll zero(const ll& u) { return LLONG_MAX; }
-      static ll one(const ll& u) { return 0; }
+      static ll zero(const ll&) { return LLONG_MAX; }
+      static ll one(const ll&) { return 0; }
     };
     using MMP = MyAlg<MinPlusLL>;
     MMP a2(2), a5(5), a7(7), a10(10);
@@ -36,8 +36,8 @@ int main() {
     using VT = vector<vector<double>>;
     struct OpMatrix2 {
       using value_type = VT;
-      static value_type zero(const value_type& dummy) { return VT(2, vector(2, 0.0)); }
-      static value_type one(const value_type& dummy) {
+      static value_type zero(const value_type&) { return VT(2, vector(2, 0.0)); }
+      static value_type one(const value_type&) {
         VT ret(2, vector(2, 0.0));
         ret[0][0] = ret[1][1] = 1.0;
         return ret;

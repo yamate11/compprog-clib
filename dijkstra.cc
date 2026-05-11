@@ -174,7 +174,7 @@ struct DefEncDec {
 
   S dec(int x) { return v_dec.at(x); }
 
-  DefEncDec(int n, S orig) : mp_enc({{orig,0}}), v_dec({orig}) {}
+  DefEncDec(int, S orig) : mp_enc({{orig,0}}), v_dec({orig}) {}
 };
 
 

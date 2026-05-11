@@ -109,7 +109,7 @@ using namespace std;
 template<typename T> struct SparsePoly;
 
 template<typename T>
-vector<T> polyConvolution(const vector<T>& a, const vector<T>& b) {
+vector<T> polyConvolution(const vector<T>&, const vector<T>&) {
   assert(0);
 }
 
@@ -122,7 +122,7 @@ vector<FpG<mod>> polyConvolution(const vector<FpG<mod>>& a,
 }
 
 template<typename T>
-vector<T> polyConvolution_ll(const vector<T>& a, const vector<T>& b) {
+vector<T> polyConvolution_ll(const vector<T>&, const vector<T>&) {
   assert(0);
 }
 

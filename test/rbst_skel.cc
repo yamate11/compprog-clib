@@ -15,7 +15,7 @@ using pll = pair<ll, ll>;
 // @@ !! LIM(rbst)
 
 
-int main(int argc, char *argv[]) {
+int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
   cout << setprecision(20);

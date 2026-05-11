@@ -41,8 +41,8 @@ int main() {
     using VT = vector<vector<double>>;
     struct OpMatrix2 {
       using value_type = VT;
-      static value_type zero(const value_type& dummy) { return VT(2, vector(2, 0.0)); }
-      static value_type one(const value_type& dummy) {
+      static value_type zero(const value_type&) { return VT(2, vector(2, 0.0)); }
+      static value_type one(const value_type&) {
         VT ret(2, vector(2, 0.0));
         ret[0][0] = ret[1][1] = 1.0;
         return ret;

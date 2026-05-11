@@ -43,7 +43,7 @@ struct NaiveImpl {
 
 template <typename DAT, typename OP>
 auto make_naive_impl(DAT unit_dat, OP unit_op, auto add, auto appl, const vector<DAT>& init_data) {
-  NaiveImpl<DAT, OP, decltype(add), decltype(appl)> ni(unit_dat, unit_op, add, appl);
+  NaiveImpl<DAT, OP, decltype(add), decltype(appl)> ni(unit_dat, unit_op, add, appl, vector<vector<DAT>>{});
   ll idx = ni.fromVector(init_data);
   return make_pair(ni, idx);
 }

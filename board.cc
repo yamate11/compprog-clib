@@ -191,9 +191,9 @@ struct Board {
     if (r % 4 == 0) return *this;
     if (r > 0) r = r % 4;
     else r = 4 + r % 4;
-    if (r == 1) return f(nC, nR, [&](int i, int j) { return -j + nC - 1; }, [&](int i, int j) { return i; });
-    if (r == 2) return f(nR, nC, [&](int i, int j) { return -i + nR - 1; }, [&](int i, int j) { return -j + nC - 1; });
-    if (r == 3) return f(nC, nR, [&](int i, int j) { return j; }, [&](int i, int j) { return -i + nR - 1; });
+    if (r == 1) return f(nC, nR, [&](int, int j) { return -j + nC - 1; }, [&](int i, int) { return i; });
+    if (r == 2) return f(nR, nC, [&](int i, int) { return -i + nR - 1; }, [&](int, int j) { return -j + nC - 1; });
+    if (r == 3) return f(nC, nR, [&](int, int j) { return j; }, [&](int i, int) { return -i + nR - 1; });
     assert(0);
     
     return _single_rotate().rotate(r - 1);

@@ -88,7 +88,7 @@ tuple<Real, int, int> naive_diameter(const vector<Point>& pts) {
 
 mt19937 rng;
 
-int main(int argc, char *argv[]) {
+int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
   cout << setprecision(20);

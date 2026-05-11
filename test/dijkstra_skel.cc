@@ -11,7 +11,7 @@ using Point = pair<ll, ll>;
 struct EncDec4 {
   int enc(Point p) { return 5*p.first + p.second; }
   Point dec(int x) { return {x/5, x%5}; }
-  EncDec4(int n, Point orig) {}
+  EncDec4(int, Point) {}
 };
   
 

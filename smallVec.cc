@@ -24,6 +24,8 @@ struct small_vector_u64 {
   }
   small_vector_u64(const auto& v, int k) : impl(0) { for (int i = 0; i < k; i++) set(i, v[i]); }
 
+  small_vector_u64& operator=(const small_vector_u64& o) { impl = o.impl; return *this; }
+
   constexpr u64 mask() const { return (1ULL << bits) - 1; }
 
   struct Subst {

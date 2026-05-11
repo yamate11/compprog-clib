@@ -14,9 +14,9 @@ using namespace std;
 
 struct UFDummyAlg {
   static UFDummyAlg zero;
-  UFDummyAlg(int x = 0) {}
+  UFDummyAlg(int = 0) {}
   UFDummyAlg operator -() const { return *this; }
-  UFDummyAlg operator +(const UFDummyAlg& o) const { return *this; }
+  UFDummyAlg operator +(const UFDummyAlg&) const { return *this; }
 };
 UFDummyAlg UFDummyAlg::zero;
 
