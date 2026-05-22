@@ -228,9 +228,10 @@ def getFuncContents(funcname):
 def getLibContents(libname):
     (body, start_ln) = extractContents(libname)
     pre = f'\n// ---- inserted library file {libname}.cc\n'
+    pubat = f'// published at https://github.com/yamate11/compprog-clib/blob/master/{libname}.cc\n'
     lndesc = f'#line {start_ln} "{clibdir}/{libname}.cc"\n' if args.orig_lineno else ''
     post = f'// ---- end {libname}.cc\n'
-    return pre + lndesc + body + post
+    return pre + pubat + lndesc + body + post
 
 def composite(origLibs):
     outs = ''
