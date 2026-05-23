@@ -379,6 +379,23 @@ int main() {
     }
   }
 
+  // Third constructor argument use_hl_decomp
+  {
+    Tree tr1(3, 0, true);
+    tr1.add_edge(0, 1); tr1.add_edge(1, 2);
+    assert(tr1.euler_in(0) == 0);
+    assert(tr1.heavy_head(2) == 0); // should be ok even called after euler_in
+    Tree tr2(3, 0);  // the default value for use_hl_decomp is false
+    tr2.add_edge(0, 1); tr2.add_edge(1, 2);
+    assert(tr2.euler_in(0) == 0);
+    try {
+      tr2.heavy_head(2);
+      assert(0); // a function_error exception should be thrown in the previous line
+    }catch (function_error& e) {
+    }
+  }
+
+
   { // testing centroids() with change_root()
     ll rep = 1000;
     for (ll _r = 0; _r < rep; _r++) {
