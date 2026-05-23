@@ -23,33 +23,21 @@ struct Tree {
     ll peer;
     ll edge;
     pe_t(ll peer_ = -1, ll edge_ = -1) : peer(peer_), edge(edge_) {}
-    static const pe_t end_object;
   };
 
-  struct nbr_t {
-    ll parent_idx;                 // pe[parent_idx] is the parent
-    vector<pe_t> pe;
-    nbr_t() : parent_idx(-1), pe() {}
-  };
+  using nbr_t = vector<pe_t>;
 
   template<bool get_peer, bool excl_parent>
   struct nbr_iterator {
     const nbr_t& body;
     ll pe_idx;
-    explicit nbr_iterator(const nbr_t& body_, ll pe_idx_) : body(body_), pe_idx(pe_idx_) {
-      if constexpr (excl_parent) {
-        if (pe_idx == body.parent_idx) pe_idx++;
-      }
-    }
+    explicit nbr_iterator(const nbr_t& body_, ll pe_idx_) : body(body_), pe_idx(pe_idx_) {}
     auto operator*() const -> typename conditional<get_peer, ll, const pe_t&>::type {
-      if constexpr (get_peer) return body.pe[pe_idx].peer;
-      else                    return body.pe[pe_idx];
+      if constexpr (get_peer) return body[pe_idx].peer;
+      else                    return body[pe_idx];
     }
     const nbr_iterator& operator++() {
       pe_idx++;
-      if constexpr (excl_parent) {
-        if (pe_idx == body.parent_idx) pe_idx++;
-      }
       return *this;
     }
     bool operator !=(const nbr_iterator& o) const { return pe_idx != o.pe_idx; }
@@ -57,36 +45,39 @@ struct Tree {
 
   template<bool get_peer, bool excl_parent = true>
   struct children_view {
-    const nbr_t& body;
-    children_view(const nbr_t& body_) : body(body_) {}
-    nbr_iterator<get_peer, excl_parent> begin() const { return nbr_iterator<get_peer, excl_parent>(body, 0); }
-    nbr_iterator<get_peer, excl_parent> end() { return nbr_iterator<get_peer, excl_parent>(body, std::ssize(body.pe));  }
+    const Tree& tr;
+    ll nd;
+    children_view(const Tree& tr_, ll nd_) : tr(tr_), nd(nd_) {}
+    auto begin() const { return nbr_iterator<get_peer, excl_parent>(tr._nbr[nd], 0); }
+    auto end()   const {
+      ll excl_last = (excl_parent and nd != tr.root) ? 1 : 0;
+      return nbr_iterator<get_peer, excl_parent>(tr._nbr[nd], ssize(tr._nbr[nd]) - (excl_last ? 1 : 0));
+    }
   };
 
   ll numNodes;
   ll root;
-  vector<nbr_t> _nbr;
+  vector<nbr_t> _nbr;    // parent is moved to the rightmost place in _set_parent()
   vector<pair<ll, ll>> _edges;   // (x, y) in _edges => x < y
   vector<ll> _stsize;
   vector<ll> _depth;
   vector<ll> _euler_in;
   vector<ll> _euler_out;
   vector<pair<ll, bool>> _euler_edge;
+  bool use_hl_decomp;
+  vector<ll> _heavy_head;
   vector<vector<vector<ll>>> _lca_tbl;
 
-  constexpr static bool use_depth = true;
-  constexpr static bool use_stsize = true;
-  constexpr static bool use_euler = true;
-
-  Tree(ll numNodes_, ll root_ = 0) : numNodes(numNodes_), root(root_), _nbr(numNodes_) {
+  Tree(ll numNodes_, ll root_ = 0, bool use_hl_decomp_ = false)
+    : numNodes(numNodes_), root(root_), _nbr(numNodes_), use_hl_decomp(use_hl_decomp_) {
     if (numNodes == 1) _set_parent();
   }
 
   ll add_edge(ll x, ll y) {
     ll i = ssize(_edges);
     if (i >= numNodes - 1) throw range_error("add_edge");
-    _nbr[x].pe.emplace_back(y, i);
-    _nbr[y].pe.emplace_back(x, i);
+    _nbr[x].emplace_back(y, i);
+    _nbr[y].emplace_back(x, i);
     _edges.emplace_back(min(x, y), max(x, y));
     if (i + 1 == numNodes - 1) _set_parent();
     return i;
@@ -94,67 +85,84 @@ struct Tree {
 
   void _set_parent() {   // called from constructor, add_edge() and change_root()
 
-    _nbr[root].parent_idx = ssize(_nbr[root].pe);
+    _depth.resize(numNodes);
+    _stsize.resize(numNodes);
 
-    if constexpr (use_depth) _depth.resize(numNodes);
-    if constexpr (use_stsize) _stsize.resize(numNodes);
-    if constexpr (use_euler) {
-      _euler_in.resize(numNodes);
-      _euler_out.resize(numNodes);
-      _euler_edge.resize(2 * numNodes);
-    }
-    ll euler_idx = 0;
-
-    auto dfs = [&](auto rF, ll nd, ll pt, ll edge) -> void {
-      if constexpr (use_depth) _depth[nd] = pt == -1 ? 0 : _depth[pt] + 1;
-      if constexpr (use_stsize) _stsize[nd] = 1;
-      if constexpr (use_euler) {
-        _euler_edge[euler_idx] = {edge, 0};
-        _euler_in[nd] = euler_idx;
-        euler_idx++;
-      }
-      for (ll i = 0; i < ssize(_nbr[nd].pe); i++) {
-        auto [c_id, c_eg] = _nbr[nd].pe[i];
-        if (c_id == pt) _nbr[nd].parent_idx = i;
+    auto dfs = [&](auto rF, ll nd, ll pt) -> void {
+      _depth[nd] = pt == -1 ? 0 : _depth[pt] + 1;
+      _stsize[nd] = 1;
+      ll idx_parent = -1;
+      ll sz_nbr = ssize(_nbr[nd]);
+      for (ll i = 0; i < sz_nbr; i++) {
+        auto [c_id, c_eg] = _nbr[nd][i];
+        if (c_id == pt) idx_parent = i;
         else {
-          rF(rF, c_id, nd, c_eg);
-          if constexpr (use_stsize) _stsize[nd] += _stsize[c_id];
+          rF(rF, c_id, nd);
+          _stsize[nd] += _stsize[c_id];
         }
       }
-      if constexpr (use_euler) {
-        _euler_edge[euler_idx] = {edge, 1};
-        _euler_out[nd] = euler_idx;
-        euler_idx++;
+      if (nd != root) {
+        assert(idx_parent >= 0);
+        swap(_nbr[nd][idx_parent], _nbr[nd][sz_nbr - 1]);
       }
     };
 
-    dfs(dfs, root, -1, numNodes - 1);
+    dfs(dfs, root, -1);
+
+    if (use_hl_decomp) _set_heavy();
   }
 
-  pe_t parent_pe(ll nd) { return nd == root ? pe_t(-1, -1) : _nbr[nd].pe[_nbr[nd].parent_idx]; }
-  ll parent(ll nd) { return nd == root ? -1 : parent_pe(nd).peer; }
-  ll num_children(ll nd) { return _nbr[nd].pe.size() - (_nbr[nd].parent_idx == (ll)_nbr[nd].pe.size() ? 0 : 1); }
-  pe_t child_pe(ll nd, ll idx) { return _nbr[nd].pe[idx < _nbr[nd].parent_idx ? idx : idx + 1]; }
-  ll child(ll nd, ll idx) { return child_pe(nd, idx).peer; }
-  ll child_edge(ll nd, ll idx) { return child_pe(nd, idx).edge; }
-  auto children_pe(ll nd) { return children_view<false>(_nbr[nd]); }
-  auto children(ll nd) { return children_view<true>(_nbr[nd]); }
-  auto neighbor_pe(ll nd) { return children_view<false, false>(_nbr[nd]); }
-  auto neighbor(ll nd) { return children_view<true, false>(_nbr[nd]); }
-
-  ll stsize(ll nd) {
-    if constexpr (use_stsize) return _stsize[nd];
-    else throw function_error("use_stsize should be set to call stsize.");
+  void mature_check() const {
+#if DEBUG
+    if (ssize(_edges) != numNodes - 1) throw function_error("Not enough edges have been added.");
+#endif    
   }
 
-  ll depth(ll nd) {
-    if constexpr (use_depth) return _depth[nd];
-    else throw function_error("use_depth should be set to call depth.");
+  pe_t parent_pe(ll nd) const {
+    mature_check();
+    return nd == root ? pe_t(-1, -1) : _nbr[nd][ssize(_nbr[nd]) - 1];
+  }
+  ll parent(ll nd) const { return nd == root ? -1 : parent_pe(nd).peer; }
+  ll num_children(ll nd) const {
+    mature_check();
+    return ssize(_nbr[nd]) - (nd == root ? 0 : 1);
+  }
+  pe_t child_pe(ll nd, ll idx) const {
+    mature_check();
+    return _nbr[nd][idx];
+  }
+  ll child(ll nd, ll idx) const { return child_pe(nd, idx).peer; }
+  ll child_edge(ll nd, ll idx) const { return child_pe(nd, idx).edge; }
+  auto children_pe(ll nd) const {
+    mature_check();
+    return children_view<false, true>(*this, nd);
+  }
+  auto children(ll nd) const {
+    mature_check();
+    return children_view<true, true>(*this, nd);
+  }
+  auto neighbor_pe(ll nd) const {
+    mature_check();
+    return children_view<false, false>(*this, nd);
+  }
+  auto neighbor(ll nd) const {
+    mature_check();
+    return children_view<true, false>(*this, nd);
   }
 
-  ll _enc_node_pair(ll x, ll y) { return (x + 1) * (numNodes + 1) + (y + 1); }
+  ll stsize(ll nd) const {
+    mature_check();
+    return _stsize[nd];
+  }
 
-  ll edge_idx(ll x, ll y) {
+  ll depth(ll nd) const {
+    mature_check();
+    return _depth[nd];
+  }
+
+  ll _enc_node_pair(ll x, ll y) const { return (x + 1) * (numNodes + 1) + (y + 1); }
+
+  ll edge_idx(ll x, ll y) const {
     auto [py, ey] = parent_pe(y);
     if (x == py) return ey;
     auto [px, ex] = parent_pe(x);
@@ -162,7 +170,7 @@ struct Tree {
     return -1LL;
   }
 
-  pair<ll, ll> nodes_of_edge(ll e, ll mode = 0) {
+  pair<ll, ll> nodes_of_edge(ll e, ll mode = 0) const {
     if (mode == -1) {
       return _edges[e];
     }else {
@@ -173,70 +181,142 @@ struct Tree {
   }
 
   void _set_euler() {
+    if (not _euler_in.empty()) return;
+
+    mature_check();
     _euler_in.resize(numNodes);
     _euler_out.resize(numNodes);
-    vector<pair<ll, ll>> stack{{root, -1}};
-    ll idx = 0;
-    while (not stack.empty()) {
-      auto& [nd, cidx] = stack.back();
-      if (cidx == -1) _euler_in[nd] = idx++;
-      cidx++;
-      if (cidx < num_children(nd)) stack.emplace_back(child(nd, cidx), -1);
-      else {
-        _euler_out[nd] = idx++;
-        stack.pop_back();
-      }
-    }
-  }
+    _euler_edge.resize(2 * numNodes);
+    ll euler_idx = 0;
+
+    auto dfs = [&](auto rF, ll nd) -> void {
+      ll edge = nd == root ? numNodes - 1 : edge_idx(nd, parent(nd));
+      _euler_edge[euler_idx] = {edge, 0};
+      _euler_in[nd] = euler_idx;
+      euler_idx++;
+      for (ll c : children(nd)) rF(rF, c);
+      _euler_edge[euler_idx] = {edge, 1};
+      _euler_out[nd] = euler_idx;
+      euler_idx++;
+    };
+    dfs(dfs, root);
+
+  };
 
   ll euler_in(ll nd) {
-    if constexpr (use_euler) return _euler_in[nd];
-    else throw function_error("use_euler should be set to call euler_in.");
+    _set_euler();
+    return _euler_in[nd];
   }
 
   ll euler_out(ll nd) {
-    if constexpr (use_euler) return _euler_out[nd];
-    else throw function_error("use_euler should be set to call euler_out.");
+    _set_euler();
+    return _euler_out[nd];
   }
 
   tuple<ll, ll, ll> euler_edge(ll idx) {
-    if constexpr (use_euler) {
-      if (idx == 0) return {numNodes - 1, -1, root};
-      else if (idx == 2 * numNodes - 1) return {numNodes - 1, root, -1};
-      else {
-        auto [e, b] = _euler_edge[idx];
-        auto [x, y] = nodes_of_edge(e, b);
-        return {e, x, y};
-      }
+    _set_euler();
+
+    if (idx == 0) return {numNodes - 1, -1, root};
+    else if (idx == 2 * numNodes - 1) return {numNodes - 1, root, -1};
+    else {
+      auto [e, b] = _euler_edge[idx];
+      auto [x, y] = nodes_of_edge(e, b);
+      return {e, x, y};
     }
-    else throw function_error("use_euler should be set to call euler_out.");
+  }
+
+  void _set_heavy() {
+    if (not _heavy_head.empty()) return;
+
+    mature_check();
+    if (not _euler_in.empty()) {
+      throw function_error("_set_heavy() was called too late.  Consider `use_hl_decomp` parameter of the Tree constructor.");
+    }
+    _heavy_head.resize(numNodes);
+
+    auto dfs = [&](auto rF, ll nd, ll head) -> void {
+      _heavy_head[nd] = head;
+      if (ll nc = num_children(nd); nc == 0) return;
+      else {
+        ll i0 = -1, vmax = 0;
+        for (ll i = 0; i < nc; i++) if (ll v = stsize(child(nd, i)); v > vmax) { vmax = v; i0 = i; }
+        if (i0 > 0) swap(_nbr[nd][0], _nbr[nd][i0]);
+        rF(rF, child(nd, 0), head);
+        for (ll i = 1; i < nc; i++) rF(rF, child(nd, i), child(nd, i));
+      }
+    };
+    dfs(dfs, root, root);
+  }
+
+  ll heavy_head(ll x) {
+    _set_heavy();
+    return _heavy_head[x];
+  }
+
+  template<bool constr_path>
+  auto _hl_follow(ll x, ll y) {
+    _set_heavy();
+    assert(x != y);
+    ll hx = heavy_head(x);
+    ll hy = heavy_head(y);
+    vector<pll> vx{{hx, x}};
+    vector<pll> vy{{hy, y}};
+
+    auto op = [&](ll& h, auto& v) {
+      ll p = parent(h);
+      h = heavy_head(p);
+      if constexpr (constr_path) v.emplace_back(h, p);
+      else                      v[0] = {h, p};
+    };
+
+    while (hx != hy) {
+      if (depth(hx) < depth(hy)) op(hy, vy);
+      else op(hx, vx);
+    }
+
+    auto [_dummy_x, tx] = vx.back(); vx.pop_back();
+    auto [_dummy_y, ty] = vy.back(); vy.pop_back();
+
+    if constexpr (constr_path) {
+
+      vector<pair<ll, ll>> ret;
+      auto append_ret = [&](const auto& vec) -> void {
+        for (int i = ssize(vec) - 1; i >= 0; i--) {
+          auto [h, t] = vec[i];
+          ret.emplace_back(euler_in(h), -1);
+          if (h != t) ret.emplace_back(euler_in(h) + 1, euler_in(t) + 1);
+        }
+      };
+
+      if (tx == ty) {
+        if (not vx.empty() and not vy.empty() and euler_in(vx.back().first) > euler_in(vy.back().first)) swap(vx, vy);
+        append_ret(vx);
+        append_ret(vy);
+      }else {
+        if (depth(tx) < depth(ty)) {
+          swap(tx, ty);
+          swap(vx, vy);
+        }
+        ret.emplace_back(euler_in(ty) + 1, euler_in(tx) + 1);
+        append_ret(vx);
+        append_ret(vy);
+      }
+      return ret;
+
+    }else {
+      return depth(tx) < depth(ty) ? tx : ty;
+    }
+  }
+
+  vector<pair<ll, ll>> hl_path(ll x, ll y) {
+    _set_heavy(); // this should be called even if x == y
+    return (x == y) ? vector<pair<ll,ll>>{} : _hl_follow<true>(x, y);
   }
 
   // Lowest Common Ancestor
   ll lca(ll x, ll y) {
-    ll kmax = 1 + bit_width((unsigned)numNodes);
-    ll lastmove = 2 * numNodes - 2;
-    if (_lca_tbl.empty()) {
-      auto choose = [&](const auto& vec, ll a, ll b) -> ll {
-        if (0 <= b and b <= lastmove and vec[b] >= 0) return depth(vec[a]) < depth(vec[b]) ? vec[a] : vec[b];
-        else return -1;
-      };
-      _lca_tbl.resize(kmax + 1, vector(2, vector(lastmove + 1, -1LL)));
-      for (ll s = 0; s < 2; s++) for (ll i = 0; i <= lastmove; i++) _lca_tbl[0][s][i] = get<2>(euler_edge(i));
-      for (ll k = 1; k <= kmax; k++) {
-        ll prev_len = 1 << (k - 1);
-        for (ll s = 0; s < 2; s++) {
-          for (ll i = 0; i <= lastmove; i++) _lca_tbl[k][0][i] = choose(_lca_tbl[k - 1][0], i, i + prev_len);
-          for (ll i = 0; i <= lastmove; i++) _lca_tbl[k][1][i] = choose(_lca_tbl[k - 1][1], i, i - prev_len);
-        }
-      }
-    }
-    ll a = euler_in(x), b = euler_in(y);
-    if (a > b) swap(a, b);
-    ll k = countr_zero(bit_floor((unsigned)(b - a + 1)));
-    ll i = _lca_tbl[k][0][a];
-    ll j = _lca_tbl[k][1][b];
-    return depth(i) < depth(j) ? i : j;
+    _set_heavy(); // this should be called even if x == y
+    return (x == y) ? x : _hl_follow<false>(x, y);
   }
 
   // the path between two nodes (list of nodes, including x and y)
@@ -251,47 +331,48 @@ struct Tree {
     return ret;
   }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"    
+  ll ancestor_at_depth(ll x, ll dp) {
+    if (depth(x) < dp) return -1;
+    while (true) {
+      ll h = heavy_head(x);
+      if (depth(h) <= dp) {
+        auto [e, p, q] = euler_edge(euler_in(h) + dp - depth(h));
+        return q;
+      }
+      x = parent(h);
+    }
+  }
+
+
   tuple<ll, ll, ll, ll, ll> diameter() {
     if (numNodes == 1) return {0, 0, 0, 0, 0};
     if (numNodes == 2) return {1, 0, 1, 0, 1};
-    depth(root);   // to ensure that _depth is correctly built
+    mature_check();
     ll nd0 = max_element(_depth.begin(), _depth.end()) - _depth.begin();
-    ll nd1 = -1, ct0 = -1, ct1 = -1;
-    ll diam = 0;
-    auto dfs2 = [&](auto rF, ll nd, ll dp, ll pt) -> bool {
-      // DFS from nd0, which is different from the root.
-      bool ret = false;
-      ll numChildren = 0;
-      for (auto [cld, _e] : _nbr[nd].pe) {
+    vector<ll> parent2(numNodes);
+    auto dfs2 = [&](auto rF, ll nd, ll dp, ll pt) -> pair<ll, ll> {
+      parent2[nd] = pt;
+      pair<ll, ll> ret(dp, nd);
+      for (auto [cld, _e] : _nbr[nd]) {
         if (cld == pt) continue;
-        numChildren++;
-        bool bbb = rF(rF, cld, dp + 1, nd);
-        ret = ret || bbb;
-      }
-      if (numChildren > 0) {
-        if (ret) {
-          if (diam % 2 == 0) {
-            if (dp == diam / 2) ct0 = ct1 = nd;
-          }else {
-            if (dp == diam / 2) ct0 = nd;
-            else if (dp == diam / 2 + 1) ct1 = nd;
-          }
-        }
-      }else {
-        if (dp > diam) {
-          diam = dp;
-          nd1 = nd;
-          ret = true;
-        }
+        auto c_val = rF(rF, cld, dp + 1, nd);
+        if (ret.first < c_val.first) ret = c_val;
       }
       return ret;
     };
-    dfs2(dfs2, nd0, 0, -1);
-    return {diam, nd0, nd1, ct0, ct1};
+    auto [dp, nd1] = dfs2(dfs2, nd0, 0, -1);
+    ll ct0, ct1;
+    {
+      ll x = nd1;
+      for (ll i = 0; i < dp / 2; i++) x = parent2[x];
+      if (dp % 2 == 0) ct0 = ct1 = x;
+      else {
+        ct1 = x;
+        ct0 = parent2[x];
+      }
+    }
+    return {dp, nd0, nd1, ct0, ct1};
   }
-#pragma GCC diagnostic pop
 
   pair<ll, ll> centroids() {
     auto dfs = [&](auto rF, ll nd) -> pair<ll, ll> {
@@ -316,9 +397,26 @@ struct Tree {
     _set_parent();
   }
 
+  string show() { // for debug
+    string ret;
+    for (int nd = 0; nd < numNodes; nd++) {
+      string sc;
+      for (int c : children(nd)) sc += format("{:2d} ", c);
+      ret += format("{:1} {:2d}: {}\n", nd == root ? "R" : "", nd, sc);
+    }
+    string se;
+    for (int e = 0; e < numNodes - 1; e++) {
+      auto [a, b] = nodes_of_edge(e);
+      se += format("({}: {}-{}) ", e, a, b);
+    }
+    ret += se;
+    return ret;
+  }
+
+
 };
 
-const Tree::pe_t end_object{-1, -1};
+// const Tree::pe_t end_object{-1, -1};
 
 template <typename M>
 auto reroot(Tree& tree, const M& unit, auto add, auto mod1, auto mod2) {

@@ -72,7 +72,7 @@ int main() {
     edge4({{0,1}, {1,2}, {3,4}, {0,3}, {3,5}, {6,7}, {6,8}, {6,1}});
   Tree t4(9);
   for (auto [x,y] : edge4) t4.add_edge(x, y);
-  auto sub4 = [](Tree t, ll i)  {
+  auto sub4 = [](const Tree& t, ll i)  {
     vector<ll> v;
     for (ll j = 0; j < t.num_children(i); j++) v.push_back(t.child(i, j));
     return set<ll>(v.begin(), v.end());
@@ -297,6 +297,88 @@ int main() {
     }
   }
 
+  // HL decomp
+  {
+    ll rep = 1000;
+    for (ll _r = 0; _r < rep; _r++) {
+      ll nn = randrange(1, 17);
+      ll root = randrange(0, nn);
+      Tree tr(nn, root);
+      for (ll i = 1; i < nn; i++) {
+        ll j = randrange(0, i);
+        if (randrange(0, 2) == 0) tr.add_edge(i, j);
+        else                      tr.add_edge(j, i);
+      }
+      ll u = randrange(0, nn);
+      ll v = randrange(0, nn);
+      auto vec = tr.hl_path(u, v);
+      for(ll i = 0; i < nn; i++) for (ll j = 1; j < tr.num_children(i); j++) {
+          // the first child should be the heavy child
+          assert(tr.stsize(tr.child(i, 0)) >= tr.stsize(tr.child(i, j)));
+        }
+      if (u == v) {
+        assert(vec.empty());
+        continue;
+      }
+      assert(not vec.empty());
+
+      // DLOG(tr.show());
+      // DLOGK(u, v, vec);
+
+      auto [a0, _dum1] = vec[0];
+      auto [_dum2, lca, _dum3] = tr.euler_edge(a0);
+      bool visited_u = false;
+      bool visited_v = false;
+      if (lca == u) visited_u = true;
+      if (lca == v) visited_v = true;
+      ll cur = lca;
+      auto proc = [&](ll e_idx, bool heavy) -> void {
+        auto [e, p, c] = tr.euler_edge(e_idx);
+        assert(p == cur);
+        if (heavy) assert(c == tr.child(p, 0));
+        if (not heavy) assert(c != tr.child(p, 0));
+        cur = c;
+      };
+      for (ll idx = 0; idx < ssize(vec); idx++) {
+        auto [a, b] = vec[idx];
+        if (b < 0) {
+          proc(a, false);
+        }else {
+          assert(a < b);
+          for (ll i = a; i < b; i++) proc(i, true);
+        }
+        if (cur == u) { visited_u = true; cur = lca; }
+        if (cur == v) { visited_v = true; cur = lca; }
+      }
+      assert (visited_u and visited_v);
+      assert (cur == lca);
+    }
+  }
+
+  // ancestor_at_depth
+  {
+    ll rep = 100;
+    for (ll _r = 0; _r < rep; _r++) {
+      ll nn = randrange(1, 17);
+      ll root = randrange(0, nn);
+      Tree tr(nn, root);
+      for (ll i = 1; i < nn; i++) {
+        ll j = randrange(0, i);
+        if (randrange(0, 2) == 0) tr.add_edge(i, j);
+        else                      tr.add_edge(j, i);
+      }
+      ll u = randrange(0, nn);
+      ll x = u;
+      for (ll i = 0; true; i++) {
+        assert(tr.ancestor_at_depth(u, tr.depth(u) - i) == x);
+        if (x == root) break;
+        x = tr.parent(x);
+      }
+      assert(tr.ancestor_at_depth(u, tr.depth(u) + 1) == -1);
+      assert(tr.ancestor_at_depth(u, 10 * nn + 10) == -1);
+    }
+  }
+
   { // testing centroids() with change_root()
     ll rep = 1000;
     for (ll _r = 0; _r < rep; _r++) {
@@ -354,7 +436,7 @@ int main() {
 
   // tree of size one
   {
-    Tree tr(1, 0);
+    Tree tr(1, 0, true);
     assert(tr.numNodes == 1);
     assert(tr.root == 0);
     assert(tr.num_children(0) == 0);
