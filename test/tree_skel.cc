@@ -307,7 +307,6 @@ int main() {
         if (nd == tr.root) assert(e_out == 2 * tr.numNodes - 1);
         else assert(yo == tr.parent(nd) and eo == tr.edge_idx(xo, yo));
       }
-
     }
   }
 
@@ -337,8 +336,7 @@ int main() {
       assert(not vec.empty());
       // DLOG(tr.show());
       // DLOGK(u, v, vec);
-      auto [a0, _dum1] = vec[0];
-      auto [_dum2, lca, _dum3] = tr.euler_edge(a0);
+      ll lca = tr.euler_edge_from(vec[0].first);
       bool visited_u = false;
       bool visited_v = false;
       if (lca == u) visited_u = true;
@@ -346,11 +344,7 @@ int main() {
       ll cur = lca;
       for (auto [st, en] : vec) {
         assert(st < en);
-        for (ll e_idx = st; e_idx < en; e_idx++) {
-          auto [e, p, c] = tr.euler_edge(e_idx);
-          assert(p == cur);
-          cur = c;
-        }
+        cur = tr.euler_edge_to(en - 1);
         if (cur == u) { visited_u = true; cur = lca; }
         if (cur == v) { visited_v = true; cur = lca; }
       }
