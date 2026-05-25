@@ -294,6 +294,20 @@ int main() {
         return v;
       };
       dfs(dfs, root);
+
+      for (ll nd = 0; nd < tr.numNodes; nd++) {
+        ll e_in = tr.euler_in(nd);
+        auto [ei, xi, yi] = tr.euler_edge(e_in);
+        assert(yi == nd);
+        if (nd == tr.root) assert(e_in == 0);
+        else assert(xi == tr.parent(nd) and ei == tr.edge_idx(xi, yi));
+        ll e_out = tr.euler_out(nd);
+        auto [eo, xo, yo] = tr.euler_edge(e_out);
+        assert(xo == nd);
+        if (nd == tr.root) assert(e_out == 2 * tr.numNodes - 1);
+        else assert(yo == tr.parent(nd) and eo == tr.edge_idx(xo, yo));
+      }
+
     }
   }
 
@@ -313,7 +327,7 @@ int main() {
       ll v = randrange(0, nn);
       auto vec = tr.hl_path(u, v);
       for(ll i = 0; i < nn; i++) for (ll j = 1; j < tr.num_children(i); j++) {
-          // the first child should be the heavy child
+          // Once hl_path is executed, the first child becomes the heavy child.
           assert(tr.stsize(tr.child(i, 0)) >= tr.stsize(tr.child(i, j)));
         }
       if (u == v) {
@@ -321,10 +335,8 @@ int main() {
         continue;
       }
       assert(not vec.empty());
-
       // DLOG(tr.show());
       // DLOGK(u, v, vec);
-
       auto [a0, _dum1] = vec[0];
       auto [_dum2, lca, _dum3] = tr.euler_edge(a0);
       bool visited_u = false;
@@ -332,20 +344,12 @@ int main() {
       if (lca == u) visited_u = true;
       if (lca == v) visited_v = true;
       ll cur = lca;
-      auto proc = [&](ll e_idx, bool heavy) -> void {
-        auto [e, p, c] = tr.euler_edge(e_idx);
-        assert(p == cur);
-        if (heavy) assert(c == tr.child(p, 0));
-        if (not heavy) assert(c != tr.child(p, 0));
-        cur = c;
-      };
-      for (ll idx = 0; idx < ssize(vec); idx++) {
-        auto [a, b] = vec[idx];
-        if (b < 0) {
-          proc(a, false);
-        }else {
-          assert(a < b);
-          for (ll i = a; i < b; i++) proc(i, true);
+      for (auto [st, en] : vec) {
+        assert(st < en);
+        for (ll e_idx = st; e_idx < en; e_idx++) {
+          auto [e, p, c] = tr.euler_edge(e_idx);
+          assert(p == cur);
+          cur = c;
         }
         if (cur == u) { visited_u = true; cur = lca; }
         if (cur == v) { visited_v = true; cur = lca; }

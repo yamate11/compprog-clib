@@ -224,6 +224,9 @@ struct Tree {
       return {e, x, y};
     }
   }
+  ll euler_edge_edge(ll idx) { return get<0>(euler_edge(idx)); }
+  ll euler_edge_from(ll idx) { return get<1>(euler_edge(idx)); }
+  ll euler_edge_to(ll idx) { return get<2>(euler_edge(idx)); }
 
   void _set_heavy() {
     if (not _heavy_head.empty()) return;
@@ -283,8 +286,7 @@ struct Tree {
       auto append_ret = [&](const auto& vec) -> void {
         for (int i = ssize(vec) - 1; i >= 0; i--) {
           auto [h, t] = vec[i];
-          ret.emplace_back(euler_in(h), -1);
-          if (h != t) ret.emplace_back(euler_in(h) + 1, euler_in(t) + 1);
+          ret.emplace_back(euler_in(h), euler_in(t) + 1);
         }
       };
 
