@@ -297,12 +297,12 @@ int main() {
 
       for (ll nd = 0; nd < tr.numNodes; nd++) {
         ll e_in = tr.euler_in(nd);
-        auto [ei, xi, yi] = tr.euler_edge(e_in);
+        auto [ei, xi, yi] = tr.euler_elem(e_in);
         assert(yi == nd);
         if (nd == tr.root) assert(e_in == 0);
         else assert(xi == tr.parent(nd) and ei == tr.edge_idx(xi, yi));
         ll e_out = tr.euler_out(nd);
-        auto [eo, xo, yo] = tr.euler_edge(e_out);
+        auto [eo, xo, yo] = tr.euler_elem(e_out);
         assert(xo == nd);
         if (nd == tr.root) assert(e_out == 2 * tr.numNodes - 1);
         else assert(yo == tr.parent(nd) and eo == tr.edge_idx(xo, yo));
@@ -336,7 +336,7 @@ int main() {
       assert(not vec.empty());
       // DLOG(tr.show());
       // DLOGK(u, v, vec);
-      ll lca = tr.euler_edge_from(vec[0].first);
+      ll lca = tr.euler_elem_from(vec[0].first);
       bool visited_u = false;
       bool visited_v = false;
       if (lca == u) visited_u = true;
@@ -344,7 +344,7 @@ int main() {
       ll cur = lca;
       for (auto [st, en] : vec) {
         assert(st < en);
-        cur = tr.euler_edge_to(en - 1);
+        cur = tr.euler_elem_to(en - 1);
         if (cur == u) { visited_u = true; cur = lca; }
         if (cur == v) { visited_v = true; cur = lca; }
       }
@@ -461,8 +461,8 @@ int main() {
     assert(tr.edge_idx(0, 0) == -1);
     assert(tr.depth(0) == 0);
     assert(tr.stsize(0) == 1);
-    auto [e0, x0, y0] = tr.euler_edge(0);
-    auto [e1, x1, y1] = tr.euler_edge(1);
+    auto [e0, x0, y0] = tr.euler_elem(0);
+    auto [e1, x1, y1] = tr.euler_elem(1);
     assert(e0 == 0 and e1 == 0 and y0 == 0 and x1 == 0);
     assert(x0 == -1 and y1 == -1);
     assert(tr.euler_in(0) == 0 and tr.euler_out(0) == 1);

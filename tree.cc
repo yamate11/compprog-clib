@@ -213,7 +213,7 @@ struct Tree {
     return _euler_out[nd];
   }
 
-  tuple<ll, ll, ll> euler_edge(ll idx) {
+  tuple<ll, ll, ll> euler_elem(ll idx) {
     _set_euler();
 
     if (idx == 0) return {numNodes - 1, -1, root};
@@ -224,9 +224,9 @@ struct Tree {
       return {e, x, y};
     }
   }
-  ll euler_edge_edge(ll idx) { return get<0>(euler_edge(idx)); }
-  ll euler_edge_from(ll idx) { return get<1>(euler_edge(idx)); }
-  ll euler_edge_to(ll idx) { return get<2>(euler_edge(idx)); }
+  ll euler_elem_edge(ll idx) { return get<0>(euler_elem(idx)); }
+  ll euler_elem_from(ll idx) { return get<1>(euler_elem(idx)); }
+  ll euler_elem_to(ll idx) { return get<2>(euler_elem(idx)); }
 
   void _set_heavy() {
     if (not _heavy_head.empty()) return;
@@ -337,10 +337,7 @@ struct Tree {
     if (depth(x) < dp) return -1;
     while (true) {
       ll h = heavy_head(x);
-      if (depth(h) <= dp) {
-        auto [e, p, q] = euler_edge(euler_in(h) + dp - depth(h));
-        return q;
-      }
+      if (depth(h) <= dp) return euler_elem_to(euler_in(h) + dp - depth(h));
       x = parent(h);
     }
   }
