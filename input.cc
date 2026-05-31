@@ -53,9 +53,9 @@ using namespace std;
     }
 
   @InpNbrList(sizeNode, sizeEdge, varname, 
-              dir=False, bwd=None, dec=None, read=None, idx=None, ord=None, istr=False, ostr=False)
+              dir=False, bwd=None, dec=None, read=None, idx=None, ord=None)
 
-    Reads edges and store them in a neibour list.
+    Reads edges and store them in a neighbour list.
       If dir is True, then the graph is regarded as directed.  
       If bwd is defined, the graph is regarded as directed and backward relation is stored in bwd.
       If read is defined, it should be a list of field names or (field name, field type) pairs.
@@ -63,9 +63,6 @@ using namespace std;
       If idx is defined, the structure contains an integer field named the value of idx parameter, and
         the index of the read loop is stored there.
       Parameter ord is the same as in that of @DefStruct.
-      If istr is True, then friend operator>>(istream&, T&) is defined.  This is problematic because 
-        the struct is local.  If you use this option, move the definition of the struct to the top level.
-      The same applies to ostr.
 
     // @InpNbrList(N, M, nbr1, dec=1)
     auto nbr1 = vector(N, vector(0, int()));
@@ -97,8 +94,8 @@ using namespace std;
       ll cost;
       string desc;
       int eid;
-      ostream& operator<<(ostream& ostr) const {
-        return ostr << "(" << nd << ", " << cost << ", " << desc << ")";
+      string show() const {
+        return format("({}, {}, {})", nd, cost, desc);
       }
       auto operator<=>(const nbr3_t&) const = default;
     };
@@ -111,7 +108,9 @@ using namespace std;
       nbr3[v].emplace_back(u, cost, desc, i);
     }
 
-  @DefStruct(structname, fields, idx=None, ord=None, ostr=True) 
+
+
+  @DefStruct(structname, fields, idx=None, ord=None)
 
     Define a struct (or rather, an aggregate).  It is recommended to put this in the top level.
     Parameter filelds are list of either a field name or a pair of field name and its type.
@@ -119,6 +118,7 @@ using namespace std;
       The '<' relation is defined in the order of the field listed, either ascending (if False) or
       descending (if True).  OMITTED FIELDS ARE ALSO USED FOR DEFINING ORDER, since "less" requires
       strong ordering that is consistent with equality.
+    The show() method is generated so that operator<< can be used. (You need f:<< or debug library)
     
     // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii)
     struct SS2 {
@@ -127,9 +127,6 @@ using namespace std;
       int iii;
       string show() const { 
         return format("({}, {})", a, c);
-      }
-      ostream& ostream_out(ostream& ostr) const {
-        return ostr << "(" << a << ", " << c << ")";
       }
       strong_ordering operator<=>(const SS2& o) const {
         if (auto r_ = o.c   <=>   c;   r_ != 0) return r_;
