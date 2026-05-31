@@ -19,7 +19,7 @@ int main() {
     assert(du.pow(1) == 10);
     assert(du.pow(6) == 1000000);
     assert(du.pow(18) == 1000000000000000000);
-    assert(du.width(0) == 0);
+    assert(du.width(0, true) == 0);
     assert(du.width(1) == 1);
     assert(du.width(2) == 1);
     assert(du.width(9) == 1);
@@ -34,10 +34,10 @@ int main() {
     assert(du.nd_max(3) == 999);
     assert(du.width(123456789012345678) == 18);
     assert(du.width(1000000000000000000) == 19);
-    assert(du.floor(0) == 0);
+    assert(du.floor(0, true) == 0);
     assert(du.floor(123) == 100);
     assert(du.floor(1000) == 1000);
-    assert(du.ceil(0) == 0);
+    assert(du.ceil(0, true) == 0);
     assert(du.ceil(123) == 1000);
     assert(du.ceil(1000) == 1000);
     assert(du.d_at(1234, 0) == 4);
@@ -66,6 +66,12 @@ int main() {
     assert(du.from_vector(vector<ll>{0}) == 0);
     assert(du.from_vector((vector<ll>{3, 0, 2})) == 203);
     assert(du.from_vector((vector<ll>{0, 0, 2, 3, 0})) == 3200);
+
+    assert(du.pow(18) == du.pow(10) * du.pow(8));
+    try { du.pow(19); assert(0); } catch(digit_error& e) {}
+    assert(du.nd_min(19) == du.pow(10) * du.pow(8));
+    try { du.nd_max(19); assert(0); } catch(digit_error& e) {}
+
   }
 
   {
@@ -77,10 +83,10 @@ int main() {
     assert(du.width(2) == 2);
     assert(du.width(3) == 2);
     assert(du.width(4) == 3);
-    assert(du.floor(0) == 0);
+    assert(du.floor(0, true) == 0);
     assert(du.floor(1) == 1);
     assert(du.floor(3) == 2);
-    assert(du.ceil(0) == 0);
+    assert(du.ceil(0, true) == 0);
     assert(du.ceil(1) == 1);
     assert(du.ceil(3) == 4);
   }
