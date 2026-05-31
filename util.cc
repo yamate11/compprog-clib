@@ -307,6 +307,15 @@ ostream& operator<<(ostream& os, const __int128& v) {
   return os;
 }
 
+// If a struct has member function "string show() const", operator<< is defined.
+template<typename T>
+concept HasShow = requires(const T& t) {
+  { t.show() } -> same_as<string>;
+};
+template<HasShow T>
+ostream& operator<<(ostream& os, const T& t) {
+  return os << t.show();
+}
 
 // @@ !! FUNC END f:<<
 

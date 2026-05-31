@@ -111,7 +111,7 @@ using namespace std;
       nbr3[v].emplace_back(u, cost, desc, i);
     }
 
-  @DefStruct(structname, fields, idx=None, ord=None, istr=False, ostr=True) 
+  @DefStruct(structname, fields, idx=None, ord=None, ostr=True) 
 
     Define a struct (or rather, an aggregate).  It is recommended to put this in the top level.
     Parameter filelds are list of either a field name or a pair of field name and its type.
@@ -120,15 +120,15 @@ using namespace std;
       descending (if True).  OMITTED FIELDS ARE ALSO USED FOR DEFINING ORDER, since "less" requires
       strong ordering that is consistent with equality.
     
-    // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii, istr=True)
+    // @DefStruct(SS2, (a, (c, char)), ord=((c, True), a, iii), idx=iii)
     struct SS2 {
       ll a;
       char c;
       int iii;
-      istream& operator>>(istream& istr) {
-        return istr >> a >> c;
+      string show() const { 
+        return format("({}, {})", a, c);
       }
-      ostream& operator<<(ostream& ostr) const {
+      ostream& ostream_out(ostream& ostr) const {
         return ostr << "(" << a << ", " << c << ")";
       }
       strong_ordering operator<=>(const SS2& o) const {
