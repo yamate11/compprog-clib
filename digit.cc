@@ -69,15 +69,17 @@ struct digit_util {
     throw digit_error(format("digit.{}: parameter {} out of range", meth, param));
   }
 
-  ll zero_warning(string meth, bool quiet) const {
 #if DEBUG
+  ll zero_warning(string meth, bool quiet) const {
     if (not quiet) {
       cerr << format("You called {} with parameter 0.  It returns 0.  If this is OK, considter quiet=true.", meth)
            << endl;
     }
-#endif
     return 0;
   }
+#else
+  ll zero_warning(string, bool) const { return 0; }
+#endif
 
   digit_util(ll base_ = 10) : base(base_), _pow(_make_pow(base_)) {}
     
