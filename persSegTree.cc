@@ -25,7 +25,7 @@
   ll ans1 = stL.query(p2, lo2, hi2);
 
   // ordinary version
-  auto [stO, rootO] = make_per_seg_tree(0LL, plus<ll>(), vector<ll>(N));
+  auto [stO, rootO] = make_pers_seg_tree(0LL, plus<ll>(), vector<ll>(N));
   auto p3 = stO.set(rootO, i, newVal);
   ll ans2 = stO.query(p3, lo3, hi3);
 */
