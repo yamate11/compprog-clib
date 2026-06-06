@@ -63,9 +63,15 @@ int main() {
     assert(du.to_vector(0) == vector<ll>{0});
     assert(du.to_vector(1) == vector<ll>{1});
     assert(du.to_vector(123) == (vector<ll>{3, 2, 1}));
+    assert(du.to_vector_big_endian(123) == (vector<ll>{1, 2, 3}));
     assert(du.from_vector(vector<ll>{0}) == 0);
     assert(du.from_vector((vector<ll>{3, 0, 2})) == 203);
     assert(du.from_vector((vector<ll>{0, 0, 2, 3, 0})) == 3200);
+    assert(du.from_vector((vector<ll>{0, 0, 2, 3, 0})) == 3200);
+    assert(du.from_vector_big_endian((vector<ll>{0, 0, 2, 3, 0})) == 230);
+    
+    assert(du.from_vector((vector<int>{3, 0, 2})) == 203);
+    assert(du.from_vector_big_endian((deque<int>{3, 0, 2})) == 302);
 
     assert(du.pow(18) == du.pow(10) * du.pow(8));
     try { du.pow(19); assert(0); } catch(digit_error& e) {}

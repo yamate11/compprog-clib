@@ -1,9 +1,9 @@
 /*
   Digit Util   (Kuraidori Kisuho)
 
-  digit_util du;      // base == 10
-  digit_util du1(3);  // base == 3
-  digit_util du2(16); // base == 16
+  digit_util du;       // base == 10
+  digit_util du3(3);   // base == 3
+  digit_util du16(16); // base == 16
   
   du.pow(3)          // 1000
   du.pow(18)         // 1000000000000000000
@@ -32,14 +32,18 @@
   du.d_sub(94283,  1, -100) // 83
 
   // Warning: to_vector() and to_string() are handy, but they may be slow, especially in a loop.
-  //   When performance is important, use d_at() and d_sub() instead where possible.
-  du.to_vector(1234) // vector{4, 3, 2, 1}
-  du.to_string(1234) // "1234"
-  du.from_vector(vector{4, 3, 2, 1}) // 1234
-  du.from_string("1234")             // 1234
+  //   When performance is important, use d_at() and d_sub() instead if possible.
+  du.to_string(1234)                            // "1234"
+  du.to_vector(1234)                            // vector<ll>{4, 3, 2, 1}
+  du.to_vector_big_endian(1234)                 // vector<ll>{1, 2, 3, 4}
+  du.from_string("1234")                        // 1234
+  du.from_vector(vector{1, 2, 3, 4})            // 4321
+  du.from_vector_big_endian(vector{1, 2, 3, 4}) // 1234
 
-  du2.to_string(255)       // "ff"
-  du2.to_string(255, true) // "FF"
+  du16.to_string(255)       // "ff"
+  du16.to_string(255, true) // "FF"
+  du16.from_string("ff")    // 255
+  du16.from_string("FF")    // 255
 
  */
 
@@ -144,14 +148,34 @@ struct digit_util {
     return (x % pow(pos + len)) / pow(pos);
   }
 
-  vector<ll> to_vector(ll x) const {
+  template<bool big_endian>
+  vector<ll> _gen_to_vector(ll x) const {
     if (x < 0) range_error("to_vector", x);
     if (x == 0) return vector<ll>{0};
-    vector<ll> ret;
-    ret.reserve(width(x));
-    for ( ; x != 0; x /= base) { ret.push_back(x % base); }
+    ll w = width(x);
+    vector<ll> ret(w);
+    for (int i = 0; i < w; i++) {
+      if constexpr (big_endian) ret[w - 1 - i] = x % base;
+      else                      ret[i]         = x % base;
+      x /= base;
+    }
     return ret;
   }
+  vector<ll> to_vector(ll x) const { return _gen_to_vector<false>(x); }
+  vector<ll> to_vector_big_endian(ll x) const { return _gen_to_vector<true>(x); }
+
+  template<bool big_endian>
+  ll _gen_from_vector(const auto& vec) const {
+    ll ret = 0;
+    for (ll i = 0; i < ssize(vec); i++) {
+      ll j;
+      if constexpr (big_endian) j = ssize(vec) - 1 - i; else j = i;
+      ret += vec[j] * pow(i);
+    }
+    return ret;
+  }
+  ll from_vector(const auto& vec) const { return _gen_from_vector<false>(vec); }
+  ll from_vector_big_endian(const auto& vec) const { return _gen_from_vector<true>(vec); }
 
   string to_string(ll x, bool upcase = false) const {
     if (x < 0) range_error("to_string", x);
@@ -163,12 +187,6 @@ struct digit_util {
       ll y = x % base;
       ret[i] = y < 10 ? '0' + y : ten + (y - 10);
     }
-    return ret;
-  }
-
-  ll from_vector(const vector<ll>& vec) const {
-    ll ret = 0;
-    for (ll i = 0; i < ssize(vec); i++) ret += vec[i] * pow(i);
     return ret;
   }
 
