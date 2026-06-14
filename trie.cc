@@ -5,6 +5,8 @@ using ll =  long long int;
 using u64 = unsigned long long;
 
 /*
+  Note that this struct offers an ordinary set, NOT A MULTISET.
+
   https://yamate11.github.io/blog/posts/2025/06-28-trie-with-pointers/
  */
 
