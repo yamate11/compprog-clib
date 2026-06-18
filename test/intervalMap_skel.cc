@@ -4,7 +4,7 @@ typedef long long int ll;
 using namespace std;
 using pll = pair<ll, ll>;
 
-// @@ !! LIM(intervalSet debug)
+// @@ !! LIM(intervalMap debug)
 
 int main(/* int argc, char *argv[] */) {
   ios_base::sync_with_stdio(false);
@@ -21,7 +21,7 @@ int main(/* int argc, char *argv[] */) {
   {
     //               0 1 2 3 4 5 6 7 8 91011121314
     vector<int> vec({0,0,1,1,1,0,0,0,0,0,1,0,0,1,1});
-    itv_set<int> isA(-10, 20, 0);
+    itv_map<int> isA(-10, 20, 0);
     isA.put(2, 1);
     isA.put(3, 1);
     isA.put(4, 1);
@@ -29,7 +29,7 @@ int main(/* int argc, char *argv[] */) {
     isA.put(13, 1);
     isA.put(14, 1);
     // represents {2,3,4,10,13,14} == [2,5) \cup [10, 11) \cup [13, 15)
-    itv_set<int> isB(-10, 20, 0);
+    itv_map<int> isB(-10, 20, 0);
     isB.put(2, 5, 1);
     isB.put(10, 11, 1);
     isB.put(13, 15, 1);
@@ -46,12 +46,12 @@ int main(/* int argc, char *argv[] */) {
   }
 
   {
-    itv_set<string> is1(LLONG_MIN, LLONG_MAX);
+    itv_map<string> is1(LLONG_MIN, LLONG_MAX);
     is1.put(-40, -20, "hello");
     assert(is1.get_val(100) == "");
     assert(is1.get_val(-40) == "hello");
     assert(is1.get_val(-20) == "");
-    itv_set<string> is2(LLONG_MIN, LLONG_MAX, "world");
+    itv_map<string> is2(LLONG_MIN, LLONG_MAX, "world");
     is2.put(90, "globe");
     assert(is2.get_val(50) == "world");
     assert(is2.get_val(89) == "world");
@@ -70,7 +70,7 @@ int main(/* int argc, char *argv[] */) {
     ll vmax = sz * 2;
     for (ll i = 0; i < nc; i++) {
       vector<ll> vec(sz);
-      itv_set<ll> is(0, sz);
+      itv_map<ll> is(0, sz);
       for (ll j = 0; j < sz; j++) {
         vec[j] = randrange(0, vmax);
         is.put(j, vec[j]);
@@ -115,7 +115,7 @@ int main(/* int argc, char *argv[] */) {
     ll mutR = 20;
     for (ll i = 0; i < nc; i++) {
       vector<bool> vecA(sz), vecB(sz);
-      itv_set<bool> isA(0, sz), isB(0, sz);
+      itv_map<bool> isA(0, sz), isB(0, sz);
       for (ll j = 0; j < sz; j++) {
         vecA[j] = randrange(0, 2) == 0 ? false : true;
         isA.put(j, vecA[j]);
@@ -157,16 +157,16 @@ int main(/* int argc, char *argv[] */) {
     }
   }
   {
-    itv_set<int> isA(0, 100, 0);
+    itv_map<int> isA(0, 100, 0);
     isA.put(30, 60, 5000);
     isA.put(60, 100, 6000);
-    itv_set<int> isB(0, 100, 0);
+    itv_map<int> isB(0, 100, 0);
     isB.put(40, 60, 300);
     isB.put(60, 80, 200);
     isB.put(80, 100, 100);
     auto op = [&](int x, int y) -> int { return x + y; };
     auto isC = itv_apply(op, isA, isB);
-    itv_set<int> isD(0, 100, 0);
+    itv_map<int> isD(0, 100, 0);
     isD.put(30, 40, 5000);
     isD.put(40, 60, 5300);
     isD.put(60, 80, 6200);
@@ -175,8 +175,8 @@ int main(/* int argc, char *argv[] */) {
   }
 
   {
-    itv_set<pll> isA(0, 100);
-    itv_set<pll> isB(0, 100);
+    itv_map<pll> isA(0, 100);
+    itv_map<pll> isB(0, 100);
     isA.put(10, 20, pll{3, 4});
     isA.put(20, 30, pll{5, 6});
     isB.put(5, 15, pll{10, 20});
@@ -186,10 +186,10 @@ int main(/* int argc, char *argv[] */) {
     auto [l, r, t1] = isC.get(12);
     assert(t1 == pll(13, 24) and l == 10 and r == 15);
     assert(isC.get_val(17) == pll(33, 44));
-    assert(isC.get(22) == make_tuple(20, 25, pll(35, 46)));
+    assert(isC.get(22) == itv_map<pll>::Tuple3(20, 25, pll(35, 46)));
   }
   {
-    itv_set<int> is(0, 100, 10);
+    itv_map<int> is(0, 100, 10);
     is.put(15, 20, 2);
     is.put(25, 30, 1);
     assert(is.sum(10, 15) == 50);
@@ -203,7 +203,7 @@ int main(/* int argc, char *argv[] */) {
     assert(l0 == 25 and r0 == 30);
   }
   {
-    vector<itv_set<int>> vis(4);
+    vector<itv_map<int>> vis(4);
     vis[0].put(0, 10, 10);
     vis[1].put(5, 20, 20);
     vis[2].put(0, 5, 10);
@@ -214,7 +214,7 @@ int main(/* int argc, char *argv[] */) {
     assert(vis[2] == vis[3]);
   }
   { // Iterator operations
-    itv_set<int> is(0, 100, 10);
+    itv_map<int> is(0, 100, 10);
     is.put(10, 20, 50);
     is.put(30, 40, 200);
     auto it = is.get_iter(25);
@@ -240,6 +240,30 @@ int main(/* int argc, char *argv[] */) {
     auto it6 = it.next();
     assert(it6 == is.end());
     assert(it.left() == 40 and it.right() == 100 and it.val() == 10);
+  }
+  { // return type of get() 
+    itv_map<ll> is(0, 100, 10);
+    is.put(10, 20, 50);
+    is.put(30, 40, 200);
+    auto x = is.get(15);
+    assert(x.left == 10 and x.right == 20 and x.val == 50);
+  }
+  { // sequence: (1) get() -> (2) put() -> (3) accessing the return value of get()
+    vector<ll> w0{};
+    vector<ll> w1{0, 1, 2};
+    vector<ll> w2{3, 4};
+    vector<ll> w3{5};
+    itv_map<vector<ll>> is(0, 100, w0);
+    is.put(10, 20, w1);
+    is.put(30, 40, w2);
+    auto x = is.get(15);
+    auto v1 = is.get_val(35);
+    auto v2 = is.get_val(25);
+    is.put(0, 100, vector<ll>{5});
+    assert(x.val == w1);
+    assert(v1 == w2);
+    assert(v2 == w0);
+    assert(is.get_val(25) == w3);
   }
 
   cout << "ok\n";

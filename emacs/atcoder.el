@@ -5,7 +5,7 @@
 	"util" "scc" "geometry" "binsearch" "dijkstra" "rerror"
 	"suffixArray" "board" "minCostFlow" "perm" "guessPoly" "ftwo"
 	"trie" "tree" "rollingHash" "fft" "doubling" "ipoint" "cumsum2d"
-	"interactive" "intervalSet" "polynomial" "convolution" "adjMatrix"
+	"interactive" "intervalMap" "polynomial" "convolution" "adjMatrix"
         "interpolation" "fastTransform" "bintrie" "sortedIndex" "forall" 
         "mapget" "mypair" "digit" "topord" "input" "cycledetect" "rbst" "mo" "unordered_map" "rle" "random"
 	"power" "vicinity" "sqrtDecomp" "bellmanford" "wavelet" "SternBrocot" "smallVec" "cartesianTree"

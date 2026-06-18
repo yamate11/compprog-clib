@@ -4,34 +4,34 @@ typedef long long int ll;
 using namespace std;
 
 /*
-  Interval Set
+  Interval Map
 
-  The name might be misleading.  What is implemented here is managing
-  a function f : [lo, hi) -> T; assuming that a same value tends to
-  continue.  Thus, the data structure is a map<ll, T>.  
-  ((x0, t0), (x1, t1), ..., (xn, tn)), where x0 == lo and xn == hi, means that for x \in [x_i, x_{i+1})
-  the value of f(x) is t_i.
+  The library manages functions f : [lo, hi) -> T; assuming that a same value tends to
+  continue.  The implementation uses a map<ll, T>.  
+  Map ((x0, t0), (x1, t1), ..., (xn, tn)), where x0 == lo and xn == hi, means that for x \in [x_i, x_{i+1})
+  the value f(x) is t_i.
   It is guaranteed that t_i != t_{i + 1}  (for i + 1 < n)
 
-  For interval set in the original meaning, use its characteristic function.
+  For managing an interval set, use its characteristic function.
 
   API:
 
   template<typename T>
-  itv_set(ll lo, ll hi, T t = T())  ... constant function f(x) = t for x \in [lo, hi)
+  itv_map(ll lo, ll hi, T t = T())  ... constant function f(x) = t for x \in [lo, hi)
   
   void put(ll x, T t) ... f(x) := t
   void put(ll l, ll r, T t) ...  f(x) := t for x \in [l, r)
   T get_val(ll x) ... returns f(x)
-  tuple<ll, ll, T> get(ll x) ... returns (y1, y2, t) where f(x) = t and y1 <= x < y2 and y1 and y2 are defined point.
+  itv_map::Tuple3 get(ll x) ... returns (l, r, t) where f(x) = t and l <= x < r and l and r are defined points.
+                                The return type Tuple3 is a struct { ll left; ll right; T val; }.
   T sum(ll l, ll r) ... returns \sum_{i = l}^{r - 1} f(i)．  Note that T must have "+" and "*", and "ll" should be 
                         convertible into T.
   auto itv_apply(auto f, const auto& x, const auto& y)
-       // When x is itv_set<x_t>, y is itv_set<y_t> and f : x_t -> y_t -> res_t, 
-       //     itv_apply returns an itv_set<res_t> r such that r(i) = f(x(i), y(i))
+       // When x is itv_map<x_t>, y is itv_map<y_t> and f : x_t -> y_t -> res_t, 
+       //     itv_apply returns an itv_map<res_t> r such that r(i) = f(x(i), y(i))
 
   Loop:
-    itv_set is(...);
+    itv_map is(...);
     for (const auto& [l, r, t] : is) { ... }
 
   Debugging:
@@ -44,24 +44,30 @@ using namespace std;
 // @@ !! BEGIN() ---- intervalSet.cc
 
 template<typename T>
-struct itv_set {
+struct itv_map {
   using value_type = T;
   
+  struct Tuple3 {
+    ll left;
+    ll right;
+    T val;
+    bool operator==(const Tuple3&) const = default;
+  };
+
   struct Itr {
-    using iterator_category = input_iterator_tag;
-    using value_type = tuple<ll, ll, const T&>;
-    // using difference_type = ptrdiff_t;
-    using reference = value_type const&;
-    // using pointer = value_type const*;
+    using iterator_category = bidirectional_iterator_tag;
+    using difference_type = ptrdiff_t;
+    using value_type = Tuple3;
+    using reference = value_type;
+    using pointer = void;
 
-    using impl_iterator = typename map<ll, T>::iterator;
+    using impl_iterator = typename map<ll, T>::const_iterator;
     impl_iterator it_impl;
-
     Itr(impl_iterator it_impl_) : it_impl(it_impl_) {}
 
     bool operator ==(const Itr& o) const { return it_impl == o.it_impl; }
     bool operator !=(const Itr& o) const { return it_impl != o.it_impl; }
-    value_type operator *() const { return value_type(it_impl->first, (std::next(it_impl))->first, it_impl->second); }
+    value_type operator *() const { return value_type(it_impl->first, std::next(it_impl)->first, it_impl->second); }
     Itr& operator ++() { 
       ++it_impl;
       return *this;
@@ -73,31 +79,29 @@ struct itv_set {
     }
     Itr operator --(int) { return Itr(it_impl--); }
     ll left() const { return it_impl->first; }
-    ll right() const { return (std::next(it_impl))->first; }
+    ll right() const { return std::next(it_impl)->first; }
     const T& val() const { return it_impl->second; }
     Itr prev() const { return Itr(std::prev(it_impl)); }
     Itr next() const { return Itr(std::next(it_impl)); }
   };
   using iterator = Itr;
-  Itr begin() { return Itr(impl.begin()); }
-  Itr end() { return Itr(prev(impl.end())); }
+  using const_iterator = Itr;
+  Itr begin() const { return Itr(impl.begin()); }
+  Itr end() const { return Itr(prev(impl.end())); }
 
   map<ll, T> impl;  
   ll lo;
   ll hi;
 
-  itv_set(ll lo_ = LLONG_MIN, ll hi_ = LLONG_MAX, const T& t = T()) : lo(lo_), hi(hi_) {
+  itv_map(ll lo_ = -(1LL << 60), ll hi_ = (1LL << 60), const T& t = T()) : lo(lo_), hi(hi_) {
     impl[lo] = t;
     impl[hi] = t;  // the value is just a dummy.
   }
 
-  bool operator==(const itv_set& o) const { return lo == o.lo and hi == o.hi and impl == o.impl; }
-  bool operator!=(const itv_set& o) const { return not (*this == o); }
+  bool operator==(const itv_map& o) const { return lo == o.lo and hi == o.hi and impl == o.impl; }
+  bool operator!=(const itv_map& o) const { return not (*this == o); }
 
-  auto get_iter(ll x) {
-    auto it = impl.upper_bound(x);
-    return Itr(std::prev(it));
-  }
+  auto get_iter(ll x) const { return Itr(std::prev(impl.upper_bound(x))); }
 
   auto divide(ll x) {
     auto it_nxt = impl.upper_bound(x);
@@ -110,7 +114,7 @@ struct itv_set {
     if (l < lo or r > hi) throw runtime_error("intervalSet: out of range: " + to_string(l) + ", " + to_string(r));
   }
   void range_check(ll x) const {
-    if (x < lo or x > hi - 1) throw runtime_error("intervalSet: out of range: " + to_string(x));
+    if (x < lo or x >= hi) throw runtime_error("intervalSet: out of range: " + to_string(x));
   }
 
   void put(ll l, ll r, const T& t) {
@@ -129,12 +133,12 @@ struct itv_set {
     put(x, x + 1, t);
   }
 
-  const T& get_val(ll x) {
+  T get_val(ll x) const {
     range_check(x);
     return get_iter(x).val();
   }
 
-  tuple<ll, ll, const T&> get(ll x) {
+  Tuple3 get(ll x) {
     range_check(x);
     return *get_iter(x);
   }
@@ -144,7 +148,7 @@ struct itv_set {
     T ret = T();
     ll i = l0;
     while (true) {
-      const auto& [l, r, t] = get(i);
+      auto [l, r, t] = get(i);
       ret += (min(r, r0) - i) * t;
       if (r0 <= r) return ret;
       i = r;
@@ -161,7 +165,7 @@ auto itv_apply(auto f, const auto& x, const auto& y) {
   if (x.lo != y.lo or x.hi != y.hi) throw runtime_error("intervalSet: range mismatch");
   auto itx = x.impl.begin();
   auto ity = y.impl.begin();
-  itv_set<res_t> ret(x.lo, x.hi, f(itx->second, ity->second));
+  itv_map<res_t> ret(x.lo, x.hi, f(itx->second, ity->second));
   auto itcc = ret.impl.begin();
   auto itce = std::next(itcc);
   while (true) {
