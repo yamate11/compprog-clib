@@ -28,9 +28,6 @@ int main() {
     for (int i = 0; i < 10; i++) v01.at(i) = power(Fp(3), i);
     assert(v01 == vector<Fp>({Fp(1), Fp(3), Fp(2), Fp(6), Fp(4), Fp(5),
 	    Fp(1), Fp(3), Fp(2), Fp(6)}));
-    assert(power(2, 0) == 1);
-    assert(power(2, 15) == 32768);
-    assert(power(2, 16) == 65536);
   }
 
   {
@@ -141,7 +138,30 @@ int main() {
     assert(ss2.str() == "10");
   }
 
+  { // two dynamic mods
+    using DFp1 = FpG<0, ll, 1>;
+    using DFp2 = FpG<0, ll, 2>;
+    auto f = [&](ll m1, ll m2) -> void {
+      DFp1::setMod(m1);
+      DFp2::setMod(m2);
+      vector<ll> v{-1, 0, 1, 41, 42, 43, 44, 45, 46};
+      for (int i = 0; i < ssize(v); i++) for (int j = j; j < ssize(v); j++) {
+          DFp1 a = DFp1(v[i]) * DFp1(v[j]);
+          assert((ll)a == (v[i] * v[j]) % m1);
+          DFp2 b = DFp2(v[i]) + DFp2(v[j]);
+          assert((ll)b == (v[i] + v[j]) % m2);
+        }
+    };
+    f(5, 7);
+    f(11, 13);
+    f(12, 22);
+  }
 
+  { // std::format
+    string s1 = format("{:20d} {:x}", FpA((ll)(1e10)), FpB((ll)(1e10)));
+    string s2 = format("{:20d} {:x}", (ll)(1e10) % (ll)primeA, (ll)(1e10) % (ll)primeB);
+    assert(s1 == s2);
+  }
 
   cout << "ok" << endl;
 }

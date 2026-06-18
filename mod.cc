@@ -21,8 +21,13 @@ using namespace std;
         FpG<0> x; 
         ....
 
-  Note that if you run setMod(_mod), _mod must be less than the half of the maximum value of INT(ll, in this case.)
   FpG<mod>::getMod() is also defined.
+
+  If two or more dynamic mods are required, write something like:
+        FpG<0, ll, 1>::setMod(m1);
+        FpG<0, ll, 2>::setMod(m2);
+        FpG<0, ll, 1> a, b;  cout << a * b;   // mod m1
+        FpG<0, ll, 2> c, d;  cout << c * d;   // mod m2
 
   With Comb<T>, you can do something like:
 
@@ -42,20 +47,17 @@ using namespace std;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN(algOp f:gcd) ---- mod.cc
 
-template<int mod=0, typename INT=ll>
+template<int mod=0, typename INT=ll, int dyn_id=0>
 struct FpG {   // G for General
-  static INT dyn_mod;
+  inline static INT dyn_mod = 0;
 
   static INT getMod() {
-    if (mod == 0) return dyn_mod;
-    else          return (INT)mod;
+    if constexpr (mod == 0) return dyn_mod;
+    else                    return (INT)mod;
   }
   
   // Effective only when mod == 0.
-  // _mod must be less than the half of the maximum value of INT.
-  static void setMod(INT _mod) {  
-    dyn_mod = _mod;
-  }
+  static void setMod(INT _mod) { dyn_mod = _mod; }
 
   static INT _conv(INT x) {
     if (x >= getMod())  return x % getMod();
@@ -153,10 +155,15 @@ struct FpG {   // G for General
     os << t.val;
     return os;
   }
-
 };
-template<int mod, typename INT>
-INT FpG<mod, INT>::dyn_mod;
+
+// for std::format()
+template<int mod, typename INT, int dyn_id>
+struct formatter<FpG<mod, INT, dyn_id>> : formatter<INT>  {
+  auto format(const FpG<mod, INT, dyn_id>& x, format_context& ctx) const {
+    return formatter<INT>::format(static_cast<INT>(x), ctx);
+  }
+};
 
 template<typename T>
 class Comb {
