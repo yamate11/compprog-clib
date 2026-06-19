@@ -55,7 +55,7 @@ def _inline_text(node) -> str:
 
 
 def _extract_case_index(tag: Tag) -> Optional[int]:
-    for c in tag.get("class", []):
+    for c in tag.get("class") or []:
         if c in ("test-example-line", "test-example-line-odd", "test-example-line-even"):
             continue
         m = _CASE_CLASS_RE.fullmatch(c)
@@ -216,11 +216,11 @@ def extract_codeforces_samples(html_source: str) -> List[Sample]:
         if in_pre is None or out_pre is None:
             continue
 
-        input_text = _pre_to_text(in_pre)
-        output_text = _pre_to_text(out_pre)
+        input_text = _pre_to_text(in_pre)          # type: ignore[arg-type]
+        output_text = _pre_to_text(out_pre)        # type: ignore[arg-type]
 
-        input_groups = _group_striped_lines_by_case_index(in_pre)
-        output_groups = _group_striped_lines_by_case_index(out_pre)
+        input_groups = _group_striped_lines_by_case_index(in_pre)     # type: ignore[arg-type]
+        output_groups = _group_striped_lines_by_case_index(out_pre)   # type: ignore[arg-type]
 
         split_cases = _split_cases_from_groups(
             input_text=input_text,

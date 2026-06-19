@@ -48,7 +48,7 @@ def extract_codeforces_contest_problems(html_source: str) -> ContestProblemList:
     seen: set[str] = set()
 
     for a in soup.find_all("a", href=True):
-        href = a["href"].strip()
+        href = a["href"].strip()         # type: ignore[index, union-attr]
         m = href_re.fullmatch(href)
         if not m:
             continue
@@ -62,13 +62,13 @@ def extract_codeforces_contest_problems(html_source: str) -> ContestProblemList:
         # Codeforces の contest ページでは Problems 表の 1 列目に
         # A, B, C, D1, D2, ... が並ぶ
         for table in soup.find_all("table"):
-            rows = table.find_all("tr")
+            rows = table.find_all("tr")      # type: ignore[union-attr]
             if not rows:
                 continue
 
             candidate: list[str] = []
             for tr in rows:
-                tds = tr.find_all("td")
+                tds = tr.find_all("td")      # type: ignore[union-attr]
                 if len(tds) < 2:
                     continue
 
