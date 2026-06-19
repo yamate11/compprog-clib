@@ -132,6 +132,8 @@ class MySession:
                 return True
             elif pat2():
                 return False
+            else:
+                die('Unknown header pattern.')
         else:
             # debug('header not found')    
             die('Failed to check login.  Unknown page pattern.')
