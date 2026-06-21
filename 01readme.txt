@@ -17,3 +17,9 @@ master ブランチにマージして，リモートに送る
 compprog で修正を取り込む
   cd ~/compprog/clib
   git pull
+
+----------------------------------------
+tool の下のコマンドを直す場合:
+
+次を実行してから emacs を起動する．
+	PATH=/home/y-tanabe/proj/compprog-clib/tool:${PATH}
