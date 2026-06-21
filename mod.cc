@@ -45,7 +45,7 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN(algOp f:gcd) ---- mod.cc
+// @@ !! BEGIN(f:gcd) ---- mod.cc
 
 template<int mod=0, typename INT=ll, int dyn_id=0>
 struct FpG {   // G for General
