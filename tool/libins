@@ -2,6 +2,7 @@
 
 import sys, os, argparse, re, json
 from util import topDir, die, debug
+from pathlib import Path
 
 args = None
 
@@ -290,10 +291,12 @@ def main():
 
     if args.clib_dir:
         clibdir = args.clib_dir
-    elif 'proj/compprog-clib' in os.getcwd():
-        clibdir = '/home/y-tanabe/proj/compprog-clib'
     else:
-        clibdir = args.clib_dir or f'{topDir}/clib'
+        clibdir = str(Path(__file__).resolve().parent.parent)
+    # elif 'proj/compprog-clib' in os.getcwd():
+    #     clibdir = '/home/y-tanabe/proj/compprog-clib'
+    # else:
+    #     clibdir = args.clib_dir or f'{topDir}/clib'
     depCache = f'{clibdir}/.lib_depend'
 
     if args.cache_update:

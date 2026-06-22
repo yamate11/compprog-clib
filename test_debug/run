@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+import os, re, sys
+from subprocess import run, PIPE
+from typing import List
+
+def warn(*msg) -> None:
+    print(*msg, file=sys.stderr, flush=True)
+
+def die(*msg) -> None:
+    warn(*msg)
+    sys.exit(1)
+
+def report(*msg, end='\n') -> None:
+    print(*msg, end=end)
+
+def compare(prog: str, com: str, test_out: str, exp: str) -> bool:
+    if test_out == exp:
+        return True
+    report('**', prog, com)
+    report('-- Expected:')
+    report(exp, end='')
+    report('-- Output:')
+    report(test_out, end='')
+    return False
+
+def run_prog(prog: str) -> int:
+    ret: int = 0
+    cp = run([f'./{prog}'], encoding='UTF-8', stderr=PIPE)
+    com: str = ''
+    test_out: str = ''
+    exp: str = ''
+    status: str = 'ignore'
+    for line in cp.stderr.split('\n'):
+        if status == 'ignore':
+            if (mo := re.match(r'{{{{ (.*)', line)):
+                status = 'test_out'
+                com = mo[1]
+        elif status == 'test_out':
+            if line.startswith('~~~~'):
+                status = 'exp'
+            else:
+                test_out += line + "\n"
+        elif status == 'exp':
+            if line.startswith('}}}}'):
+                status = 'ignore'
+                rc = compare(prog, com, test_out, exp)
+                if not rc:
+                    ret += 1
+                com, test_out, exp = '', '', ''
+            else:
+                exp += line + "\n"
+        else:
+            die('Internal Error: Unknown status')
+    return ret
+            
+def main() -> None:
+    errcnt: int = 0
+    progs: List[str] = []
+    for prog in os.listdir("."):
+        mo = re.match(r'(.*)_t$', prog)
+        if mo:
+            if os.path.exists(mo[1] + "_skel.cc"):
+                progs.append(prog)
+                rc = run_prog(prog)
+                errcnt += rc
+    if progs:
+        if errcnt == 0:
+            warn('OK.  Tested: ', ', '.join(progs) + '.')
+        else:
+            warn(f'** {errcnt} errors were detected.')
+    else:
+        warn('No test programs are found.')
+
+main()
+

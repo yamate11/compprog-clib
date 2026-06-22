@@ -45,9 +45,6 @@ int main() {
     fwt.add(1, -3);   // values are: [5, -1, 4, -3, 1]
     assert(fwt.query(4) == 5);
     assert(fwt.show() == "[5, 4, 8, 5, 6]");  // prefix sums
-    stringstream ss;
-    ss << fwt;
-    assert(ss.str() == "[5, 4, 8, 5, 6]");
   }
   {
     auto fwt = make_fenwick_tree(1LL << 60, [](ll x, ll y) { return min(x, y); });

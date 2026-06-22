@@ -140,10 +140,6 @@ int main(/* int argc, char *argv[] */) {
     assert(p11 - Fp(10) == -(Fp(10) - p11));
     assert(p11 * Fp(10) == Fp(10) * p11);
 
-    stringstream ss;
-    ss << p11;
-    assert(ss.str() == "[1, 2, 3, 4, 5]");
-    
   }
   cerr << "2 " << get_time_sec() - et << endl;
   et = get_time_sec();

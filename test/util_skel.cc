@@ -132,9 +132,8 @@ int main() {
   {
     set<ll> s1({5, 2, 4});
     set<ll, greater<ll>> s2({5, 2, 4});
-    stringstream ss;
-    ss << s1 << " " << s2;
-    assert(ss.str() == "{2, 4, 5} {5, 4, 2}");
+    string s = g_show(s1) + " " + g_show(s2);
+    assert(s == "[2, 4, 5] [5, 4, 2]");
   }
 
   {

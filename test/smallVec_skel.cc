@@ -16,13 +16,11 @@ int main() {
     for (ll i = 0; i < 16; i++) {
       assert(vec1[i] == i);
     }
-    stringstream ss1;
-    ss1 << vec1;
+    string s1 = g_show(vec1);
     vector<ll> vll1(16);
     for (ll i = 0; i < 16; i++) vll1[i] = i;
-    stringstream ss2;
-    ss2 << vll1;
-    assert(ss1.str() == ss2.str());
+    string s2 = g_show(vll1);
+    assert(s1 == s2);
 
     myvec vec2, vec3, vec4;
     vec2[1] = 13;
@@ -62,13 +60,11 @@ int main() {
     using myvec = small_vector_u64<5>;
     myvec vec1;
     for (ll i = 0; i< 12; i++) vec1[i] = i;
-    stringstream ss1;
-    ss1 << vec1;
+    string s1 = g_show(vec1);
     vector<ll> vll1(12);
     for (ll i = 0; i < 12; i++) vll1[i] = i;
-    stringstream ss2;
-    ss2 << vll1;
-    assert(ss1.str() == ss2.str());
+    string s2 = g_show(vll1);
+    assert(s1 == s2);
   }
 
   {
@@ -76,9 +72,8 @@ int main() {
     vec1[1] = 15;
     vec1[3] = 20;
     vec1[2] = vec1[1] + vec1[3];
-    stringstream ss1;
-    ss1 << vec1;
-    assert(ss1.str() == "[0, 15, 35, 20, 0]");
+    string s1 = g_show(vec1);
+    assert(s1 == "[0, 15, 35, 20, 0]");
     stringstream ss2;
     ss2 << vec1[3];
     assert(ss2.str() == "20");

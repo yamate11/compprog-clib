@@ -70,6 +70,7 @@ int main() {
     assert(randrange(0, 1) < 10);
   }
 
+  /*
   {
     auto uf = makeUnionFindRel<ll>(6, 0, 1, plus<ll>(), negate<ll>(), multiplies<ll>(), mydivide<ll>);
     uf.merge(1, 0, {-1, 10});
@@ -81,8 +82,8 @@ int main() {
     cout << uf._v[1] << endl;
     uf.merge(0, 2, {-1, 20});
     cout << uf._v[1] << endl;
-
   }
+  */
 
   /*
   {
