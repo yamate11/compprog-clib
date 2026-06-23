@@ -21,19 +21,6 @@ struct A {
 
 int main() {
 
-  /*
-  {
-    using mymap = gp_hash_table<ll, ll, safe_custom_hash>;
-    mymap mp;
-    mp[10] = mp[20] + 100;
-    assert(mp.find(0) == mp.end());
-    assert(mp.find(10) != mp.end());
-    assert(mp.find(20) != mp.end());
-    assert(mp[10] == 100);
-    assert(mp[20] == 0);
-  }
-  */
-
   {
     safe_umap<ll, ll> mp;
     mp[10] = mp[20] + 100;
@@ -159,6 +146,18 @@ int main() {
     assert(it1 == mp.end());
     auto it2 = mp.find(cr(5, false, "fish"));
     assert(it2 != mp.end() and it2->second == 7);
+  }
+
+  {
+    using tp = tuple<ll, string, char>;
+    safe_umap<tp, ll> mp;
+    mp[tp{20, "abc", 'A'}] = 1;
+    mp[tp{25, "xyzefg", 'B'}] = 2;
+    mp[tp{-30, "", 'C'}] = 3;
+    auto it1 = mp.find(tp{28 - 3, string("xyz") + string("efg"), 'B'});
+    assert(it1 != mp.end() and it1->second == 2);
+    auto it2 = mp.find(tp{20, "abcd", 'A'});
+    assert(it2 == mp.end());
   }
 
   cerr << "ok." << endl;

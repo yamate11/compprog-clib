@@ -100,6 +100,29 @@ struct safe_custom_hash<pair<T1, T2>, void> {
   }
 };
 
+// For tuple
+template <typename... Ts>
+struct safe_custom_hash<tuple<Ts...>, void> {
+  size_t operator()(const tuple<Ts...>& x) const { return impl(x, index_sequence_for<Ts...>{}); }
+  static uint64_t splitmix64(uint64_t x) {
+    x += 0x9e3779b97f4a7c15ULL;
+    x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    x = (x ^ (x >> 27)) * 0x94d049bb133111ebULL;
+    return x ^ (x >> 31);
+  }
+  template <size_t... Is>
+  static size_t impl(const tuple<Ts...>& x, index_sequence<Is...>) {
+    static const uint64_t frand = chrono::steady_clock::now().time_since_epoch().count();
+    static const array<uint64_t, sizeof...(Ts)> coef = { (splitmix64(frand + Is) | 1)... };
+    uint64_t h = 0;
+    (
+      void( h += coef[Is] * uint64_t(safe_custom_hash<tuple_element_t<Is, tuple<Ts...>>>{}(get<Is>(x))) ),
+      ...
+    );
+    return h;
+  }
+};
+
 template <typename T_key, typename T_value, bool useGP = false>
 using safe_umap = conditional_t<useGP, gp_hash_table<T_key, T_value, safe_custom_hash<T_key>>,
                                 unordered_map<T_key, T_value, safe_custom_hash<T_key>>>;
