@@ -18,33 +18,60 @@ int main() {
 
   {
     vector<ll> vec{80, 90, 20, 50, 50, 40};
-    CartesianTree cp(vec);
+    auto cp = make_cartesian_tree(vec);
     assert(cp.root == 2);
     assert(cp.left[2] == 0);
     assert(cp.left[0] == -1);
     assert(cp.right[2] == 5);
     assert(cp.left[5] == 3 or cp.left[5] == 4);
 
-    CartesianTree cp1(vec, less<ll>());
+    auto cp1 = make_cartesian_tree(vec, less<ll>());
     assert(cp1.root == 2);
 
-    CartesianTree cp2(vec, [](ll a, ll b) { return a < b; });
+    auto cp2 = make_cartesian_tree(vec, [](ll a, ll b) { return a < b; });
     assert(cp2.root == 2);
 
     CartesianTree<vector<ll>> cp3;
     cp3.build(vec);
     assert(cp3.root == 2);
     
-    CartesianTree cp4(vec, greater<ll>());
+    auto cp4 = make_cartesian_tree(vec, greater<ll>());
     assert(cp4.root == 1);
     assert(cp4.right[1] == 3 or cp4.right[1] == 4);
 
-    vector<ll> vec2;
-    CartesianTree cp5(vec2);
+    auto cp5 = make_cartesian_tree(vector<ll>{});
     assert(cp5.root == -1);
     assert(cp5.left.empty() and cp5.right.empty());
   }
   
+  {
+    vector<ll> vec{100, 10, 50, 10, 40, 10, 100};
+    auto comp1 = [&](ll i, ll j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] < vec[j];
+      return i < j;
+    };
+    auto comp2 = [&](ll i, ll j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] < vec[j];
+      return i > j;
+    };
+    auto comp3 = [&](ll i, ll j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] > vec[j];
+      return i < j;
+    };
+    auto comp4 = [&](ll i, ll j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] > vec[j];
+      return i > j;
+    };
+    auto ct1 = make_cartesian_tree_comp_index(vec, comp1);
+    assert(ct1.root == 1);
+    auto ct2 = make_cartesian_tree_comp_index(vec, comp2);
+    assert(ct2.root == 5);
+    auto ct3 = make_cartesian_tree_comp_index(vec, comp3);
+    assert(ct3.root == 0);
+    auto ct4 = make_cartesian_tree_comp_index(vec, comp4);
+    assert(ct4.root == 6);
+  }
+
   {
     auto check = [&](const auto& cp, const auto& vec, auto comp) -> void {
       auto sub = [&](auto rF, ll lo, ll hi, ll x) -> void {
