@@ -41,6 +41,7 @@
   du.from_vector_big_endian(vector{1, 2, 3, 4}) // 1234
 
   du.to_string_padding(1234, 8)                 // "00001234"
+  du.to_string_padding(1234, 8, '_')            // "____1234"
 
   du16.to_string(255)       // "ff"
   du16.to_string(255, true) // "FF"
