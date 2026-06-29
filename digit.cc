@@ -40,6 +40,8 @@
   du.from_vector(vector{1, 2, 3, 4})            // 4321
   du.from_vector_big_endian(vector{1, 2, 3, 4}) // 1234
 
+  du.to_string_padding(1234, 8)                 // "00001234"
+
   du16.to_string(255)       // "ff"
   du16.to_string(255, true) // "FF"
   du16.from_string("ff")    // 255
@@ -188,6 +190,12 @@ struct digit_util {
       ret[i] = y < 10 ? '0' + y : ten + (y - 10);
     }
     return ret;
+  }
+
+  string to_string_padding(ll x, ll width, char c = '0', bool upcase = false) const {
+    string s = to_string(x, upcase);
+    if (ssize(s) >= width) return s;
+    return string(width - ssize(s), c) + s;
   }
 
   static ll _get_digit_char(char c) {

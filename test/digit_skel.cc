@@ -57,6 +57,9 @@ int main() {
     assert(du.to_string(0) == "0");
     assert(du.to_string(1) == "1");
     assert(du.to_string(123) == "123");
+    assert(du.to_string_padding(1234, 8) == "00001234");
+    assert(du.to_string_padding(1234, 2) == "1234");
+    assert(du.to_string_padding(1234, 8, '~') == "~~~~1234");
     assert(du.from_string("0") == 0);
     assert(du.from_string("230") == 230);
     assert(du.from_string("00230") == 230);
@@ -95,6 +98,10 @@ int main() {
     assert(du.ceil(0, true) == 0);
     assert(du.ceil(1) == 1);
     assert(du.ceil(3) == 4);
+    assert(du.to_string(10) == "1010");
+    assert(du.to_string_padding(10, 8) == "00001010");
+    assert(du.to_string_padding(10, 2) == "1010");
+    assert(du.from_string("10101") == 21);
   }
 
 
@@ -121,6 +128,10 @@ int main() {
     assert(du.ceil(100) == 256);
     assert(du.to_string(254) == "fe");
     assert(du.to_string(254, true) == "FE");
+    assert(du.to_string_padding(254, 4) == "00fe");
+    assert(du.to_string_padding(254, 4, '!') == "!!fe");
+    assert(du.to_string_padding(254, 4, '0', true) == "00FE");
+    assert(du.to_string_padding(254, 1, '0', true) == "FE");
     assert(du.from_string("1af") == 256 + 10 * 16 + 15);
     assert(du.from_string("1AF") == 256 + 10 * 16 + 15);
   }
