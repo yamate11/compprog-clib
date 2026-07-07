@@ -273,12 +273,19 @@ int main() {
         else                      tr.add_edge(j, i);
       }
 
+      if (randrange(0, 2) == 0) {
+        assert(tr.euler_elem(2 * nn - 1).first == root);
+        ll new_root = randrange(0, nn);
+        tr.change_root(new_root);
+        assert(tr.euler_elem(2 * nn - 1).first == new_root);
+      }
+
       auto dfs = [&](auto rF, ll nd) -> vector<ll> {
-        ll ein = tr.euler_in(nd);
-        ll eout = tr.euler_out(nd);
-        vector<ll> v{ein, eout};
+        ll kin = tr.euler_idx_in(nd);
+        ll kout = tr.euler_idx_out(nd);
+        vector<ll> v{kin, kout};
         if (tr.num_children(nd) == 0) {
-          assert(ein + 1 == eout);
+          assert(kin + 1 == kout);
           return v;
         }else {
           for (ll i : tr.children(nd)) {
@@ -286,9 +293,9 @@ int main() {
             v.insert(v.end(), w.begin(), w.end());
           }
           sort(v.begin(), v.end());
-          assert(v[0] == ein);
-          assert(v.back() == eout);
-          assert(ssize(v) == eout - ein + 1);
+          assert(v[0] == kin);
+          assert(v.back() == kout);
+          assert(ssize(v) == kout - kin + 1);
           for (ll i = 0; i < ssize(v) - 1; i++) v[i + 1] = v[i] + 1;
         }
         return v;
@@ -296,16 +303,16 @@ int main() {
       dfs(dfs, root);
 
       for (ll nd = 0; nd < tr.numNodes; nd++) {
-        ll e_in = tr.euler_in(nd);
-        auto [ei, xi, yi] = tr.euler_elem(e_in);
-        assert(yi == nd);
-        if (nd == tr.root) assert(e_in == 0);
-        else assert(xi == tr.parent(nd) and ei == tr.edge_idx(xi, yi));
-        ll e_out = tr.euler_out(nd);
-        auto [eo, xo, yo] = tr.euler_elem(e_out);
-        assert(xo == nd);
-        if (nd == tr.root) assert(e_out == 2 * tr.numNodes - 1);
-        else assert(yo == tr.parent(nd) and eo == tr.edge_idx(xo, yo));
+        ll k_in = tr.euler_idx_in(nd);
+        ll k_out = tr.euler_idx_out(nd);
+        auto [nd1, b1] = tr.euler_elem(k_in);
+        auto [nd2, b2] = tr.euler_elem(k_out);
+        assert(nd1 == nd and b1 == 0);
+        assert(nd2 == nd and b2 == 1);
+        if (nd == tr.root) {
+          assert(k_in == 0);
+          assert(k_out == 2 * tr.numNodes - 1);
+        }
       }
     }
   }
@@ -381,11 +388,11 @@ int main() {
   {
     Tree tr1(3, 0, true);
     tr1.add_edge(0, 1); tr1.add_edge(1, 2);
-    assert(tr1.euler_in(0) == 0);
-    assert(tr1.heavy_head(2) == 0); // should be ok even called after euler_in
+    assert(tr1.euler_idx_in(0) == 0);
+    assert(tr1.heavy_head(2) == 0); // should be ok even called after euler_idx_in
     Tree tr2(3, 0);  // the default value for use_hl_decomp is false
     tr2.add_edge(0, 1); tr2.add_edge(1, 2);
-    assert(tr2.euler_in(0) == 0);
+    assert(tr2.euler_idx_in(0) == 0);
     try {
       tr2.heavy_head(2);
       assert(0); // a function_error exception should be thrown in the previous line
@@ -461,11 +468,10 @@ int main() {
     assert(tr.edge_idx(0, 0) == -1);
     assert(tr.depth(0) == 0);
     assert(tr.stsize(0) == 1);
-    auto [e0, x0, y0] = tr.euler_elem(0);
-    auto [e1, x1, y1] = tr.euler_elem(1);
-    assert(e0 == 0 and e1 == 0 and y0 == 0 and x1 == 0);
-    assert(x0 == -1 and y1 == -1);
-    assert(tr.euler_in(0) == 0 and tr.euler_out(0) == 1);
+    auto [nd0, b0] = tr.euler_elem(0);
+    auto [nd1, b1] = tr.euler_elem(1);
+    assert(nd0 == 0 and b0 == 0 and nd1 == 0 and b1 == 1);
+    assert(tr.euler_idx_in(0) == 0 and tr.euler_idx_out(0) == 1);
     assert(tr.lca(0, 0) == 0);
     auto vec = tr.nnpath(0, 0);
     assert(ssize(vec) == 1 and vec[0] == 0);

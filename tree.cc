@@ -63,7 +63,7 @@ struct Tree {
   vector<ll> _depth;
   vector<ll> _euler_in;
   vector<ll> _euler_out;
-  vector<pair<ll, bool>> _euler_edge;
+  vector<pair<ll, bool>> _euler_elem;
   bool use_hl_decomp;
   vector<ll> _heavy_head;
   vector<vector<vector<ll>>> _lca_tbl;
@@ -162,6 +162,7 @@ struct Tree {
 
   ll _enc_node_pair(ll x, ll y) const { return (x + 1) * (numNodes + 1) + (y + 1); }
 
+  ll edge_idx(ll x) const { return parent_pe(x).edge; }
   ll edge_idx(ll x, ll y) const {
     auto [py, ey] = parent_pe(y);
     if (x == py) return ey;
@@ -186,16 +187,15 @@ struct Tree {
     mature_check();
     _euler_in.resize(numNodes);
     _euler_out.resize(numNodes);
-    _euler_edge.resize(2 * numNodes);
+    _euler_elem.resize(2 * numNodes);
     ll euler_idx = 0;
 
     auto dfs = [&](auto rF, ll nd) -> void {
-      ll edge = nd == root ? numNodes - 1 : edge_idx(nd, parent(nd));
-      _euler_edge[euler_idx] = {edge, 0};
+      _euler_elem[euler_idx] = {nd, 0};
       _euler_in[nd] = euler_idx;
       euler_idx++;
       for (ll c : children(nd)) rF(rF, c);
-      _euler_edge[euler_idx] = {edge, 1};
+      _euler_elem[euler_idx] = {nd, 1};
       _euler_out[nd] = euler_idx;
       euler_idx++;
     };
@@ -203,30 +203,57 @@ struct Tree {
 
   };
 
-  ll euler_in(ll nd) {
+  ll euler_idx_in(ll nd) {
     _set_euler();
     return _euler_in[nd];
   }
 
-  ll euler_out(ll nd) {
+  ll euler_idx_out(ll nd) {
     _set_euler();
     return _euler_out[nd];
   }
 
-  tuple<ll, ll, ll> euler_elem(ll idx) {
+  // mode = 0: parent -> child, mode = 1: child -> parent, mode = 2: x -> y
+  ll euler_idx_nodes(ll x, ll y, ll mode = 0) {
     _set_euler();
-
-    if (idx == 0) return {numNodes - 1, -1, root};
-    else if (idx == 2 * numNodes - 1) return {numNodes - 1, root, -1};
-    else {
-      auto [e, b] = _euler_edge[idx];
-      auto [x, y] = nodes_of_edge(e, b);
-      return {e, x, y};
+    if (mode == 0 or mode == 1) {
+      if (y == parent(x)) swap(x, y);
+      if (x != parent(y)) throw function_error("euler_idx_nodes: not connected");
+      return mode == 0 ? _euler_in[y] : _euler_out[y];
+    }
+    if (mode == 2) {
+      if (x == parent(y)) return _euler_in[y];
+      else if (y == parent(x)) return _euler_out[x];
+      else throw function_error("euler_idx_nodes: not connected");
     }
   }
-  ll euler_elem_edge(ll idx) { return get<0>(euler_elem(idx)); }
-  ll euler_elem_from(ll idx) { return get<1>(euler_elem(idx)); }
-  ll euler_elem_to(ll idx) { return get<2>(euler_elem(idx)); }
+
+  // mode = 0: parent -> child, mode = 1: child -> parent, mode = 2: smaller -> larger
+  ll euler_idx_edge(ll e, ll mode = 0) {
+    auto [x, y] = _edges[e];
+    return euler_idx_nodes(x, y, mode);
+  }
+
+  pair<ll, ll> euler_elem(ll idx) {
+    _set_euler();
+    return _euler_elem[idx];
+  }
+  ll euler_elem_node(ll idx) { return euler_elem(idx).first; }
+  ll euler_elem_peer(ll idx) { return parent(euler_elem_node(idx)); }
+  ll euler_elem_from(ll idx) {
+    auto [nd, b] = euler_elem(idx);
+    return (b == 0) ? parent(nd) : nd;
+  }
+  ll euler_elem_to(ll idx) {
+    auto [nd, b] = euler_elem(idx);
+    return (b == 0) ? nd : parent(nd);
+  }
+  ll euler_elem_edge(ll idx) { return edge_idx(euler_elem_node(idx)); }
+
+  ll euler_elem_node_only(ll idx) {
+    auto [nd, b] = euler_elem(idx);
+    return b ? -1 : nd;
+  }
 
   void _set_heavy() {
     if (not _heavy_head.empty()) return;
@@ -286,12 +313,14 @@ struct Tree {
       auto append_ret = [&](const auto& vec) -> void {
         for (int i = ssize(vec) - 1; i >= 0; i--) {
           auto [h, t] = vec[i];
-          ret.emplace_back(euler_in(h), euler_in(t) + 1);
+          ret.emplace_back(euler_idx_in(h), euler_idx_in(t) + 1);
         }
       };
 
       if (tx == ty) {
-        if (not vx.empty() and not vy.empty() and euler_in(vx.back().first) > euler_in(vy.back().first)) swap(vx, vy);
+        if (not vx.empty() and not vy.empty() and euler_idx_in(vx.back().first) > euler_idx_in(vy.back().first)) {
+          swap(vx, vy);
+        }
         append_ret(vx);
         append_ret(vy);
       }else {
@@ -299,7 +328,7 @@ struct Tree {
           swap(tx, ty);
           swap(vx, vy);
         }
-        ret.emplace_back(euler_in(ty) + 1, euler_in(tx) + 1);
+        ret.emplace_back(euler_idx_in(ty) + 1, euler_idx_in(tx) + 1);
         append_ret(vx);
         append_ret(vy);
       }
@@ -337,7 +366,7 @@ struct Tree {
     if (depth(x) < dp) return -1;
     while (true) {
       ll h = heavy_head(x);
-      if (depth(h) <= dp) return euler_elem_to(euler_in(h) + dp - depth(h));
+      if (depth(h) <= dp) return euler_elem_to(euler_idx_in(h) + dp - depth(h));
       x = parent(h);
     }
   }
@@ -390,13 +419,15 @@ struct Tree {
     _depth.clear();
     _euler_in.clear();
     _euler_out.clear();
+    _euler_elem.clear();
+    _heavy_head.clear();
     _lca_tbl.clear();
 
     root = newRoot;
     _set_parent();
   }
 
-  string show() { // for debug
+  string show() const { // for debug
     string ret;
     for (int nd = 0; nd < numNodes; nd++) {
       string sc;
