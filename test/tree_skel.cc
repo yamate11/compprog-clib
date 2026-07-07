@@ -152,6 +152,7 @@ int main() {
           assert ((ll)(tr.num_children(i)) == cnt);
           assert (tr.depth(i) == 0);
           assert (tr.stsize(i) == N);
+          assert (tr.edge_idx(i) == -1);
         }else {
           assert (conn[i][tr.parent(i)]);
           assert (tr.num_children(i) + 1 == cnt);
@@ -190,6 +191,7 @@ int main() {
             ll e3 = tr.child_edge(nd, i);
             assert(e1 == e3);
             assert(e1 == tr.edge_idx(nd, cld));
+            assert(e1 == tr.edge_idx(cld));
             i++;
           }
 
@@ -312,6 +314,35 @@ int main() {
         if (nd == tr.root) {
           assert(k_in == 0);
           assert(k_out == 2 * tr.numNodes - 1);
+        }
+      }
+
+      // service functions
+      for (ll k = 0; k < 2 * tr.numNodes; k++) {
+        auto [nd, b] = tr.euler_elem(k);
+        ll pa = nd == tr.root ? -1 : tr.parent(nd);
+        assert(tr.euler_elem_node(k) == nd);
+        assert(tr.euler_elem_peer(k) == pa);
+        assert(tr.euler_elem_from(k) == (b == 0 ? pa : nd));
+        assert(tr.euler_elem_to(k) == (b == 0 ? nd : pa));
+        if (nd == tr.root) assert(tr.euler_elem_edge(k) == tr.numNodes - 1);
+        else               assert(tr.euler_elem_edge(k) == tr.edge_idx(nd));
+        if (nd != tr.root) {
+          if (b == 0) {
+            assert(tr.euler_idx_nodes(pa, nd) == k);
+            assert(tr.euler_idx_nodes(nd, pa) == k);
+            assert(tr.euler_idx_nodes(pa, nd, 2) == k);
+          }else {
+            assert(tr.euler_idx_nodes(pa, nd, 1) == k);
+            assert(tr.euler_idx_nodes(nd, pa, 1) == k);
+            assert(tr.euler_idx_nodes(nd, pa, 2) == k);
+          }
+          ll e = tr.edge_idx(pa, nd);
+          if (b == 0) {
+            assert(tr.euler_idx_edge(e) == k);
+          }else {
+            assert(tr.euler_idx_edge(e, 1) == k);
+          }
         }
       }
     }

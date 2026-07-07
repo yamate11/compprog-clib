@@ -162,7 +162,9 @@ struct Tree {
 
   ll _enc_node_pair(ll x, ll y) const { return (x + 1) * (numNodes + 1) + (y + 1); }
 
-  ll edge_idx(ll x) const { return parent_pe(x).edge; }
+  ll edge_idx(ll x) const {
+    return parent_pe(x).edge;
+  }
   ll edge_idx(ll x, ll y) const {
     auto [py, ey] = parent_pe(y);
     if (x == py) return ey;
@@ -226,6 +228,7 @@ struct Tree {
       else if (y == parent(x)) return _euler_out[x];
       else throw function_error("euler_idx_nodes: not connected");
     }
+    throw function_error("euler_idx_nodes: unknown mode");
   }
 
   // mode = 0: parent -> child, mode = 1: child -> parent, mode = 2: smaller -> larger
@@ -248,7 +251,10 @@ struct Tree {
     auto [nd, b] = euler_elem(idx);
     return (b == 0) ? nd : parent(nd);
   }
-  ll euler_elem_edge(ll idx) { return edge_idx(euler_elem_node(idx)); }
+  ll euler_elem_edge(ll idx) {
+    if (idx == 0 or idx == 2 * numNodes - 1) return numNodes - 1;
+    return edge_idx(euler_elem_node(idx));
+  }
 
   ll euler_elem_node_only(ll idx) {
     auto [nd, b] = euler_elem(idx);
