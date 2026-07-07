@@ -15,6 +15,9 @@ using namespace std;
 
   * sortedIndex(vec, comp) returns ord2idx: it is equivallent to sortedIndex2(vec, comp).first.
 
+  * To specify comp with arguments indices rather than values, use sortedIndex2CFAI and sortedIndexCFAI.
+    See below for an example.
+
   Typical Usage:
 
     vector<string> vec = {"bbb", "ccc", "aaa"};
@@ -27,9 +30,10 @@ using namespace std;
     }
 
     auto ord2idx = sortedIndex(vec);   // Same as above if you do not need idx2ord.
-
     auto ord2idx = sortedIndex(vec, greater<string>());   // reverse order
 
+    vector<ll> vec2{2, 5, 5, 5, 2, 1};
+    auto ord2idx = sortedIndexCFAI(vec2, [&](ll i, ll j) { return vec2[i] != vec2[j] ? vec2[i] > vec2[j] : i < j; });
 */
 
 //////////////////////////////////////////////////////////////////////
@@ -37,24 +41,29 @@ using namespace std;
 // @@ !! BEGIN() ---- sortedIndex.cc
 
 template<typename INT = long long int>
-vector<INT> sortedIndex(const auto& vec, auto comp) {
+vector<INT> sortedIndexCFAI(const auto& vec, auto idx_comp) { // Comparison Function Arguments are Indices
   vector<INT> ret(vec.size());
   iota(ret.begin(), ret.end(), (INT)0);
-  sort(ret.begin(), ret.end(), [&vec, &comp](INT i, INT j) { return comp(vec[i], vec[j]); });
+  sort(ret.begin(), ret.end(), idx_comp);
   return ret;
 }
 
+template<typename INT = long long int, typename Collection, typename Comp = less<typename Collection::value_type>>
+vector<INT> sortedIndex(const Collection& vec, Comp comp = Comp()) {
+  return sortedIndexCFAI<INT>(vec, [&vec, &comp](INT i, INT j) { return comp(vec[i], vec[j]); });
+}
+
 template<typename INT = long long int>
-pair<vector<INT>, vector<INT>> sortedIndex2(const auto& vec, auto comp) {
-  auto ord2idx = sortedIndex(vec, comp);
+pair<vector<INT>, vector<INT>> sortedIndex2CFAI(const auto& vec, auto idx_comp) {
+  auto ord2idx = sortedIndexCFAI<INT>(vec, idx_comp);
   vector<INT> idx2ord(vec.size());
   for (size_t i = 0; i < vec.size(); i++) idx2ord[ord2idx[i]] = i;
   return {move(ord2idx), move(idx2ord)};
 }
 
-template<typename INT = long long int, typename Collection>
-vector<INT> sortedIndex(const Collection& vec) {
-  return sortedIndex<INT>(vec, less<typename Collection::value_type>());
+template<typename INT = long long int>
+pair<vector<INT>, vector<INT>> sortedIndex2(const auto& vec, auto comp) {
+  return sortedIndex2CFAI<INT>(vec, [&vec, &comp](INT i, INT j) { return comp(vec[i], vec[j]); });
 }
 
 template<typename INT = long long int, typename Collection>

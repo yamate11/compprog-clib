@@ -53,6 +53,12 @@ int main() {
     vector<int> exp_a{3, 5, 1, 2, 0, 4};
     assert(ord2idx_a == exp_a);
   }
+  {
+    vector<int> vec1{10, 5, 7, 1, 20, 3};
+    auto ord2idx_a = sortedIndex<ll>(vec1);
+    vector<ll> exp_a{3, 5, 1, 2, 0, 4};
+    assert(ord2idx_a == exp_a);
+  }
 
   {
     vector<pll> vec1({{7, 3}, {7, 2}, {3, 0}, {4, 4}, {7, 10}, {1, 5}, {3, 2}});
@@ -68,5 +74,27 @@ int main() {
     }
   }
            
+  {
+    vector<ll> vec{5, 10, 1, 2, 2, 2};
+    auto [ord1, inv1] = sortedIndex2CFAI(vec, [&](ll i, ll j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] > vec[j];
+      return i < j;
+    });
+    auto [ord2, inv2] = sortedIndex2CFAI<int>(vec, [&](int i, int j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] > vec[j];
+      return i > j;
+    });
+    auto ord3 = sortedIndexCFAI(vec, [&](int i, int j) -> bool {
+      if (vec[i] != vec[j]) return vec[i] < vec[j];
+      return i < j;
+    });
+    assert(ord1 == (vector<ll>{1, 0, 3, 4, 5, 2}));
+    assert(ord2 == (vector<int>{1, 0, 5, 4, 3, 2}));
+    assert(ord3 == (vector<ll>{2, 3, 4, 5, 0, 1}));
+    assert(inv1 == (vector<ll>{1, 0, 5, 2, 3, 4}));
+    assert(inv2 == (vector<int>{1, 0, 5, 4, 3, 2}));
+  }
 
+
+  cerr << "ok" << endl;
 }
