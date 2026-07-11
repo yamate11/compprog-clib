@@ -209,17 +209,47 @@ struct Trie {
     return ret;
   }
 
-  void _show_sub(auto& vec) const {
+  void _elem_list_sub(auto& vec) const {
     for (int i = 0; i < reside; i++) vec.push_back(repr());
-    for (int i = 0; i < bt_size; i++) {
-      Trie* p = get_child_offset(i);
-      if (p) p->_show_sub(vec);
-    }
+    for (int i = 0; i < bt_size; i++) if (Trie* p = get_child_offset(i); p) p->_elem_list_sub(vec);
   }
 
-  vector<S> show() const {
+  vector<S> elem_list() const {
     vector<S> ret;
-    _show_sub(ret);
+    _elem_list_sub(ret);
+    return ret;
+  }
+
+  using show_elem_tp = conditional_t<is_same_v<User, monostate>, tuple<S, int, int>, tuple<S, int, int, int, User>>;
+  using show_tp = vector<show_elem_tp>;
+
+  void _show_sub_add(string& s) const {
+    s += "(" + repr() + ", " + to_string(reside) + ", " + to_string(size_st);
+    if constexpr (not (is_same_v<User, monostate>)) s += ", " + g_show(user);
+    s += "),\n  ";
+  }
+
+  void _show_sub(string& s, bool elemonly) const {
+    auto add = [&]() -> void {
+      s += "(" + repr();
+      if constexpr (set_mode == TRIE_SET_SINGLE or set_mode == TRIE_SET_MULTI) {
+        s += ", " + to_string(reside) + ", " + to_string(size_st);
+      }
+      if constexpr (not (is_same_v<User, monostate>)) s += ", " + g_show(user);
+      s += "),\n  ";
+    };
+
+    if constexpr (set_mode == TRIE_SET_SINGLE or set_mode == TRIE_SET_MULTI) {
+      if (reside > 0 or not elemonly) add();
+    }else add();
+    for (int i = 0; i < bt_size; i++) if (Trie* p = get_child_offset(i); p) p->_show_sub(s, elemonly);
+  }
+
+  string show(bool elemonly = true) const {
+    string ret = "[ ";
+    _show_sub(ret, elemonly);
+    ret.pop_back(); ret.pop_back(); ret.pop_back(); ret.pop_back();
+    ret += "]";
     return ret;
   }
 

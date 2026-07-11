@@ -89,7 +89,7 @@ struct MyTest {
           }
         }
 
-        auto vec = root->show();
+        auto vec = root->elem_list();
         if (not (ssize(vec) == ssize(naive) and root->size_st == ssize(naive))) {
           DLOGK(naive);
           DLOGK(vec);
@@ -146,6 +146,47 @@ void test_set_none() { // test for SET_MODE_NONE
   }
 }
 
+void test_show() {
+  {
+    using MyTrieA = Trie<2, '0', TRIE_SET_SINGLE>;
+    auto rootA = new MyTrieA;
+    rootA->insert("001");
+    rootA->insert("01");
+    rootA->insert("001");
+    rootA->insert("10");
+    rootA->erase("01");
+    string s = rootA->show();
+    string exp = "[ (001, 1, 1),\n  (10, 1, 1)]";
+    assert(rootA->show() == exp);
+    assert(g_show(*rootA) == exp);
+  }
+  {
+    using MyTrie = Trie<4, 'a', TRIE_SET_MULTI>;
+    auto root = new MyTrie;
+    root->insert("ab");
+    root->insert("dd");
+    root->insert("ab");
+    string exp1 = "[ (ab, 2, 2),\n  (dd, 1, 1)]";
+    string exp2 = "[ (, 0, 3),\n  (a, 0, 2),\n  (ab, 2, 2),\n  (d, 0, 1),\n  (dd, 1, 1)]";
+    string s1 = root->show();
+    string s2 = root->show(false);
+    assert(s1 == exp1);
+    assert(s2 == exp2);
+  }
+  {
+    using MyTrie = Trie<4, 'a', TRIE_SET_NONE, pair<int, int>>;
+    auto root = new MyTrie;
+    auto p1 = root->insert("ab");
+    p1->user = {3, 5};
+    auto p2 = root->insert("cc");
+    p2->user = {-5, 0};
+    string exp = "[ (, (0, 0)),\n  (a, (0, 0)),\n  (ab, (3, 5)),\n  (c, (0, 0)),\n  (cc, (-5, 0))]";
+    string s = root->show();
+    assert(s == exp);
+  }
+}
+
+
 int main() {
   ios_base::sync_with_stdio(false);
   cin.tie(nullptr);
@@ -177,7 +218,7 @@ int main() {
     assert(p6->get_offset() == 'p' - 'a');
     p6->erase();
     assert(not p6->reside and p6->size_st == 0 and tr1->size_st == 4);
-    bool b7 = tr1->show() == vector<string>{"", "abcaaa", "abczzz", "az"};
+    bool b7 = tr1->elem_list() == vector<string>{"", "abcaaa", "abczzz", "az"};
     assert(b7);
 
     auto p11 = tr1->search("az");
@@ -228,11 +269,12 @@ int main() {
       p->user ++;
       mp[s]++;
     }
-    for (string s : root->show()) assert(root->search(s)->user == mp[s]); 
+    for (string s : root->elem_list()) assert(root->search(s)->user == mp[s]); 
     for (auto [s, n] : mp) assert(root->search(s)->user == n);
   }
 
   test_set_none();  // set_mode == TEST_SET_NONE
+  test_show();  // show()
 
   cout << "ok\n";
   return 0;
