@@ -5,8 +5,7 @@ using ll =  long long int;
 using u64 = unsigned long long;
 
 /*
-  Note that this struct offers an ordinary set, NOT A MULTISET.
-
+  Trie
   https://yamate11.github.io/blog/posts/2025/06-28-trie-with-pointers/
  */
 
@@ -14,9 +13,19 @@ using u64 = unsigned long long;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- trie.cc
 
-template <int bt_size, char from, typename User = monostate,
-  typename S = string, bool compact = 2 < bt_size, bool has_offset = true>
+constexpr int TRIE_SET_MULTI = 0;
+constexpr int TRIE_SET_SINGLE = 1;
+constexpr int TRIE_SET_NONE = 2;
+
+template <int bt_size, char from, int set_mode = TRIE_SET_MULTI, typename User = monostate,
+          typename S = string, bool compact = (8 <= bt_size and bt_size <= 63), bool has_offset = true>
 struct Trie {
+
+  template <typename RetType>
+  static consteval RetType make_default_intval(int x) {
+    if constexpr (is_same_v<RetType, int>) return x;
+    else return {};
+  }
 
   Trie* parent = nullptr;
 
@@ -30,43 +39,56 @@ struct Trie {
   [[no_unique_address]] children_t children{};
 
   using offset_t = conditional_t<has_offset, int, monostate>;
-  static consteval offset_t make_default_offset() {
-    if constexpr (is_same_v<offset_t, int>) return -1;
-    else return {};
-  }
-  [[no_unique_address]] offset_t offset = make_default_offset();
+  [[no_unique_address]] offset_t offset = make_default_intval<offset_t>(-1);
 
-  bool reside = false;
+  using reside_t = conditional_t<set_mode == TRIE_SET_NONE, monostate, int>;
+  [[no_unique_address]] reside_t reside = make_default_intval<reside_t>(0);
 
-  int size_st = 0;
+  using size_st_t = conditional_t<set_mode == TRIE_SET_NONE, monostate, int>;
+  [[no_unique_address]] size_st_t size_st = make_default_intval<size_st_t>(0);
 
   [[no_unique_address]] User user{};
+
+  /*
+    Note on the default value of compact: When `compact' = true, the size of Trie increases 4 bytes per bt_size,
+    as the type of `children' is array<Trie*, bt_size>.  When `compact' = false, the size of Trie itself
+    does not depend on the value of bt_size, but the memory consumption increases when a string is added,
+    as the type of `cpt_children` is vector<Trie*>.  The size of Trie with (compact=true, bt_size=4) is
+    the same as that with (compact=False).  (Warning: if you use -D_GLIBCXX_DEBUG, the results may be
+    different.)  Thus, when bt_size <= 4, `comapct' should definitely be false.
+  */
 
   Trie() = default;
   Trie(Trie* p, int offset_) : parent(p) {
     if constexpr (has_offset) offset = offset_;
   }
 
-  Trie* get_child_val(int c, bool create = false) { return get_child_offset(c - from, create); }
-
-  Trie* get_child_offset(int d, bool create = false) {
+  Trie* get_child_offset(int d) const {
     if constexpr(compact) {
       ll idx = popcount(c_pat & ((1ULL << d) - 1));
-      if (c_pat >> d & 1) return cpt_children[idx];
-      if (not create) return nullptr;
-      Trie* p = new Trie(this, d);
-      cpt_children.insert(cpt_children.begin() + idx, p);
-      c_pat |= 1ULL << d;
-      return p;
+      return (c_pat >> d & 1) ? cpt_children[idx] : nullptr;
     }else {
       Trie* p = children[d];
-      if (p) return p;
-      if (not create) return nullptr;
-      p = children[d] = new Trie(this, d);
-      return p;
+      return p ? p : nullptr;
     }
   }
+  Trie* get_child_val(int c) const { return get_child_offset(c - from); }
 
+  Trie* get_or_create_child_offset(int d) {
+    if (Trie* p0 = get_child_offset(d); p0) return p0;
+    Trie* p = new Trie(this, d);
+    if constexpr(compact) {
+      ll idx = popcount(c_pat & ((1ULL << d) - 1));
+      cpt_children.insert(cpt_children.begin() + idx, p);
+      c_pat |= 1ULL << d;
+    }else {
+      children[d] = p;
+    }
+    return p;
+  }
+  Trie* get_or_create_child_val(int c) { return get_or_create_child_offset(c - from); }
+
+  /*
   struct children_iterator {
     Trie* node;
     int idx;
@@ -110,41 +132,62 @@ struct Trie {
   };
 
   auto children_w_val() { return children_view(this); }
+  */
 
-  Trie* get_node(const auto& s, bool create = false) {
+  Trie* get_or_create_node(const auto& s) {
     Trie* tr = this;
+    for (auto c : s) tr = tr->get_or_create_child_val(c);
+    return tr;
+  }
+  Trie* get_or_create_node(const char* s) { return get_or_create_node(string_view(s)); }
+
+  Trie* get_node(const auto& s) const {
+    Trie* tr = const_cast<Trie*>(this);
     for (auto c : s) {
-      auto cld = tr->get_child_val(c, create);
-      if (not cld) return nullptr;
-      tr = cld;
+      tr = tr->get_child_val(c);
+      if (not tr) return nullptr;
     }
     return tr;
   }
-  Trie* get_node(const char* s, bool create = false) { return get_node(string(s), create); }
+  Trie* get_node(const char* s) const { return get_node(string_view(s)); }
 
-  Trie* search(const auto& s) {
+  Trie* search(const auto& s) const {
     Trie* p = get_node(s);
-    if (p and not p->reside) p = nullptr;
+    if (p and p->reside == 0) p = nullptr;
     return p;
   }
-  Trie* search(const char* s) { return search(string(s)); }
+  Trie* search(const char* s) const { return search(string_view(s)); }
 
   Trie* insert(const auto& s) {
-    Trie* tr = get_node(s, true);
-    if (not tr->reside) {
-      tr->reside = true;
+    Trie* tr = get_or_create_node(s);
+    if constexpr (set_mode == TRIE_SET_SINGLE) {
+      if (tr->reside == 0) {
+        tr->reside = 1;
+        for (Trie* p = tr; p; p = p->parent) p->size_st++;
+      }
+    }else if constexpr (set_mode == TRIE_SET_MULTI) {
+      tr->reside++;
       for (Trie* p = tr; p; p = p->parent) p->size_st++;
     }
     return tr;
   }
-  Trie* insert(const char* s) { return insert(string(s)); }
+  Trie* insert(const char* s) { return insert(string_view(s)); }
 
   void erase() {
-    if (reside) for (Trie* tr = this; tr; tr = tr->parent) tr->size_st--;
-    reside = false;
+    if constexpr (set_mode == TRIE_SET_SINGLE or set_mode == TRIE_SET_MULTI) {
+      if (reside > 0) {
+        for (Trie* tr = this; tr; tr = tr->parent) tr->size_st--;
+        reside--;
+      }
+    }
   }
+  void erase(const auto& s) {
+    Trie* p = search(s);
+    if (p) p->erase();
+  }
+  void erase(const char* s) { erase(string_view(s)); }
 
-  int get_offset() {
+  int get_offset() const {
     if constexpr (has_offset) return offset;
     else {
       Trie* p = parent;
@@ -154,9 +197,9 @@ struct Trie {
     }
   }
 
-  S repr() {
+  S repr() const {
     S ret;
-    for (Trie* tr = this; true; tr = tr->parent) {
+    for (const Trie* tr = this; true; tr = tr->parent) {
       ll d = tr->get_offset();
       if (d < 0) break;
       ret.push_back(from + tr->get_offset());
@@ -165,15 +208,15 @@ struct Trie {
     return ret;
   }
 
-  void _show_sub(auto& vec) {
-    if (reside) vec.push_back(repr());
+  void _show_sub(auto& vec) const {
+    for (int i = 0; i < reside; i++) vec.push_back(repr());
     for (int i = 0; i < bt_size; i++) {
       Trie* p = get_child_offset(i);
       if (p) p->_show_sub(vec);
     }
   }
 
-  vector<S> show() {
+  vector<S> show() const {
     vector<S> ret;
     _show_sub(ret);
     return ret;

@@ -3,12 +3,15 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(trie random debug)
+// @@ !! LIM(debug random trie)
 
-template<int bt_size, typename S, bool b_compact, bool b_has_offset>
+int dummy;
+
+template<int bt_size, int set_mode, typename S, bool b_compact, bool b_has_offset>
 struct MyTest {
-  void run() {
-    // DLOGK(bt_size, b_compact, b_has_offset);
+  void run(int run_id) {
+    dummy ^= run_id; // to suppress the unused-parameter warning
+    // DLOGKL("** running **", run_id);
 
     constexpr char from = 'a';
     Random rand;
@@ -20,10 +23,13 @@ struct MyTest {
     ll rep1 = 30, rep2 = 100;
     ll maxlen = 4;
 #endif
-    /*  This is for through testing
-    ll rep1 = 100, rep2 = 300;
-    ll maxlen = 6;
-    */
+
+#if 0
+    // This is for thorough testing
+    rep1 = 100;
+    rep2 = 500;
+    maxlen = 6;
+#endif
 
     for (ll _r1 = 0; _r1 < rep1; _r1++) {
       auto mk_seq = [&](ll len) -> S {
@@ -31,32 +37,29 @@ struct MyTest {
         for (ll i = 0; i < len; i++) s.push_back(from + rand.range(0, bt_size));
         return s;
       };
-      auto root = new Trie<bt_size, from, monostate, S, b_compact, b_has_offset>();
-      set<S> naive;
+      auto root = new Trie<bt_size, from, set_mode, monostate, S, b_compact, b_has_offset>();
+      using myset = conditional_t<set_mode == TRIE_SET_MULTI, multiset<S>, set<S>>;
+      myset naive;
       for (ll _r2 = 0; _r2 < rep2; _r2++) {
         ll len = rand.range(0, maxlen + 1);
         S s1 = mk_seq(len);
         auto p1 = root->insert(s1);
         naive.insert(s1);
-        // DLOGKL("insert", s1, naive, root->show(), root->size_st);
         assert(p1->reside);
         assert(root->size_st == ssize(naive));
         ll x = p1->get_offset();
         if (s1.empty()) assert(x == -1);
-        else {
-          // DLOGKL("  get_offset", s1, x, s1.back());
-          assert(x == s1.back() - from);
-        }
+        else assert(x == s1.back() - from);
 
         S s2 = mk_seq(len);
         auto p2 = root->search(s2);
         assert(not p2 == not naive.contains(s2));
-        auto p2a = root->get_node(s2);
-        if (p2a) {
-          assert(p2a->repr() == s2);
-          p2a->erase();
-          naive.erase(s2);
-          assert(not root->search(s2));
+        if (naive.contains(s2)) {
+          assert(p2->repr() == s2);
+          if (rand.range(0, 2) == 0) p2->erase();
+          else                       root->erase(s2);  // should have the same effect as above
+          if (auto it = naive.find(s2); it != naive.end()) naive.erase(it);
+          assert(not root->search(s2) == not naive.contains(s2));
           assert(root->size_st == ssize(naive));
         }
             
@@ -64,7 +67,7 @@ struct MyTest {
         if (rand.range(0, 10) < 5) {
           auto p3 = root->search(s3);
           auto p3a = root->get_node(s3);
-          auto p3b = root->get_node(s3, true);
+          auto p3b = root->get_or_create_node(s3);
           if (p3a) assert(p3a == p3b);
           else assert(not p3 and p3b->repr() == s3);
         }else {
@@ -74,8 +77,8 @@ struct MyTest {
             char c = from + d;
             auto p3a = p3->get_child_val(c);
             auto p3c = p3->get_child_offset(d);
-            auto p3b = p3->get_child_val(c, true);
-            auto p3d = p3->get_child_offset(d, true);
+            auto p3b = p3->get_or_create_child_val(c);
+            auto p3d = p3->get_or_create_child_offset(d);
             assert(p3a == p3c);
             if (p3a) assert(p3a == p3b and p3c == p3d);
             else {
@@ -83,24 +86,16 @@ struct MyTest {
               ss.push_back(c);
               assert(p3b == p3d and p3b->repr() == ss);
             }
-            
-            vector<char> rec1;
-            for (auto [p, cc] : p3->children_w_val()) {
-              assert(p->get_offset() == cc - from);
-              rec1.emplace_back(cc);
-            }
-            vector<char> rec2;
-            for (ll dd = 0; dd < bt_size; dd++) {
-              auto p = p3->get_child_offset(dd);
-              if (p) rec2.emplace_back(from + p->get_offset());
-            }
-            assert(rec1 == rec2);
-
           }
         }
 
         auto vec = root->show();
-        assert(ssize(vec) == ssize(naive) and root->size_st == ssize(naive));
+        if (not (ssize(vec) == ssize(naive) and root->size_st == ssize(naive))) {
+          DLOGK(naive);
+          DLOGK(vec);
+          DLOGK(ssize(vec), ssize(naive), root->size_st);
+          assert(0);
+        }
         {
           ll i = 0;
           for (S s : naive) assert(s == vec[i++]);
@@ -110,6 +105,46 @@ struct MyTest {
   }
 };
 
+void test_set_none() { // test for SET_MODE_NONE
+  constexpr int bt_size = 2;
+  constexpr char from = '0';
+  using pll = pair<ll, ll>;
+  using MyTrie = Trie<bt_size, from, TRIE_SET_NONE, pll, string, false, true>;
+  MyTrie* root;
+  multimap<string, ll> naive;
+  auto add = [&](string s, ll val) -> void {
+    MyTrie* p = root->get_or_create_node(s);
+    p->user.first += val;
+    for (; p; p = p->parent) p->user.second += val;
+    naive.emplace(s, val);
+  };
+  auto check = [&](string s) -> void {
+    MyTrie* p = root->get_node(s);
+    ll val_trie = p ? p->user.second : 0;
+    ll val_naive = 0;
+    for (auto it = naive.lower_bound(s); it != naive.end() and it->first.substr(0, ssize(s)) == s; it++) {
+      val_naive += it->second;
+    }
+    assert(val_trie == val_naive);
+  };
+  
+  Random rand;
+  ll rep1 = 25;
+  ll rep2 = 100;
+  ll maxlen = 4;
+  for (int r = 0; r < rep1; r++) {
+    root = new MyTrie;
+    naive = multimap<string, ll>();
+    for (int r2 = 0; r2 < rep2; r2++) {
+      string s;
+      ll len = rand.range(0, maxlen + 1);
+      for (int i = 0; i < len; i++) s += from + rand.range(0, bt_size);
+      ll val = rand.range(0, 100);
+      if (rand.range(0, 2) == 0) add(s, val);
+      else                       check(s);
+    }
+  }
+}
 
 int main() {
   ios_base::sync_with_stdio(false);
@@ -117,7 +152,7 @@ int main() {
   cout << setprecision(20);
 
   {
-    auto tr1 = new Trie<26, 'a', monostate, string, false, false>();
+    auto tr1 = new Trie<26, 'a', TRIE_SET_SINGLE, monostate, string, false, false>();
 
     tr1->insert("az");
     tr1->insert("abcppp");
@@ -147,30 +182,45 @@ int main() {
 
     auto p11 = tr1->search("az");
     assert(p11->repr() == "az");
+    auto p11a = tr1->search(string("az"));
+    assert(p11a->repr() == "az");
 
-    auto tr2 = new Trie<2, '0', monostate, string, true, false>();
+    auto tr2 = new Trie<2, '0', TRIE_SET_SINGLE, monostate, string, true, false>();
     tr2->insert("010101");
+    assert(tr2->search("010101"));
+    tr2->erase("010101");
+    assert(not tr2->search("010101"));
+
     vector<int> vec3{0, 0, 1, 1, 0, 1, 0};
-
-    auto tr3 = new Trie<2, 0, monostate, vector<int>, false, true>();
+    auto tr3 = new Trie<2, 0, TRIE_SET_SINGLE, monostate, vector<int>, false, true>();
     tr3->insert(vec3);
+    assert(tr3->search(vec3));
+    tr3->erase(vec3);
+    assert(not tr3->search(vec3));
 
-    auto tr4 = new Trie<26, 'A', monostate, string, true, true>();
+    auto tr4 = new Trie<26, 'A', TRIE_SET_SINGLE, monostate, string, true, true>();
     tr4->insert("AZBCD");
-
+    assert(tr4->search("AZBCD"));
+    tr4->erase("AZBCD");
+    assert(not tr4->search("AZBCD"));
+  }
+  {
+    
   }
 
-  (new MyTest<2, string, true,  true >()) -> run();
-  (new MyTest<2, string, true,  false>()) -> run();
-  (new MyTest<2, string, false, true >()) -> run();
-  (new MyTest<2, vector<char>, false, true >()) -> run();
-  (new MyTest<4, vector<char>, true,  true >()) -> run();
-  (new MyTest<5, vector<int>, true,  false>()) -> run();
-  (new MyTest<6, deque<char>, false, true >()) -> run();
-  (new MyTest<7, string, false, true >()) -> run();
+
+  (new MyTest<2, TRIE_SET_SINGLE, string,        true,  true >()) -> run(1);
+  (new MyTest<2, TRIE_SET_MULTI,  string,        true,  true >()) -> run(2);
+  (new MyTest<2, TRIE_SET_SINGLE, string,        true,  false>()) -> run(3);
+  (new MyTest<2, TRIE_SET_MULTI,  string,        false, true >()) -> run(4);
+  (new MyTest<2, TRIE_SET_SINGLE, vector<char>,  false, true >()) -> run(5);
+  (new MyTest<4, TRIE_SET_MULTI,  vector<char>,  true,  true >()) -> run(6);
+  (new MyTest<5, TRIE_SET_SINGLE, vector<int>,   true,  false>()) -> run(7);
+  (new MyTest<6, TRIE_SET_MULTI,  deque<char>,   false, true >()) -> run(8);
+  (new MyTest<7, TRIE_SET_SINGLE, string,        false, true >()) -> run(9);
 
   {
-    auto root = new Trie<26, 'a', ll>;
+    auto root = new Trie<26, 'a', TRIE_SET_SINGLE, ll>;
     vector<string> data{"abcde", "abe", "abcde", "a", "ab", "x", "az", "a"};
     map<string, int> mp;
     for (string s : data) {
@@ -182,6 +232,7 @@ int main() {
     for (auto [s, n] : mp) assert(root->search(s)->user == n);
   }
 
+  test_set_none();  // set_mode == TEST_SET_NONE
 
   cout << "ok\n";
   return 0;
