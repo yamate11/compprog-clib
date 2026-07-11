@@ -65,6 +65,7 @@ struct Trie {
 
   Trie* get_child_offset(int d) const {
     if constexpr(compact) {
+      static_assert(bt_size <= 63);
       ll idx = popcount(c_pat & ((1ULL << d) - 1));
       return (c_pat >> d & 1) ? cpt_children[idx] : nullptr;
     }else {
