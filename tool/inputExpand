@@ -268,7 +268,7 @@ def mkstruct(namebase, c_fields, idx, order, istr, ostr):
 
     out = ''
     out += f'struct {tp} {{'
-    out += '\n' + '\n'.join([f'  {t} {v};' for (v, t) in c_fields])
+    out += '\n' + '\n'.join([f'  {t} {v}{{}};' for (v, t) in c_fields])
     if idx:
         out += f'\n  int {idx};'
 
