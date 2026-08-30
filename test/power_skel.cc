@@ -97,8 +97,8 @@ int main() {
     assert(llpower(4, 22) == 256LL*256*256*256*256*16);
     ll p3 = 1;
     for (int i = 0; i <= 39; i++) {
+      if (i > 0) p3 *= 3;
       assert(llpower(3, i) == p3);
-      p3 *= 3;
     }
     assert(llpower(3, 40) == -1);
 
