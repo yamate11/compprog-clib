@@ -17,20 +17,21 @@ using namespace std;
 
   - Constructor:
     - no arg
-        PolyLL p;                  // 0
+        Poly p;                  // 0
     - Initializer List
-        PolyFp p({-1, 0, 1, 2});   // -1 + X^2 + 2 X^3
+        Poly p({-1, 0, 1, 2});   // -1 + X^2 + 2 X^3
     - Constant
-        PolyLL p(5);               // 5
+        Poly p(5);               // 5
     - vector
         vector<ll> vec = ....;
         PolyLL p(vec);  // or
         PolyLL p(move(vec));
   - Indeterminate element
-        const SparsePoly<T> X;   
+        Poly f = Poly::X();      // X
   - X^n
-        SparsePoly<T> Xn(int n);
+        Poly f = Poly::Xn(n);    // X^n
   - Degree
+        auto X = Poly::X();
         int d = (-1.0 + X*X).degree()        // d == 2
         // The degree of the zero polynomial is -1; and the coefficient vector is empty.
   - Coefficients
@@ -73,11 +74,22 @@ using namespace std;
         friend T bostanMori(const Polynomial& p, const Polynomial& q, int n);
     - usage:   
         Fp a = bostanMori(p, q, n);
+  - Polynomial Talor Shift
+      p.taylorShift(c, cb)
+      p.taylorShift(c)
+      // Returns a polynomial q with q(x) == p(x + c).
+      // p is a polynomial<T> and c is an object of T, with T a FpG for a prime number.
+      // cb is an object of Comb<Fp> with an appropriate size (cb.fact(p.degree()) will be called).
+      // If cb is omitted, an object is created within the function.
 
   - Sparse polynomials
           template<typename T> struct SparsePoly;
       Give the constructor a vector of pair of a power and a coefficient.
-      E.g.,  3 - X^10 + 2X^20 ... SparsePoly<ll> sp({{0,3},{10,-1},{20,2}});
+      E.g.,  3 - X^{10} + 2X^{20} ... SparsePoly<ll> sp({{0,3},{10,-1},{20,2}});
+
+      Indeterminate element:
+          SparsePoly<T>::X()       // X
+          SparsePoly<T>::Xn(k)     // X^k
 
       Getting a coefficient: sp.getCoef(int n)
 
@@ -370,6 +382,30 @@ public:
 
   friend T bostanMori(const Polynomial& p, const Polynomial& q, ll n) { return p.subBostanMori(q, n); }
 
+  Polynomial taylorShift(T c, const auto& cb) const {
+    ll d = degree();
+    if (d <= 0) return *this;
+    vector<T> x(d + 1), y(d + 1);
+    T cpow = 1;
+    for (int i = 0; i < d + 1; i++) {
+      x[d - i] = cb.fact(i) * getCoef(i);
+      y[i] = cpow * cb.inv_fact(i);
+      cpow *= c;
+    }
+    auto z = convolution(move(x), move(y));
+    z.resize(d + 1);
+    vector<T> g(d + 1);
+    for (int i = 0; i < d + 1; i++) g[i] = z[d - i] * cb.inv_fact(i);
+    return Polynomial(move(g));
+  }
+  Polynomial taylorShift(T c) const {
+    if (degree() <= 0) return *this;
+    Comb<T> cb(degree());
+    return taylorShift(c, cb);
+  }
+  
+
+
   Polynomial differential() const {
     if (coef.empty()) return Polynomial();
     vector<T> vec(coef.size() - 1);
@@ -502,12 +538,10 @@ public:
     return os;
   }
 
-  static const SparsePoly<T> X;
-  static SparsePoly<T> Xn(int n) { return SparsePoly<T>::Xn(n); }
+  static Polynomial X() { return Polynomial(vector<T>{0, 1}); }
+  static Polynomial Xn(int n) { return (Polynomial)(SparsePoly<T>::Xn(n)); }
 
 };
-template<typename T, int use_fft>
-const SparsePoly<T> Polynomial<T, use_fft>::X({{1,1}});
 
 
 template<typename T>
@@ -685,12 +719,10 @@ struct SparsePoly {   // Sparse Polynomial
     return os;
   }
 
-  static const SparsePoly X;
   static SparsePoly Xn(int n) { return SparsePoly({{n,1}}); }
+  static SparsePoly X() { return Xn(1); }
 
 };
-template<typename T>
-const SparsePoly<T> SparsePoly<T>::X({{1,1}});
 
 using PolyLL = Polynomial<ll, 2>;
 using PolyFpA = Polynomial<FpA, 0>;

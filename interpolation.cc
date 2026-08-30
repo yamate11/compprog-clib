@@ -66,7 +66,7 @@ Pol lagrangePol(const vector<typename Pol::value_type>& vs) {
   fact[0] = one<T>(vs[0]);
   for (ll i = 0; i < k; i++) fact[i + 1] = fact[i] * (T)(i + 1);
   Pol aux(one<T>(vs[0]));
-  for (int i = 0; i <= k; i++) aux *= SP::X - (T)i;
+  for (int i = 0; i <= k; i++) aux *= SP::X() - (T)i;
   Pol ret;
   for (int i = 0; i <= k; i++) {
     T c = vs[i] / (fact[i] * fact[k - i]);

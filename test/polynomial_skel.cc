@@ -59,7 +59,7 @@ int main(/* int argc, char *argv[] */) {
       assert(p2.atval(x) == 2 + (-1) * x + 3 * x*x + 2 * x*x*x);
     }
 
-    const auto& X = SparsePoly<ll>::X;
+    auto X = SparsePoly<ll>::X();
     assert((X - 1LL) * (X - 1LL) == (X * X) - 2LL * X + 1LL);
 
     using Fp = FpG<2>;
@@ -84,7 +84,7 @@ int main(/* int argc, char *argv[] */) {
 
   }
   {
-    SparsePoly<ll> X = SparsePoly<ll>::X;
+    auto X = SparsePoly<ll>::X();
 
     vector<ll> vec1({1, 0, 2});
     SparsePoly<ll> sp1(vec1);
@@ -263,7 +263,7 @@ int main(/* int argc, char *argv[] */) {
 
   {
     using Pol = PolyLL;
-    const auto& X = SparsePoly<ll>::X;
+    auto X = SparsePoly<ll>::X();
     Pol p1 = Pol(1), p2 = Pol(1) - X;
     auto a = p1.divide(p2, 70);
     // DLOGK(a);
@@ -288,7 +288,7 @@ int main(/* int argc, char *argv[] */) {
   {
     using Fp = FpB;
     using Pol = PolyFpB;
-    const auto& X = Pol::X;
+    const auto& X = Pol::X();
     Pol p1 = Pol(1), p2 = Pol(1) - X - X*X;
     assert(bostanMori(p1, p2, 0) == Fp(1));
     assert(bostanMori(p1, p2, 1) == Fp(1));
@@ -334,7 +334,7 @@ int main(/* int argc, char *argv[] */) {
     SP sp1;
     SP sp2({{0, 1}, {1, -3}, {2, 3}, {3, -1}});
     SP sp3({{1, 1}});
-    SP sp4 = SP::X;
+    SP sp4 = SP::X();
     SP sp52 = SP::Xn(2);
     SP sp53 = SP::Xn(3);
     SP sp6 = 1LL - sp4;
@@ -423,6 +423,34 @@ int main(/* int argc, char *argv[] */) {
       assert(p9.degree() == -1);
     }
   }
+
+  {  // Polynomial Taylor Shift
+    using Fp = FpB;
+    using Pol = PolyFpB;
+#if DEBUG
+    ll rep = 1000;
+#else
+    ll rep = 50000;
+#endif
+    for (ll z = 0; z < rep; z++) {
+      Comb<Fp> cb(10);
+      ll deg1 = randrange(0, 6);
+      vector<Fp> v1(deg1 + 1);
+      for (ll i = 0; i < deg1; i++) v1[i] = randrange(-10, 10);
+      Pol p1(v1);
+      for (ll c : vector<ll>{-100000000, -100, -3, -2, -1, 0, 1, 2, 3, 700, 20000000}) {
+        auto q = randrange(0, 2) == 0 ? p1.taylorShift(Fp(c)) : p1.taylorShift(Fp(c), cb);
+        Pol r;
+        Pol u = Fp(1);
+        for (ll i = 0; i <= deg1; i++) {
+          r += u * p1.getCoef(i);
+          u *= Pol::X() + Fp(c);
+        }
+        assert(q == r);
+      }
+    }
+  }
+
 
   cerr << "8 " << get_time_sec() - et << endl;
   et = get_time_sec();
