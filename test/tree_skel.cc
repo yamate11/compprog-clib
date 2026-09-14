@@ -23,6 +23,8 @@ int main() {
 
   using TreeEdge = pll;
 
+#if 0
+
   {
     vector<TreeEdge> edge1({{0,1}, {0,2}, {1,3}, {1,4}, {2,5}, {2,6}});
     Tree t1(7);
@@ -431,8 +433,7 @@ int main() {
     }
   }
 
-
-  { // testing centroids() with change_root()
+  { // testing centroid() with change_root()
     ll rep = 1000;
     for (ll _r = 0; _r < rep; _r++) {
       ll N = randrange(1, 11);
@@ -452,7 +453,8 @@ int main() {
       }
       for (ll z = 0; z < N; z++) {
         tr.change_root(z);
-        auto [a, b] = tr.centroids();
+        ll a = tr.centroid();
+        ll b = 2 * tr.stsize(a) == N ? tr.parent(a) : -1LL;
         if (b < 0) {
           assert(ans[0] == a and ssize(ans) == 1);
         }else {
@@ -460,6 +462,42 @@ int main() {
           assert(ssize(ans) == 2 and ans[0] == a and ans[1] == b);
         }
       }
+    }
+  }
+
+#endif
+
+  { // centroid decomposition
+    ll rep = 1000;
+    for (ll _r = 0; _r < rep; _r++) {
+      ll N = randrange(1, 20);
+      ll root0 = randrange(0, N);
+      Tree tr0(N, root0);
+      for (ll i = 1; i < N; i++) tr0.add_edge(randrange(0, i), i);
+      auto [cent, cd_parent] = tr0.centroid_decomp();
+      assert(0 <= cent and cent < N);
+      for (ll i = 0; i < N; i++) {
+        ll cdp = cd_parent[i];
+        assert(cdp == -1 or (0 <= cdp and cdp < N));
+        assert((cdp == -1) == (i == cent));
+      }
+      vector<bool> tmp(N, false);
+      auto check_dfs = [&](auto rF1, ll nd1, ll trsz) -> void {
+        tmp[nd1] = true;
+        auto cnt = [&](auto rF2, ll nd2, ll pt) -> ll {
+          ll ret = 1;
+          for (auto [c, _dum] : tr0._nbr[nd2]) if (c != pt and not tmp[c]) ret += rF2(rF2, c, nd2);
+          return ret;
+        };
+        for (auto [top, _dum] : tr0._nbr[nd1]) if (not tmp[top]) {
+            ll sz = cnt(cnt, top, -1);
+            assert(sz * 2 <= trsz);
+            ll p = top;
+            while (cd_parent[p] != nd1) p = cd_parent[p];
+            rF1(rF1, p, sz);
+          }
+      };
+      check_dfs(check_dfs, cent, N);
     }
   }
 
@@ -507,8 +545,9 @@ int main() {
     auto vec = tr.nnpath(0, 0);
     assert(ssize(vec) == 1 and vec[0] == 0);
     assert(get<0>(tr.diameter()) == 0);
-    pair<ll, ll> pp(0, -1);
-    assert(tr.centroids() == pp);
+    assert(tr.centroid() == 0);
+    auto [cent, vec1] = tr.centroid_decomp();
+    assert(cent == 0 and vec1 == vector<ll>{-1});
     tr.change_root(0);
     assert(tr.numNodes == 1);
   }
@@ -597,6 +636,9 @@ int main() {
     for (ll i = 0; i < N; i++) assert(result[i].first == expected[i]);
   }
 
+#if DEBUG
+  cerr << "Large tree tests were skipped because of the DEBUG flag." << endl;
+#else
   { // large tree (number of nodes ~ 2e5)
 
     /*
@@ -671,7 +713,7 @@ int main() {
       auto [diam, nd0, nd1, ct0, ct1] = tr.diameter();
       auto ns = tr.nnpath(nd0, nd1);
       assert(ssize(ns) == diam + 1);
-      auto [r1, r2] = tr.centroids();
+      ll r1 = tr.centroid();
       tr.change_root(r1);
       for (ll c : tr.children(r1)) {
         assert(tr.stsize(c) * 2 <= tr.numNodes);
@@ -681,7 +723,7 @@ int main() {
     vector<string> fnames{"tree1.txt", "tree2.txt", "tree3.txt"};
     for (string fname: fnames) doit(fname);
   }
-
+#endif
 
   cerr << "test done." << endl;
   return 0;

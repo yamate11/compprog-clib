@@ -408,6 +408,39 @@ struct Tree {
     return {dp, nd0, nd1, ct0, ct1};
   }
 
+  ll _centroid_sub_find(ll nd, ll trsize, const auto& szvec) const {
+    for (ll c : children(nd)) if (szvec[c] * 2 >= trsize) return _centroid_sub_find(c, trsize, szvec);
+    return nd;
+  }
+
+  ll _centroid_calc_one(ll top, auto& szvec) const {
+    ll ret = _centroid_sub_find(top, szvec[top], szvec);
+    ll sz0 = szvec[ret];
+    for (ll p = ret; true; p = parent(p)) {
+      szvec[p] -= sz0;
+      if (p == top) break;
+    }
+    return ret;
+  }
+
+  ll centroid() const { return _centroid_sub_find(root, numNodes, _stsize); }
+
+  pair<ll, vector<ll>> centroid_decomp() const {
+    auto szvec = _stsize;
+    vector<ll> cd_parent(numNodes, -2LL);
+    auto dfs = [&](auto rF, ll nd, ll cdp) -> ll {
+      if (cd_parent[nd] != -2) return -1;
+      ll g = _centroid_calc_one(nd, szvec);
+      cd_parent[g] = cdp;
+      for (ll c : children(g)) rF(rF, c, g);
+      rF(rF, nd, g);
+      return g;
+    };
+    ll cent = dfs(dfs, root, -1);
+    return {cent, move(cd_parent)};
+  }
+
+  /*
   pair<ll, ll> centroids() {
     auto dfs = [&](auto rF, ll nd) -> pair<ll, ll> {
       for (ll c : children(nd)) {
@@ -419,6 +452,7 @@ struct Tree {
     };
     return dfs(dfs, root);
   }
+  */
 
   void change_root(ll newRoot) {
     _stsize.clear();
