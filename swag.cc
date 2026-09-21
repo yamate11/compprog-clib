@@ -1,8 +1,10 @@
 /*
   SWAG
-    https://yamate11.github.io/blog/posts/2026/09-21-swag-lib/
+    https://yamate11.github.io/blog/posts/2026/09-21-swag-lib/ 
+    (Currently, the contents are dummy.)
 
   Usage:
+    auto sw1 = make_swag(plus<ll>(), 0LL);
     auto sw = make_swag(multiplies<MyMatrix>(), MyMatrix{{1,0},{0,1}});
               // operator and its unit element.
               // operator should be associative.
