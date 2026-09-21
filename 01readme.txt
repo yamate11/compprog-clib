@@ -1,7 +1,7 @@
 修正とテストの方法:
 
 フィーチャーブランチに切り替える:
-  cd ~/compprog-clib
+  cd ~/proj/compprog-clib
   git checkout -b dev     (-b = ブランチを作る)
 修正とテストを行う
 コミットする
@@ -15,7 +15,7 @@ master ブランチにマージして，リモートに送る
   git branch -d dev
 
 compprog で修正を取り込む
-  cd ~/compprog/clib
+  cd ~/proj/compprog/clib
   git pull
 
 ----------------------------------------
