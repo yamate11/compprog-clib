@@ -1,5 +1,6 @@
 /*
   SWAG
+    https://yamate11.github.io/blog/posts/2026/09-21-swag-lib/
 
   Usage:
     auto sw = make_swag(multiplies<MyMatrix>(), MyMatrix{{1,0},{0,1}});
