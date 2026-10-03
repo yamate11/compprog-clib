@@ -34,7 +34,7 @@ struct MyTest {
     for (ll _r1 = 0; _r1 < rep1; _r1++) {
       auto mk_seq = [&](ll len) -> S {
         S s;
-        for (ll i = 0; i < len; i++) s.push_back(from + rand.range(0, bt_size));
+        for (ll i = 0; i < len; i++) s.push_back((char)(from + rand.range(0, bt_size)));
         return s;
       };
       auto root = new Trie<bt_size, from, set_mode, monostate, S, b_compact, b_has_offset>();
@@ -73,8 +73,8 @@ struct MyTest {
         }else {
           auto p3 = root->get_node(s3);
           if (p3) {
-            int d = rand.range(0, bt_size);
-            char c = from + d;
+            int d = (int)rand.range(0, bt_size);
+            char c = (char)(from + d);
             auto p3a = p3->get_child_val(c);
             auto p3c = p3->get_child_offset(d);
             auto p3b = p3->get_or_create_child_val(c);
@@ -138,7 +138,7 @@ void test_set_none() { // test for SET_MODE_NONE
     for (int r2 = 0; r2 < rep2; r2++) {
       string s;
       ll len = rand.range(0, maxlen + 1);
-      for (int i = 0; i < len; i++) s += from + rand.range(0, bt_size);
+      for (int i = 0; i < len; i++) s += from + (char)rand.range(0, bt_size);
       ll val = rand.range(0, 100);
       if (rand.range(0, 2) == 0) add(s, val);
       else                       check(s);

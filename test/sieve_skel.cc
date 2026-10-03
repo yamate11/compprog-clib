@@ -8,7 +8,7 @@ using namespace std;
 int main() {
 
   {
-    using RT = vector<pair<ll, int>>;
+    using RT = vector<pair<ll, ll>>;
     auto s = sieve(97);
     assert(s[s.size() - 1] == 97);
     assert(prfac(2) == RT({{2, 1}}));
@@ -48,9 +48,9 @@ int main() {
 
   {
     auto divSieve = divisorSieve(100000);
-    vector<pair<int, int>> vec1({{3,1}, {7,2}});
+    vector<pair<ll, ll>> vec1({{3,1}, {7,2}});
     assert(prfacDivSieve(3*7*7, divSieve) == vec1);
-    vector<pair<int, int>> vec2({{283,1}, {293,1}});
+    vector<pair<ll, ll>> vec2({{283,1}, {293,1}});
     // cout << prfacDivSieve(283*293, divSieve);
     assert(prfacDivSieve(283*293, divSieve) == vec2);
     assert(divSieve[283*293] == 283);
@@ -59,8 +59,8 @@ int main() {
   }
 
   {
-    ll n = 1e5;
-    auto primes = sieve(sqrt(n) + 1);
+    ll n = llround(1e5);
+    auto primes = sieve(llround(ceil(sqrt(n))));
     auto divSieve = divisorSieve(n);
     for (ll i = 2; i <= n; i++) {
       auto pr1 = prfac(i, primes);
@@ -139,7 +139,7 @@ int main() {
       }
       if (x > y) swap(x, y);
       auto pr = prfacPollardsRho(x * y);
-      using pli = pair<ll, int>;
+      using pli = pair<ll, ll>;
       bool b = ssize(pr) == 2 and pr[0] == pli(x, 1) and pr[1] == pli(y, 1);
       assert(b);
     }

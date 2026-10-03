@@ -78,7 +78,7 @@ ll llsqrt(ll a) {
 
 // a >= 0, m >= 2;  Returns x s.t. x^m <= a < (x + 1)^m
 ll llroot(ll a, ll m) {
-  ll x = llround(pow(a, 1.0 / m));
+  ll x = llround(pow(a, 1.0 / (double)m));
   ll y = llpower(x, m);
   if (y == -1 or a < y) return x - 1;
   else return x;

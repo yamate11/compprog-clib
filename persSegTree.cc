@@ -58,7 +58,7 @@ struct GenPersSegTree {
   ADD_t add;
   COMP_t comp;
   APPL_t appl;
-  int size = 0;
+  ll size = 0;
 
   Node* newNode() {
     if constexpr (lazy) return new Node(nullptr, nullptr, unit_dat, unit_op);

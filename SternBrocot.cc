@@ -88,7 +88,7 @@ struct SternBrocotNode {
   pair<ll, ll> numden() const {
     ll numer = coeff.back();
     ll denom = 1;
-    for (int i = ssize(coeff) - 2; i >= 0; i--) {
+    for (int i = (int)ssize(coeff) - 2; i >= 0; i--) {
       swap(numer, denom);
       numer += coeff[i] * denom;
     }

@@ -25,7 +25,7 @@ struct Doubling {
 
   void prepare_tbl(ll max_call_, vector<INT> nxt, vector<T> mapping = vector<T>()) {
     max_call = max_call_;
-    num = ssize(nxt);
+    num = (int)ssize(nxt);
     int k0 = 64 - countl_zero((u64)max_call);
     f_tbl.resize(k0, vector<INT>(num));
     f_tbl[0] = move(nxt);
@@ -46,7 +46,7 @@ struct Doubling {
     for (int k = 0; r > 0; r >>= 1, k++) {
       if (r & 1) {
         if constexpr (hasT) ret = prod(ret, t_tbl[k][idx]);
-        idx = f_tbl[k][idx];
+        idx = (int)f_tbl[k][idx];
       }
     }
     return make_pair(idx, ret);
@@ -63,7 +63,7 @@ struct Doubling {
     if (lo_exp and not start_check) return lo - 1;
     if (not lo_exp and start_check) return lo;
     // DLOGKL("    ", lo, i, lo_idx, lo_val.left, lo_val.right, lo_val.numinc);
-    for (int h = ssize(f_tbl) - 1; h >= 0; h--) {
+    for (int h = (int)ssize(f_tbl) - 1; h >= 0; h--) {
       if (lo + (1LL << h) > hi) continue;
       T v_inc = prod(lo_val, t_tbl[h][lo_idx]);
       if (check(v_inc) == lo_exp) {

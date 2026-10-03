@@ -144,7 +144,7 @@ struct RBST {
       if (not q) return p;
       ll n = _size_s(p);
       ll m = _size_s(q);
-      if (RBST::randrange(0, n + m) < n) {
+      if (RBST::randrange(0, (int)(n + m)) < n) {
         Node* r = _merge_s(p->right, q);
         p->right = r;
         p->_update();
@@ -156,45 +156,6 @@ struct RBST {
         return q;
       }
     }
-
-    /*
-    static Node* merge(Node* l, Node* r) {
-      if (not l) return r;
-      if (not r) return l;
-      l->_push(); r->_push();
-      if (Node::randrange(0, l->size + r->size) < l->size) {
-        l->right = merge(l->right, r);
-        l->_update();
-        return l;
-      }else {
-        r->left = merge(l, r->left);
-        r->_update();
-        return r;
-      }
-    }
-
-    using pnn = pair<Node*, Node*>;
-    pnn split_base(optional<const T&> v, int k) {
-      if ((not v) and (k < 0 or size <= k)) throw new runtime_error("Node.split: k is out of range");
-      _push();
-      if (not left) return right->split_base(v, k);
-      if (not right) return left->split_base(v, k);
-      if ((v and (not val < *v)) or k <= left->size) {
-        auto [l1, r1] = left->split_base(v, k);
-        left = r1;
-        _update();
-        return pnn(l1, this);
-      } else {
-        auto [l1, r1] = right->split_base(v, k - left->size - 1);
-        right = l1;
-        _update();
-        return pnn(this, r1);
-      }
-    }
-
-    // returns [0, k) and [k, N)
-    prr split(int k) { return _split_base(nullopt, k); }
-    */
 
 #if DEBUG
     pair<string, int> show(int seq) const {

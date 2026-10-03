@@ -19,7 +19,7 @@ vector<Point> naive_convex_hull(const vector<Point>& o_pts) {
   }
 
   unordered_set<int> inner;
-  int n = pts.size();
+  int n = (int)pts.size();
 
   auto check2 = [&](int m) -> void {
     if (inner.find(m) != inner.end()) return;
@@ -71,7 +71,7 @@ vector<Point> naive_convex_hull(const vector<Point>& o_pts) {
 }
 
 tuple<Real, int, int> naive_diameter(const vector<Point>& pts) {
-  int n = pts.size();
+  int n = (int)pts.size();
   Real vmax = 0.0;
   int i0 = -1;
   int j0 = -1;

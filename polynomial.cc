@@ -167,7 +167,7 @@ public:
   }
 
   // Degree of the zero polynomial is -1.
-  int degree() const { return coef.size() - 1; }
+  int degree() const { return (int)coef.size() - 1; }
 
   void normalize() {
     while (!coef.empty() && coef.back() == (T)0) coef.pop_back();
@@ -223,8 +223,8 @@ public:
 
   vector<T> coef_conv(const vector<T>& a, const vector<T>& b) const {
     if (use_fft == 0) {
-      int a_size = a.size();
-      int b_size = b.size();
+      int a_size = (int)a.size();
+      int b_size = (int)b.size();
       int new_size = a_size + b_size - 1;
       auto ret = vector<T>(new_size);
       for (int i = 0; i < new_size; i++) {
@@ -341,7 +341,7 @@ public:
   // This works, but very slow.   (Library Checker: 334ms)
   Polynomial inverse(int n) const {  
     Polynomial g{(T)1 / coef[0]};
-    ll k = 1;
+    int k = 1;
     while (n >= k) {
       g = (g * 2 - g * g * cutoff(2 * k - 1)).cutoff(2 * k - 1);
       k = 2 * k;
@@ -372,7 +372,7 @@ public:
     rev(q_rev);
     for (; n; n >>= 1) {
       p = coef_conv(move(p), q_rev);
-      shift(p, n % 2);
+      shift(p, (int)n % 2);
       q = coef_conv(move(q), move(q_rev));
       shift(q, 0);
       q_rev = q; rev(q_rev);
@@ -555,7 +555,7 @@ struct SparsePoly {   // Sparse Polynomial
   // degree of 0 (as polynomial) is -1
   int degree() const {
     if (coef.empty()) return -1;
-    return coef.back().first;
+    return (int)coef.back().first;
   }
   void normalize() {
     while (!coef.empty() && coef.back().second == (T)0) coef.pop_back();

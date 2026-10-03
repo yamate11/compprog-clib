@@ -15,25 +15,25 @@ struct NaiveImpl {
   APPL_t appl;
   vector<vector<DAT>> data;
   
-  int fromVector(const vector<DAT>& vec) {
+  ll fromVector(const vector<DAT>& vec) {
     data.push_back(vec);
     return ssize(data) - 1;
   }
 
-  DAT query(int idx, ll rngLo, ll rngHi) const {
+  DAT query(ll idx, ll rngLo, ll rngHi) const {
     ll ret = unit_dat;
     for (int i = rngLo; i < rngHi; i++) ret = add(ret, data[idx][i]);
     return ret;
   }
 
-  int update(int idx, ll rngLo, ll rngHi, const OP& op_asked) {
+  ll update(ll idx, ll rngLo, ll rngHi, const OP& op_asked) {
     vector<DAT> new_vec = data[idx];
     for (int i = rngLo; i < rngHi; i++) new_vec[i] = appl(op_asked, new_vec[i]);
     data.push_back(move(new_vec));
     return ssize(data) - 1;
   }
 
-  int set(int idx, ll i, DAT t) {
+  ll set(ll idx, ll i, DAT t) {
     vector<DAT> new_vec = data[idx];
     new_vec[i] = move(t);
     data.push_back(move(new_vec));

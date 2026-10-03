@@ -42,7 +42,7 @@ struct Matrix {
 
   template<typename Z>
   void _from_vec(int dimI_, int dimJ_, Z&& vec) {
-    int sz = vec.size();
+    int sz = (int)vec.size();
     dimI = dimI_ <= 0 ? sz / dimJ_ : dimI_;
     dimJ = dimJ_ <= 0 ? sz / dimI_ : dimJ_;
     if (dimI * dimJ != sz) throw domain_error("_from_vec: inconsistent sizes");
@@ -52,9 +52,9 @@ struct Matrix {
   Matrix(int dimI_, int dimJ_, vector<T>&&      vec) { _from_vec(dimI_, dimJ_, move(vec)); }
 
   Matrix(initializer_list<initializer_list<T>> il) {
-    dimI = il.size();
+    dimI = (int)il.size();
     if (dimI == 0) throw domain_error("from_il: zero rows");
-    dimJ = (*il.begin()).size();
+    dimJ = (int)(*il.begin()).size();
     if (dimJ == 0) throw domain_error("from_il: zero columns");
     mem.resize(dimI * dimJ);
     int i = 0;
@@ -127,9 +127,9 @@ struct Matrix {
   }
 
   static Matrix from_vvec(const vector<vector<T>>& vvec) {
-    int dimI_ = vvec.size();
+    int dimI_ = (int)vvec.size();
     if (dimI_ == 0) throw domain_error("from_vvec: zero rows");
-    int dimJ_ = vvec[0].size();
+    int dimJ_ = (int)vvec[0].size();
     if (dimJ_ == 0) throw domain_error("from_vvec: zero columns");
     Matrix ret(dimI_, dimJ_);
     for (int i = 0; i < dimI_; i++) {

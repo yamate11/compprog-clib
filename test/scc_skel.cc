@@ -7,42 +7,42 @@ using namespace std;
 
 struct NaiveSCC {
   bool built;
-  int size;
+  ll size;
   vector<vector<bool>> conn;
   
-  vector<int> _ccForNode;
-  int ccForNode(int nd) {
+  vector<ll> _ccForNode;
+  ll ccForNode(ll nd) {
     if (!built) build();
     return _ccForNode[nd];
   }
 
-  vector<vector<int>> _nodesInCC;
-  const vector<int>& nodesInCC(int ccid) {
+  vector<vector<ll>> _nodesInCC;
+  const vector<ll>& nodesInCC(ll ccid) {
     if (!built) build();
     return _nodesInCC[ccid];
   }
 
-  int numComp() {
+  ll numComp() {
     if (! built) build();
     return _nodesInCC.size();
   }
 
-  vector<vector<int>> _cFwd;
-  const vector<int>& cFwd(int ccid) {
+  vector<vector<ll>> _cFwd;
+  const vector<ll>& cFwd(ll ccid) {
     if (! built) build();
     return _cFwd[ccid];
   }
 
-  vector<vector<int>> _cBwd;
-  const vector<int>& cBwd(int ccid) {
+  vector<vector<ll>> _cBwd;
+  const vector<ll>& cBwd(ll ccid) {
     if (! built) build();
     return _cBwd[ccid];
   }
 
-  NaiveSCC(int size_) : built(false), size(size_),
+  NaiveSCC(ll size_) : built(false), size(size_),
                         conn(size, vector<bool>(size)) {}
 
-  void addEdge(int from, int to) { conn[from][to] = true; }
+  void addEdge(ll from, ll to) { conn[from][to] = true; }
 
   void build() {
     if (built) return;
@@ -55,13 +55,13 @@ struct NaiveSCC {
         }
       }
     }
-    _ccForNode = vector<int>(size, -1);
-    for (int i = 0; i < size; i++) {
+    _ccForNode = vector<ll>(size, -1);
+    for (ll i = 0; i < size; i++) {
       if (_ccForNode[i] >= 0) continue;
-      vector<int> nodes({i});
+      vector<ll> nodes({i});
       ll idx = _nodesInCC.size();
       _ccForNode[i] = idx;
-      for (int j = i + 1; j < size; j++) {
+      for (ll j = i + 1; j < size; j++) {
         if (trcl[i][j] && trcl[j][i]) {
           nodes.push_back(j);
           _ccForNode[j] = idx;
@@ -69,11 +69,11 @@ struct NaiveSCC {
       }
       _nodesInCC.push_back(move(nodes));
     }
-    int numCC = _nodesInCC.size();
+    ll numCC = _nodesInCC.size();
     _cFwd.resize(numCC);
     _cBwd.resize(numCC);
-    for (int p = 0; p < numCC; p++) {
-      for (int q = 0; q < numCC; q++) {
+    for (ll p = 0; p < numCC; p++) {
+      for (ll q = 0; q < numCC; q++) {
         if (p == q) continue;
         if ([&]() -> bool {
           for (ll i : _nodesInCC[p]) {
@@ -97,8 +97,8 @@ struct NaiveSCC {
 struct Compare {
   SCC scc;
   NaiveSCC nscc;
-  Compare(int size) : scc(size), nscc(size) {}
-  void addEdge(int from, int to) {
+  Compare(ll size) : scc(size), nscc(size) {}
+  void addEdge(ll from, ll to) {
     scc.addEdge(from, to);
     nscc.addEdge(from, to);
   }
@@ -106,14 +106,14 @@ struct Compare {
   void check() {
     ll nc = scc.numComp();
     assert(scc.numComp() == nscc.numComp());
-    vector<int> corr(nc);
+    vector<ll> corr(nc);
     for (ll i = 0; i < scc.size; i++) {
       corr[scc.ccForNode(i)] = nscc.ccForNode(i);
     }
     auto eq_corr = [&](auto& vec1, auto& vec2) {
       // DLOGK(vec1, vec2);
-      vector<int> vec;
-      for (int x : vec1) vec.push_back(corr[x]);
+      vector<ll> vec;
+      for (ll x : vec1) vec.push_back(corr[x]);
       sort(vec.begin(), vec.end());
       assert(vec == vec2);
     };
@@ -187,9 +187,9 @@ int main() {
     assert(scc2.ccForNode(0) == scc2.ccForNode(2));
     assert(scc2.ccForNode(5) == scc2.ccForNode(6));
     assert(scc2.nodesInCC(scc2.ccForNode(3)).size() == 1);
-    assert(scc2.cFwd(scc2.ccForNode(0)) == vector<int>({scc2.ccForNode(3)}));
-    for (int n = 0; n < scc2.numComp(); n++) {
-      for (int m: scc2.cFwd(n)) assert(n > m);
+    assert(scc2.cFwd(scc2.ccForNode(0)) == vector<ll>({scc2.ccForNode(3)}));
+    for (ll n = 0; n < scc2.numComp(); n++) {
+      for (ll m: scc2.cFwd(n)) assert(n > m);
     }
   }
   {
@@ -212,25 +212,25 @@ int main() {
     scc3.addEdge(7, 5);
     scc3.addEdge(7, 10);
     scc3.addEdge(8, 10);
-    int c1236 = scc3.ccForNode(1);
-    int c57 = scc3.ccForNode(5);
-    int c4 = scc3.ccForNode(4);
-    int c8 = scc3.ccForNode(8);
-    int c9 = scc3.ccForNode(9);
+    ll c1236 = scc3.ccForNode(1);
+    ll c57 = scc3.ccForNode(5);
+    ll c4 = scc3.ccForNode(4);
+    ll c8 = scc3.ccForNode(8);
+    ll c9 = scc3.ccForNode(9);
     assert(scc3.nodesInCC(c1236).size() == 4);
     assert(scc3.nodesInCC(c57).size() == 2);
     assert(scc3.nodesInCC(c4).size() == 1);
     assert(scc3.nodesInCC(c9).size() == 1);
-    assert(scc3.cFwd(c4) == vector<int>({c9}));
-    assert(scc3.cBwd(c4) == vector<int>({c1236}));
-    vector<int> varr1236 = scc3.cFwd(c1236);
-    set<int> sarr1236(varr1236.begin(), varr1236.end());
+    assert(scc3.cFwd(c4) == vector<ll>({c9}));
+    assert(scc3.cBwd(c4) == vector<ll>({c1236}));
+    vector<ll> varr1236 = scc3.cFwd(c1236);
+    set<ll> sarr1236(varr1236.begin(), varr1236.end());
     assert(varr1236.size() == 3);
     assert(sarr1236.count(c4) == 1);
     assert(sarr1236.count(c57) == 1);
     assert(sarr1236.count(c8) == 1);
-    for (int n = 0; n < scc3.numComp(); n++) {
-      for (int m: scc3.cFwd(n)) assert(n > m);
+    for (ll n = 0; n < scc3.numComp(); n++) {
+      for (ll m: scc3.cFwd(n)) assert(n > m);
     }
   }
   {
@@ -249,7 +249,7 @@ int main() {
   {
     ll rpt = 1000;
     for (ll i = 0; i < rpt; i++) {
-      ll N = randrange(10, 100);
+      ll N = randrange(1, 33);
       ll M = randrange(0, N*N);
       auto rec = vector(N, vector(N, false));
       Compare cp(N);

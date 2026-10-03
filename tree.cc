@@ -317,7 +317,7 @@ struct Tree {
 
       vector<pair<ll, ll>> ret;
       auto append_ret = [&](const auto& vec) -> void {
-        for (int i = ssize(vec) - 1; i >= 0; i--) {
+        for (ll i = ssize(vec) - 1; i >= 0; i--) {
           auto [h, t] = vec[i];
           ret.emplace_back(euler_idx_in(h), euler_idx_in(t) + 1);
         }
@@ -471,7 +471,7 @@ struct Tree {
     string ret;
     for (int nd = 0; nd < numNodes; nd++) {
       string sc;
-      for (int c : children(nd)) sc += format("{:2d} ", c);
+      for (ll c : children(nd)) sc += format("{:2d} ", c);
       ret += format("{:1} {:2d}: {}\n", nd == root ? "R" : "", nd, sc);
     }
     string se;

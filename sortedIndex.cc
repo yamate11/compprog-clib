@@ -57,7 +57,7 @@ template<typename INT = long long int>
 pair<vector<INT>, vector<INT>> sortedIndex2CFAI(const auto& vec, auto idx_comp) {
   auto ord2idx = sortedIndexCFAI<INT>(vec, idx_comp);
   vector<INT> idx2ord(vec.size());
-  for (size_t i = 0; i < vec.size(); i++) idx2ord[ord2idx[i]] = i;
+  for (size_t i = 0; i < vec.size(); i++) idx2ord[ord2idx[i]] = (INT)i;
   return {move(ord2idx), move(idx2ord)};
 }
 

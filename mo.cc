@@ -51,7 +51,7 @@ struct Mo {
   void add_query(int l, int r) { vq.emplace_back(l, r, vq_idx++); }
 
   void run(auto in_left, auto in_right, auto out_left, auto out_right, auto calc) {
-    int qsz = vq.size();
+    int qsz = (int)vq.size();
     int bsize = max(1, int((double)size / sqrt(qsz)));
     cl = 0;
     cr = 0;

@@ -14,15 +14,15 @@ struct WeakRH {
   WeakRH() : pow_memo({1}), base(4719527) {}
 
   vector<u64> hashes(string s) {
-    int n = s.size();
+    ll n = s.size();
     vector<u64> hs(n+1);
-    for (int i = 0; i < n; i++) {
+    for (ll i = 0; i < n; i++) {
       hs[i+1] = (hs[i] * base + s[i]) % mod;
     }
     return hs;
   }
 
-  u64 get(const vector<u64>& hashes, int start = 0, int len = -1) {
+  u64 get(const vector<u64>& hashes, ll start = 0, ll len = -1) {
     if (len == -1) len = hashes.size() - 1 - start;
     if (start == 0) return hashes[len];
     while ((int)pow_memo.size() < len + 1) {
@@ -31,48 +31,6 @@ struct WeakRH {
     return (hashes[start + len] +
 	    mod - ((hashes[start] * pow_memo[len]) % mod)) % mod;
   }
-};
-
-struct U128RH {
-  Random rand;
-  static constexpr u64 mod = (1ULL << 61) - 1;
-  
-  vector<__uint128_t> pow_memo;
-  const u64 base;
-
-  u64 __get_base() { return rand.range(1000, 1ULL << 20); }
-
-  U128RH() : pow_memo({1}), base(__get_base()) {}
-
-  vector<u64> hashes(string s) {
-    int n = s.size();
-    vector<u64> hs(n+1);
-    for (int i = 0; i < n; i++) {
-      hs[i + 1] = u64((__uint128_t(hs[i]) * base + s[i]) % mod);
-    }
-    return hs;
-  }
-
-  __uint128_t base_power(ll n) {
-    while ((int)pow_memo.size() < n + 1) {
-      pow_memo.push_back(pow_memo[pow_memo.size() - 1] * base % mod);
-    }
-    return pow_memo[n];
-  }
-
-  u64 get(const vector<u64>& hs, int start = 0, int len = -1) {
-    if (len == -1) len = hs.size() - 1 - start;
-    if (start == 0) return hs[len];
-    return (hs[start + len] +
-	    mod - (__uint128_t(hs[start]) * base_power(len)) % mod) % mod;
-  }
-
-  u64 hash_concat(u64 hash1, u64 hash2, int len2) {
-    return u64((__uint128_t(hash1) * base_power(len2) % mod + hash2) % mod);
-  }
-
-  u64 hash_char(char c) { return c; }
-
 };
 
 int main(int argc, char *argv[] ) {
@@ -160,16 +118,16 @@ int main(int argc, char *argv[] ) {
 
   {
 
-    int lim = 100000;
-    uniform_int_distribution<int> dist(-lim, lim);
-    auto rh = make_rolling_hash_gen<int>(0, 2 * lim, [](int x) -> u64 { return x + 100000; });
-    int sz = 1e4;
-    vector<int> v(sz);
-    for (int i = 0; i < sz; i++) v[i] = dist(rng2);
-    int p0 = 3712;
-    int q0 = 5438;
-    int len = 1e3;
-    for (int j = 0; j < len; j++) v[p0 + j] = v[q0 + j];
+    ll lim = 100000;
+    uniform_int_distribution<ll> dist(-lim, lim);
+    auto rh = make_rolling_hash_gen<ll>(0, 2 * lim, [](ll x) -> u64 { return x + 100000; });
+    ll sz = 1e4;
+    vector<ll> v(sz);
+    for (ll i = 0; i < sz; i++) v[i] = dist(rng2);
+    ll p0 = 3712;
+    ll q0 = 5438;
+    ll len = 1e3;
+    for (ll j = 0; j < len; j++) v[p0 + j] = v[q0 + j];
     auto hs = rh.precomp(v);
     for (ll i = 0; i < sz - len; i++) {
       for (ll j = i + 1; j < sz - len; j++) {
@@ -187,7 +145,7 @@ int main(int argc, char *argv[] ) {
     auto hash_elem = [](const pll& p) -> u64 { return rh_add(rh_mul(1000000007, p.first), p.second); };
 
     vector<pll> vec{{2, 5}, {1, 0}, {3, 7}, {2, 5}, {1, 0}, {3, 7}, {4, 1}};
-    for (int i = 0; i < 5e4; i ++) {
+    for (ll i = 0; i < llround(5e4); i ++) {
       auto rh = make_rolling_hash_gen<pll>(0, 1LL << 30, hash_elem);
       auto hs = rh.precomp(vec);
       assert(hs.get(0, 3) == hs.get(3, 3));
@@ -196,14 +154,12 @@ int main(int argc, char *argv[] ) {
   }
 
   {
-    // WeakRH rh{};
-    // U128RH rh{};
     RollingHash rh;
 
     ll rep = 1LL << stoi(argv[1]);
     ll size = 100;
     uniform_int_distribution<char> dist('a', 'z');
-    uniform_int_distribution<int> dist_idx(0, size-1);
+    uniform_int_distribution<ll> dist_idx(0, size-1);
     safe_umap<RHVal, string> mp;
     for (ll k = 0; k < rep; k++) {
       string s(size, 0);
@@ -212,8 +168,8 @@ int main(int argc, char *argv[] ) {
       }
       auto hashes = rh.precomp(s);
       for (ll i = 0; i < 10; i++) {
-        int p = dist_idx(rng2);
-        int q = dist_idx(rng2);
+        ll p = dist_idx(rng2);
+        ll q = dist_idx(rng2);
         if (p > q) swap(p, q);
         string t = s.substr(p, q-p);
         RHVal hash = hashes.get(p, q-p);
@@ -234,7 +190,7 @@ int main(int argc, char *argv[] ) {
   {
     RollingHash rh;
     Random rand;
-    for (int i = 0; i < 1000; i++) {
+    for (ll i = 0; i < 1000; i++) {
       u64 a = rand.range(0, rh_prime);
       u64 b = rand.range(0, rh_prime);
       __uint128_t a128 = a;

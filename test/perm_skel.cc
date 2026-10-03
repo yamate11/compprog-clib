@@ -107,7 +107,7 @@ int main() {
           assert(0 <= ip[i] and ip[i] < n and ip[i] == ip.at(i));
           assert(not v[ip[i]]);
           v[ip[i]] = true;
-          s += 'a' + ip[i];
+          s += (char)('a' + ip[i]);
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -130,7 +130,7 @@ int main() {
           assert(0 <= ic.at(i) and ic.at(i) < n and ic.at(i) == ic[i]);
           assert(last < ic.at(i));
           last = ic.at(i);
-          s += 'a' + ic.at(i);
+          s += (char)('a' + ic.at(i));
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -151,7 +151,7 @@ int main() {
         string s;
         for (ll i = 0; i < r; i++) {
           assert(0 <= idp.at(i) and idp.at(i) < n and idp.at(i) == idp[i]);
-          s += 'a' + idp.at(i);
+          s += (char)('a' + idp.at(i));
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -175,7 +175,7 @@ int main() {
           assert(0 <= idc.at(i) and idc.at(i) < n and idc.at(i) == idc[i]);
           assert(last <= idc.at(i));
           last = idc.at(i);
-          s += 'a' + idc.at(i);
+          s += (char)('a' + idc.at(i));
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -192,9 +192,9 @@ int main() {
   {
     auto chkBoxBall = [&](ll box, ll ball) -> void {
       IDCBoxBall idcbb(box, ball);
-      set<vector<int>> ss;
+      set<vector<ll>> ss;
       while (idcbb.get()) {
-        vector<int> v(box);
+        vector<ll> v(box);
         ll s = 0;
         for (ll i = 0; i < box; i++) {
           ll c = idcbb.at(i);
@@ -227,7 +227,7 @@ int main() {
         string s;
         for (ll i = 0; i < ssize(vec); i++) {
           assert(0 <= idp[i] and idp[i] < vec[i] and idp[i] == idp.at(i));
-          s += 'a' + idp.at(i);
+          s += (char)('a' + idp.at(i));
         }
         assert(ss.find(s) == ss.end());
         ss.insert(s);
@@ -287,7 +287,7 @@ int main() {
   }
 
   auto test_run_twice = [&](auto p) -> void {
-    vector<vector<int>> res1, res2;
+    vector<vector<ll>> res1, res2;
     while (p.get()) {
       res1.push_back(p.vec_view());
     }
@@ -297,11 +297,11 @@ int main() {
     assert(res1 == res2);
   };
   {
-    test_run_twice(IntPerm(3, 2));
-    test_run_twice(IntComb(7, 3));
-    test_run_twice(IntDupPerm(7, 3));
-    test_run_twice(IntDupComb(7, 3));
-    test_run_twice(IntPartition(10));
+    test_run_twice(IntPerm(3LL, 2LL));
+    test_run_twice(IntComb(7LL, 3LL));
+    test_run_twice(IntDupPerm(7LL, 3LL));
+    test_run_twice(IntDupComb(7LL, 3LL));
+    test_run_twice(IntPartition(10LL));
   }
 
   {
@@ -317,7 +317,7 @@ int main() {
     IntDupComb dic(2, 2, vector<int>{-5, 5});
     assert(my_compare(dic, vvi{{-5, -5}, {-5, 5}, {5, 5}}));
     IntComb<pll> ic2(3, 2);
-    ic2.set_mapping([](int i) { return pll(-(i + 1), i + 1); });
+    ic2.set_mapping([](ll i) { return pll(-(i + 1), i + 1); });
     assert(my_compare(ic2, vector<vector<pll>>{{{-1,1}, {-2,2}}, {{-1,1}, {-3,3}}, {{-2,2}, {-3,3}}}));
   }
 

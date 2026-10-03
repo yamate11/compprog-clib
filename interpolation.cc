@@ -61,7 +61,7 @@ template<typename Pol>
 Pol lagrangePol(const vector<typename Pol::value_type>& vs) {
   using T = typename Pol::value_type;
   using SP = typename Pol::SP;
-  int k = vs.size() - 1;
+  int k = (int)vs.size() - 1;
   vector<T> fact(k + 1);
   fact[0] = one<T>(vs[0]);
   for (ll i = 0; i < k; i++) fact[i + 1] = fact[i] * (T)(i + 1);
@@ -80,7 +80,7 @@ Pol lagrangePol(const vector<typename Pol::value_type>& vs) {
 
 template<typename T>
 T lagrangeVal(const vector<T>& vs, ll n) {
-  int k = vs.size() - 1;
+  int k = (int)vs.size() - 1;
   vector<T> fact(k + 1);
   vector<T> invfact(k + 1);
   fact[0] = one<T>(vs[0]);
@@ -129,7 +129,7 @@ fitFPS(const vector<typename Pol::value_type>& vec, int verify) {
   };
 
   auto findQ = [&]() -> optional<Pol> {
-    int sz = vec.size();
+    int sz = (int)vec.size();
     for (int d = 1; 2 * d + verify < sz; d++) {
       Matrix<T> mat(d, d);
       vector<T> bs(d);

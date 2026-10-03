@@ -149,7 +149,7 @@ struct itv_map {
     ll i = l0;
     while (true) {
       auto [l, r, t] = get(i);
-      ret += (min(r, r0) - i) * t;
+      ret += (T)((min(r, r0) - i) * t);
       if (r0 <= r) return ret;
       i = r;
     }

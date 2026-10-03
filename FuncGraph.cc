@@ -32,26 +32,26 @@ using ll = long long int;
 // @@ !! BEGIN()    ---- FuncGraph.cc
 
 struct FuncGraph {
-  int size;
-  vector<int> fwd;
-  vector<vector<int>> _bwd;
-  vector<int> _cc;
-  vector<int> _repr;
-  vector<int> _cc_size;
-  vector<int> _cycle_size;
-  vector<int> _on_cycle;
-  vector<int> _dp;
+  ll size;
+  vector<ll> fwd;
+  vector<vector<ll>> _bwd;
+  vector<ll> _cc;
+  vector<ll> _repr;
+  vector<ll> _cc_size;
+  vector<ll> _cycle_size;
+  vector<ll> _on_cycle;
+  vector<ll> _dp;
   bool _built;
 
-  FuncGraph(int size_) : size(size_), fwd(size), _bwd(size), _cc(size, -1), _repr(), _cc_size(), _cycle_size(),
-                         _on_cycle(size), _dp(size, -1), _built(false) {}
+  FuncGraph(ll size_) : size(size_), fwd(size), _bwd(size), _cc(size, -1), _repr(), _cc_size(), _cycle_size(),
+                        _on_cycle(size), _dp(size, -1), _built(false) {}
 
-  void add_edge(int i, int j) {
+  void add_edge(ll i, ll j) {
     fwd[i] = j;
     _bwd[j].push_back(i);   // _bwd[j][0] might be changed afterwards
   };
 
-  int _set_depth(int i) {
+  ll _set_depth(ll i) {
     if (_dp[i] < 0) {
       if (_on_cycle[i] == i) _dp[i] = 0;
       else _dp[i] = _set_depth(fwd[i]) + 1;
@@ -63,19 +63,19 @@ struct FuncGraph {
     if (_built) throw runtime_error("FuncGraph: built() should be called at most once.");
     for (int i = 0; i < size; i++) {
       if (_cc[i] < 0) {
-        int tmpidx = _cc_size.size();
-        vector<int> stack;
-        int k;
+        ll tmpidx = _cc_size.size();
+        vector<ll> stack;
+        ll k;
         for (k = i; _cc[k] < 0; k = fwd[k]) {
           _cc[k] = tmpidx;
           stack.push_back(k);
         }
         if (_cc[k] == tmpidx) {
           _repr.push_back(k);
-          _cc_size.push_back(stack.size());
+          _cc_size.push_back((int)(stack.size()));
           bool on = true;
           while (not stack.empty()) {
-            int m = stack.back(); stack.pop_back();
+            ll m = stack.back(); stack.pop_back();
             if (on) {
               _on_cycle[m] = m;
               auto& v = _bwd[fwd[m]];
@@ -89,14 +89,14 @@ struct FuncGraph {
               _on_cycle[m] = k;
             }
             if (m == k) {
-              _cycle_size.push_back(_cc_size[tmpidx] - stack.size());
+              _cycle_size.push_back((int)(_cc_size[tmpidx] - stack.size()));
               on = false;
             }
           }
         }else {
-          _cc_size[_cc[k]] += stack.size();
+          _cc_size[_cc[k]] += (int)(stack.size());
           while (not stack.empty()) {
-            int m = stack.back(); stack.pop_back();
+            ll m = stack.back(); stack.pop_back();
             _on_cycle[m] = _on_cycle[k];
             _cc[m] = _cc[k];
           }
@@ -112,42 +112,42 @@ struct FuncGraph {
     return (ll)_cc_size.size();
   }
 
-  ll cc(int i) {
+  ll cc(ll i) {
     if (not _built) build();
     return _cc[i];
   }
 
-  ll repr(int c) {
+  ll repr(ll c) {
     if (not _built) build();
     return _repr[c];
   }
 
-  ll cc_size(int c) {
+  ll cc_size(ll c) {
     if (not _built) build();
     return _cc_size[c];
   }
 
-  ll cycle_size(int c) {
+  ll cycle_size(ll c) {
     if (not _built) build();
     return _cycle_size[c];
   }
 
-  ll node_on_cycle(int i) {
+  ll node_on_cycle(ll i) {
     if (not _built) build();
     return _on_cycle[i];
   }
 
-  bool is_on_cycle(int i) {
+  bool is_on_cycle(ll i) {
     if (not _built) build();
     return _dp[i] == 0;
   }
 
-  ll dist_to_cycle(int i) {
+  ll dist_to_cycle(ll i) {
     if (not _built) build();
     return _dp[i];
   }
 
-  const vector<int>& bwd(int i) {
+  const vector<ll>& bwd(ll i) {
     if (not _built) build();
     return _bwd[i];
   }

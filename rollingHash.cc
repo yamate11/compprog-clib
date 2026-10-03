@@ -114,7 +114,7 @@ struct RollingHashGen {
     HashValues() {}
     HashValues(RollingHashGen* rh_, const vector<RHVal>& s) : rh(rh_), vs(s) {}
 
-    RHVal get(int start = 0, int len = -1) const {
+    RHVal get(ll start = 0, ll len = -1) const {
       if (len == -1) len = vs.size() - 1 - start;
       if (start == 0) return vs[len];
       return rh_calc_mod((u64)vs[start + len] + rh_positivizer
@@ -124,7 +124,7 @@ struct RollingHashGen {
 
   vector<RHVal> _hashes(const auto& s) const {
     vector<RHVal> vs(s.size() + 1, RHVal(0ULL));
-    for (int i = 0; i < ssize(s); i++) {
+    for (ll i = 0; i < ssize(s); i++) {
       RHVal e;
       if constexpr (is_same<conv_t, nullptr_t>::value) {
         e = static_cast<RHVal>(s[i]);
@@ -147,7 +147,7 @@ struct RollingHashGen {
     return pow_memo[n];
   }
 
-  RHVal hash_concat(RHVal hash1, RHVal hash2, int len2) {
+  RHVal hash_concat(RHVal hash1, RHVal hash2, ll len2) {
     return hash1 * base_power(len2) + hash2;
   }
 

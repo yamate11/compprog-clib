@@ -74,11 +74,11 @@ struct WaveletMatrix {
       for (int e = 0; e < 2; e++) {
         for (ll i = 0; i < a[e]; i++) {
           auto [x, y] = _h_rest(h, tmpA[e][i]);
-          vbv[h].set(x, e == 0 ? i : a[0] + i);
+          vbv[h].set(x, (int)(e == 0 ? i : a[0] + i));
           tmpB[x][b[x]++] = y;
         }
       }
-      mid[h] = b[0];
+      mid[h] = (int)b[0];
       swap(tmpA, tmpB);
       a = b;
       b[0] = b[1] = 0;

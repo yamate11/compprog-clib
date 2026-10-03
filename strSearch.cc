@@ -11,7 +11,7 @@ using namespace std;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- strSearch.cc
 vector<int> zAlg(string s) {
-  int n = s.size();
+  int n = (int)s.size();
   vector<int> z(n);
   z.at(0) = n;
   int i = 1;
@@ -30,10 +30,10 @@ vector<int> zAlg(string s) {
 // matches("abab", "xababab") --> [1,3]
 vector<int> matches(string p, string s, char sepChar = '\xff') {
   auto v = zAlg(p + string(1, sepChar) + s);
-  int n = p.size();
+  int n = (int)p.size();
   vector<int> res;
   for (size_t i = 0; i < s.size() - (n-1); i++) {
-    if (v.at(n+1 + i) == n) res.push_back(i);
+    if (v.at(n+1 + i) == n) res.push_back((int)i);
   }
   return res;
 }

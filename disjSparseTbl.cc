@@ -32,7 +32,7 @@ struct DisjSparseTbl {
     : unit_dat(unit_dat_), add(add_) { set_vals(move(values)); }
   
   void set_vals(vector<DAT> values) {
-    size = ssize(values);
+    size = (int)ssize(values);
     height = max(1, (int)countr_zero(bit_ceil((unsigned)size)));
     tbl.resize(height);
     tbl[0] = move(values);

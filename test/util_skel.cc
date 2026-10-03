@@ -163,7 +163,7 @@ int main() {
     assert(sv_show(2, sv, 9) == "[0, 1, 2, 3, 0, 1, 2, 3, 0]");
     assert(sv_show(2, sv) == "[0, 1, 2, 3, 0, 1, 2, 3]");
     for (int i = 0; i < 6; i++) {
-      sv_set(2, sv, i, (sv_get(2, sv, i) + 1) % 4);
+      sv_set(2, sv, i, (int)((sv_get(2, sv, i) + 1) % 4));
     }
     assert(sv_show(2, sv, 9) == "[1, 2, 3, 0, 1, 2, 2, 3, 0]");
   }

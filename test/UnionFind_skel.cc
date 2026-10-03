@@ -5,36 +5,36 @@ using namespace std;
 
 // @@ !! LIM(UnionFind ftwo debug)
 
-template<typename T = int>
+template<typename T = ll>
 struct NaiveUnionFind {
-  int size;
-  vector<int> _leader;
+  ll size;
+  vector<ll> _leader;
   vector<optional<T>> _pot;
-  vector<vector<int>> _member;
+  vector<vector<ll>> _member;
 
-  NaiveUnionFind(int size_) : size(size_), _leader(size), _pot(size), _member(size) {
-    for (int i = 0; i < size; i++) {
+  NaiveUnionFind(ll size_) : size(size_), _leader(size), _pot(size), _member(size) {
+    for (ll i = 0; i < size; i++) {
       _leader[i] = i;
       _pot[i] = (T)0;
       _member[i].push_back(i);
     }
   }
-  int merge(int i, int j, optional<T> p = nullopt) {
+  ll merge(ll i, ll j, optional<T> p = nullopt) {
     DLOGK("naive merge", i, j, p);
-    int new_leader = _leader[j];
-    int old_leader = _leader[i];
+    ll new_leader = _leader[j];
+    ll old_leader = _leader[i];
     if (new_leader == old_leader and not _pot[i]) {
       if (not p or *_pot[i] != *_pot[j] + *p) {
-        for (int x : _member[new_leader]) _pot[x] = nullopt;
+        for (ll x : _member[new_leader]) _pot[x] = nullopt;
       }
       return new_leader;
     }
     bool pot_consis = p and _pot[j] and _pot[i];
     T pdiff = pot_consis ? *p + *_pot[j] - *_pot[i] : (T)0;
     if (not pot_consis) {
-      for (int x : _member[new_leader]) _pot[x] = nullopt;
+      for (ll x : _member[new_leader]) _pot[x] = nullopt;
     }
-    for (int x : _member[old_leader]) {
+    for (ll x : _member[old_leader]) {
       _leader[x] = new_leader;
       _member[new_leader].push_back(x);
       if (pot_consis) _pot[x] = *_pot[x] + pdiff;
@@ -42,27 +42,27 @@ struct NaiveUnionFind {
     }
     _member[old_leader].resize(0);
     DLOG("naive merge result");
-    for (int x = 0; x < size; x++) {
+    for (ll x = 0; x < size; x++) {
       DLOGK(x, _leader[x], _pot[x], _member[x]);
     }
     return new_leader;
   }
 
-  pair<int, optional<T>> leaderpot(int i) {
+  pair<ll, optional<T>> leaderpot(ll i) {
     return {_leader[i], _pot[i]};
   }
 
-  int leader(int i) { return _leader[i]; }
+  ll leader(ll i) { return _leader[i]; }
 
-  int groupSize(int i) { return _member[_leader[i]].size(); }
+  ll groupSize(ll i) { return _member[_leader[i]].size(); }
 
-  int numGroups() {
-    int ret = 0;
-    for (int i = 0; i < size; i++) if (_leader[i] == i) ret++;
+  ll numGroups() {
+    ll ret = 0;
+    for (ll i = 0; i < size; i++) if (_leader[i] == i) ret++;
     return ret;
   }
 
-  const vector<int>& group(int i) { return _member[_leader[i]]; }
+  const vector<ll>& group(ll i) { return _member[_leader[i]]; }
 
 };
 
@@ -97,8 +97,8 @@ int main() {
     assert(uf1.leader(0) != uf1.leader(1));
 
     auto gi3 = uf1.group_info();
-    assert(gi3.group(2) == vector<int>({0, 2, 5}));
-    assert(gi3.group(3) == vector<int>({1, 3}));
+    assert(gi3.group(2) == vector<ll>({0, 2, 5}));
+    assert(gi3.group(3) == vector<ll>({1, 3}));
   }
 
   {
@@ -115,15 +115,15 @@ int main() {
   {
     for (int _z = 0; _z < 10000; _z++) {
       DLOG("****");
-      int n = randrange(1, 11);
+      ll n = randrange(1, 11);
       UnionFind<ll> uf(n);
       NaiveUnionFind nuf(n);
       for (int _rep = 0; _rep < 30; _rep++) {
-        int a = randrange(0, n);
-        int b = randrange(0, n);
-        int la = uf.leader(a);
+        ll a = randrange(0, n);
+        ll b = randrange(0, n);
+        ll la = uf.leader(a);
         auto pa = uf.pot(a);
-        int lb = uf.leader(b);
+        ll lb = uf.leader(b);
         auto pb = uf.pot(b);
         auto [nla, npa] = nuf.leaderpot(a);
         auto [nlb, npb] = nuf.leaderpot(b);
@@ -135,15 +135,15 @@ int main() {
           DLOGKL("equiv", a, b, la, lb, pa, pb, npa, npb);
           assert(pa and pb and npa and npb and *pa - *pb == *npa - *npb);
         }else {
-          int p = randrange(-10, 11);
+          ll p = randrange(-10, 11);
           DLOGKL("merge", b, a, p);
-          int i = uf.merge(b, a, p);
-          int j = nuf.merge(b, a, p);
+          ll i = uf.merge(b, a, p);
+          ll j = nuf.merge(b, a, p);
           DLOGK(i, j, nuf.leaderpot(b), nuf.leaderpot(a));
           DLOGKL("uf", uf._leader);
           assert(uf.leader(j) == uf.leader(a) and uf.leader(j) == uf.leader(b));
           assert(nuf.leader(i) == nuf.leader(a) and nuf.leader(i) == nuf.leader(b));
-          for (int k = 0; k < n; k++) {
+          for (ll k = 0; k < n; k++) {
             if (uf.leader(k) == i) {
               if (*nuf._pot[k] - *nuf._pot[i] != *uf.pot(k) - *uf.pot(i)) {
                 DLOGK(k, i, *nuf._pot[k], *nuf._pot[i], *uf.pot(k), *uf.pot(i));
@@ -153,7 +153,7 @@ int main() {
           }
         }
         if (_rep == n) {
-          for (int i = 0; i < n; i++) {
+          for (ll i = 0; i < n; i++) {
             assert(uf.num_groups() == nuf.numGroups());
             assert(uf.group_size(i) == nuf.groupSize(i));
             auto gi = uf.group_info();
@@ -172,11 +172,11 @@ int main() {
   {
     UnionFind<ll> uf(6);
     uf.merge(3, 1, 20);
-    int ld = uf.merge(0, 1, -10);
+    ll ld = uf.merge(0, 1, -10);
     assert(ld >= 0);
-    int ld3 = uf.leader(3);
+    ll ld3 = uf.leader(3);
     auto p3 = uf.pot(3);
-    int ld0 = uf.leader(0);
+    ll ld0 = uf.leader(0);
     auto p0 = uf.pot(0);
     assert(ld3 == ld0 and *p3 - *p0 == 30);
     uf.merge(3, 0, 40);
@@ -189,17 +189,17 @@ int main() {
     uf.merge(1, 2, 1);
     uf.merge(4, 1, 2);
     uf.merge(3, 4, -4);
-    int rc1 = uf.merge(2, 3, 1);
+    ll rc1 = uf.merge(2, 3, 1);
     assert(rc1 >= 0);
     uf.merge(5, 7, 0);
     uf.merge(9, 5, -2);
     uf.merge(7, 6, 3);
-    int rc2 = uf.merge(9, 6, 1);
+    ll rc2 = uf.merge(9, 6, 1);
     assert(rc2 >= 0);
     uf.merge(8, 7, 1);
     uf.merge(10, 11, 2);
     uf.merge(10, 12, 3);
-    int rc3 = uf.merge(12, 11, -1);
+    ll rc3 = uf.merge(12, 11, -1);
     assert(rc3 >= 0);
     assert(uf.leader(0) == uf.leader(1));
     assert(uf.leader(0) == uf.leader(2));
@@ -215,8 +215,8 @@ int main() {
     assert(*uf.pot(8) - *uf.pot(6) == 4);
     assert(*uf.pot(4) - *uf.pot(0) == -1);
     auto gi = uf.group_info();
-    vector<int> v1(gi.group(3));
-    for (int i = 0; i < 13; i++) assert(uf.group_size(i) == (int)gi.group(i).size());
+    vector<ll> v1(gi.group(3));
+    for (ll i = 0; i < 13; i++) assert(uf.group_size(i) == ssize(gi.group(i)));
   }
 
 
@@ -224,12 +224,12 @@ int main() {
     UnionFind<Ftwo> uf(6);
     uf.merge(4, 3, 1);
     uf.merge(3, 2, 1);
-    int rc = uf.merge(4, 2, 0);
+    ll rc = uf.merge(4, 2, 0);
     assert(rc >= 0);
     assert(uf.leader(4) == uf.leader(2));
-    int ld4 = uf.leader(4);
+    ll ld4 = uf.leader(4);
     auto pot4 = uf.pot(4);
-    int ld2 = uf.leader(2);
+    ll ld2 = uf.leader(2);
     auto pot2 = uf.pot(2);
     assert(uf.leader(4) == ld4 and uf.leader(2) == ld2);
     assert(pot4 == pot2);
@@ -237,7 +237,7 @@ int main() {
     auto gi = uf.group_info();
     auto v = gi.group(3);
     sort(v.begin(), v.end());
-    assert(v == (vector<int>{2, 3, 4}));
+    assert(v == (vector<ll>{2, 3, 4}));
   }
 
   cout << "test done." << endl;

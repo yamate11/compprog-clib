@@ -15,25 +15,25 @@ using namespace std;
 // @@ !! BEGIN()    ---- UndoUnionFind.cc
 
 struct UndoUnionFind {
-  int size;
-  vector<int> _parent;
-  vector<int> _gsize;
-  vector<pair<int, int>> _history;
+  ll size;
+  vector<ll> _parent;
+  vector<ll> _gsize;
+  vector<pair<ll, ll>> _history;
 
-  UndoUnionFind(int size_) : size(size_), _parent(size), _gsize(size, 1), _history() {
+  UndoUnionFind(ll size_) : size(size_), _parent(size), _gsize(size, 1), _history() {
     iota(_parent.begin(), _parent.end(), 0);
   }
 
-  int leader(int i) {
+  ll leader(ll i) {
     for (; _parent[i] != i; i = _parent[i]);
     return i;
   }
 
-  int gsize(int i) { return _gsize[i]; }
+  ll gsize(ll i) { return _gsize[i]; }
 
-  int merge(int i, int j) {
-    int x = leader(i);
-    int y = leader(j);
+  ll merge(ll i, ll j) {
+    ll x = leader(i);
+    ll y = leader(j);
     if (x == y) {
       _history.emplace_back(-1, -1);
       return x;

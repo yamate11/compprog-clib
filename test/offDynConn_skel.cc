@@ -65,14 +65,14 @@ int main() {
       double ratio3 = 0.2;
       double pool = 10000;
       REP(i, 0, Q) {
-        if (rand.range(0, pool) < pool * ratio3) {
+        if ((double)rand.range(0, (int)pool) < pool * ratio3) {
           auto [x, y] = gettwo(-1);
           ret.emplace_back(3, x, y);
         }else {
           ll mode = -1;
-          if ((double)nc / (sz * sz) < ratio12 * 0.9) mode = 1;
-          else if ((double)nc / (sz * sz) > ratio12 * 1.1) mode = 2;
-          else if (rand.range(0, pool) < pool * ratio12) mode = 1;
+          if ((double)nc / (double)(sz * sz) < ratio12 * 0.9) mode = 1;
+          else if ((double)nc / (double)(sz * sz) > ratio12 * 1.1) mode = 2;
+          else if ((double)rand.range(0, (int)pool) < pool * ratio12) mode = 1;
           else mode = 2;
           if (mode == 1) {
             auto [x, y] = gettwo(0);

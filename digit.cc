@@ -188,7 +188,7 @@ struct digit_util {
     string ret(w, ' ');
     for (ll i = w - 1; x != 0; x /= base, i--) {
       ll y = x % base;
-      ret[i] = y < 10 ? '0' + y : ten + (y - 10);
+      ret[i] = y < 10 ? (char)('0' + y) : (char)(ten + (y - 10));
     }
     return ret;
   }

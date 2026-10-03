@@ -22,16 +22,16 @@ int main() {
     vector<ll> ff{2,3,5,1,0,0};
     auto f = [&](ll i) -> ll { return ff[i]; };
     auto [vec4, idx4] = func_cycle_detect(6, 4, f);
-    assert(vec4 == (vector<int>{4, 0, 2, 5}));
+    assert(vec4 == (vector<ll>{4, 0, 2, 5}));
     assert(idx4 == 1);
     auto [vec1, idx1] = func_cycle_detect(6, 1, f);
-    assert(vec1 == (vector<int>{1, 3}));
+    assert(vec1 == (vector<ll>{1, 3}));
     assert(idx1 == 0);
   }
   {
     vector<vector<ll>> fwd{{1}, {5}, {3, 5}, {}, {2}, {0}};
     auto [vec4, idx4] = directed_cycle_detect(6, 4, fwd);
-    assert(vec4 == (vector<int>{4, 2, 5, 0, 1}));
+    assert(vec4 == (vector<ll>{4, 2, 5, 0, 1}));
     assert(idx4 == 2);
     auto [vec3, idx3] = directed_cycle_detect(6, 3, fwd);
     assert(vec3.empty());
@@ -40,7 +40,7 @@ int main() {
   {
     vector<vector<ll>> nbr{{1,4}, {0}, {3}, {2}, {0, 5}, {0, 4}};
     auto [vec1, idx1] = undirected_cycle_detect(6, 1, nbr);
-    assert(vec1 == (vector<int>{1, 0, 4, 5}));
+    assert(vec1 == (vector<ll>{1, 0, 4, 5}));
     assert(idx1 == 1);
     auto [vec2, idx2] = undirected_cycle_detect(6, 2, nbr);
     assert(vec2.empty());

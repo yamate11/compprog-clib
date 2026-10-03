@@ -141,13 +141,13 @@ int prim_root = mod > 0 ? ac_primitive_root_constexpr(mod) : 0;
 template<int mod>
 int cv_get_mod() {
   if (mod > 0) return mod;
-  else return FpG<mod>::getMod();
+  else return (int)FpG<mod>::getMod();
 }
 
 template<int mod>
 int cv_get_primitive_root() {
   if (mod > 0) return prim_root<mod>;
-  else return ac_primitive_root_constexpr(FpG<mod>::getMod());
+  else return ac_primitive_root_constexpr((int)FpG<mod>::getMod());
 }
 
 

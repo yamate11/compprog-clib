@@ -27,8 +27,8 @@
 
 template<typename T, typename IT> // IT is typically int or ll
 optional<vector<T>> adjMatEq(vector<pair<IT, IT>> adj, vector<T> bs) {
-  int m = adj.size(); // number of edges
-  int n = bs.size();   // number of vertices
+  int m = (int)adj.size(); // number of edges
+  int n = (int)bs.size();   // number of vertices
   vector<T> ret(m);
 
   using sta = tuple<int, int, bool>;

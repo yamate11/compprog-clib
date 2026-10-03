@@ -203,7 +203,7 @@ struct Trie {
     for (const Trie* tr = this; true; tr = tr->parent) {
       ll d = tr->get_offset();
       if (d < 0) break;
-      ret.push_back(from + tr->get_offset());
+      ret.push_back((char)(from + tr->get_offset()));
     }
     reverse(ret.begin(), ret.end());
     return ret;

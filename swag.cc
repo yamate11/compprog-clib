@@ -68,7 +68,7 @@ struct swag {
   }
   vector<T> vec_view() const {
     vector<T> ret;
-    for (int i = ssize(elem_front) - 1; i >= 0; i--) ret.push_back(elem_front[i]);
+    for (int i = (int)ssize(elem_front) - 1; i >= 0; i--) ret.push_back(elem_front[i]);
     for (int i = 0; i < ssize(elem_back); i++) ret.push_back(elem_back[i]);
     return ret;
   }

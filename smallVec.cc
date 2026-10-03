@@ -44,7 +44,7 @@ struct small_vector_u64 {
   }
 
   ll at(ll i) const { return (impl >> (i * bits)) & mask(); }
-  Subst rs(ll i) { return Subst(*this, i); }
+  Subst rs(ll i) { return Subst(*this, (int)i); }
   ll operator[](ll i) const { return at(i); }
   Subst operator[](ll i) { return rs(i); }
 
@@ -86,13 +86,13 @@ struct small_vector_string {
     small_vector_string& x;
     int i;
     Subst(small_vector_string& x_, int i_) : x(x_), i(i_) {}
-    Subst& operator=(ll t) { x.impl[i] = t; return *this; }
+    Subst& operator=(ll t) { x.impl[i] = (char)t; return *this; }
     Subst& operator=(const Subst& o) { return (*this) = ll(o); }
     operator ll() const { return ll(x.impl[i]); }
   };
 
   ll operator[](ll i) const { return impl[i]; }
-  Subst operator[](ll i) { return Subst(*this, i); }
+  Subst operator[](ll i) { return Subst(*this, (int)i); }
 
   bool operator==(const small_vector_string& o) const { return impl == o.impl; }
   operator string() const { return impl; }

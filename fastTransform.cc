@@ -65,7 +65,7 @@
 
 template <typename T>
 int trans_resize(vector<T>& x, vector<T>& y) {
-  int n = max(x.size(), y.size());
+  int n = (int)max(x.size(), y.size());
   int p = 31 - __builtin_clz(n);
   int t = 1 << p;
   if (n > t) t *= 2;
@@ -79,7 +79,7 @@ int trans_resize(vector<T>& x) { return trans_resize(x, x); }
 
 template<typename T, int p1, int p2, int p3, int p4, int div>
 void _trans_form(vector<T>& f) {
-  int n = f.size();
+  int n = (int)f.size();
   for (int i = 1; i < n; i *= 2) {
     for (int j = 0; j < n; j++) {
       if ((j & i) == 0) {

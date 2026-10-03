@@ -131,14 +131,14 @@ struct bridge {
       DLOGKL("dfs initialted", r);
       dfs(dfs, r);
       DLOGKL("dfs finishes", comp);
-      for (int u : comp) _node_teccidx[u] = _tecc.size();
+      for (int u : comp) _node_teccidx[u] = (int)_tecc.size();
       _tecc.push_back(move(comp));
     }
   }
 
   int num_tecc() {
     if (not built) build();
-    return _tecc.size();
+    return (int)_tecc.size();
   }
 
   const vector<int>& tecc(int ccid) {
@@ -216,7 +216,7 @@ struct articulation {
 
   int bcc_size() {
     if (not built) build();
-    return _bcc.size();
+    return (int)_bcc.size();
   }
 
   const vector<int>& bcc(int idx) {
@@ -233,7 +233,7 @@ struct articulation {
     int size_cut;
     vector<int> arts;
 
-    bctree(const articulation* obj_) : obj(obj_), size_block(obj->_bcc.size()), size_cut(obj->num_arts),
+    bctree(const articulation* obj_) : obj(obj_), size_block((int)obj->_bcc.size()), size_cut(obj->num_arts),
                                        arts(size_cut) {
       for (int i = 0; i < obj->llk.size; i++) if (obj->art_seq[i] >= 0) arts[obj->art_seq[i]] = i; 
     }

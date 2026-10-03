@@ -170,8 +170,8 @@ ostream& operator<<(ostream& ostr, unsigned __int128 x) {
   if (x == 0) return ostr << "0";
   string s;
   while (x > 0) {
-    int d = x % 10;
-    s.push_back('0' + d);
+    int d = (int)(x % 10);
+    s.push_back((char)('0' + d));
     x /= 10;
   }
   reverse(s.begin(), s.end());
@@ -424,7 +424,7 @@ int mex(ForwardIt first, ForwardIt last) {
     }
     seen[*it] = true;
   }
-  for (ll i = 0; i < sz; i++) if (!seen[i]) return i;
+  for (ll i = 0; i < sz; i++) if (!seen[i]) return (int)i;
   return sz;
 }
 

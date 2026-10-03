@@ -28,7 +28,7 @@ struct CartesianTree {
       else return comp(vec[a], vec[b]);
     };
 
-    int n = ssize(vec);
+    ll n = ssize(vec);
     root = -1;
     left = vector<int>(n, -1);
     right = vector<int>(n, -1);

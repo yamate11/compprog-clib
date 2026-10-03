@@ -50,22 +50,22 @@ using namespace std;
 
 template<typename E>
 struct CSR {  // Compressed Sparse Row
-  int size;
-  vector<int> start;
+  ll size;
+  vector<ll> start;
   vector<E> es;
-  vector<pair<int, E>> tmp;
-  CSR(int size_) : size(size_), start(size + 1) {}
-  void add(int i, const E& e) { tmp.emplace_back(i, E(e)); }
-  void add(int i, E&& e) { tmp.emplace_back(i, e); }
+  vector<pair<ll, E>> tmp;
+  CSR(ll size_) : size(size_), start(size + 1) {}
+  void add(ll i, const E& e) { tmp.emplace_back(i, E(e)); }
+  void add(ll i, E&& e) { tmp.emplace_back(i, e); }
   void build() {
-    vector<int> num(size);
-    int tot = 0;
+    vector<ll> num(size);
+    ll tot = 0;
     for (auto& [i, e] : tmp) {
       num[i]++;
       tot++;
     }
     es.resize(tot);
-    for (int i = 0; i < size; i++) start[i+1] = start[i] + num[i];
+    for (ll i = 0; i < size; i++) start[i+1] = start[i] + num[i];
     for (auto& [i, e] : tmp) {
       es[start[i + 1] - num[i]] = move(e);
       num[i]--;
@@ -74,35 +74,35 @@ struct CSR {  // Compressed Sparse Row
 };
 
 struct SCC {
-  int size;
+  ll size;
 
-  CSR<int> csr;
+  CSR<ll> csr;
 
-  vector<int> _ccForNode;
-  int ccForNode(int nd) {
+  vector<ll> _ccForNode;
+  ll ccForNode(ll nd) {
     if (!built) build();
     return _ccForNode[nd];
   }
 
-  vector<vector<int>> _nodesInCC;
-  const vector<int>& nodesInCC(int ccid) {
+  vector<vector<ll>> _nodesInCC;
+  const vector<ll>& nodesInCC(ll ccid) {
     if (!built) build();
     return _nodesInCC[ccid];
   }
 
-  int numComp() {
+  ll numComp() {
     if (! built) build();
     return _nodesInCC.size();
   }
 
-  vector<vector<int>> _cFwd;
-  const vector<int>& cFwd(int ccid) {
+  vector<vector<ll>> _cFwd;
+  const vector<ll>& cFwd(ll ccid) {
     if (!edge_built) edge_build();
     return _cFwd[ccid];
   }
 
-  vector<vector<int>> _cBwd;
-  const vector<int>& cBwd(int ccid) {
+  vector<vector<ll>> _cBwd;
+  const vector<ll>& cBwd(ll ccid) {
     if (!edge_built) edge_build();
     return _cBwd[ccid];
   }
@@ -113,29 +113,29 @@ struct SCC {
   // true if edges between sccs have built
   bool edge_built;
 
-  SCC(int sz) : size(sz), csr(size), _ccForNode(sz), 
+  SCC(ll sz) : size(sz), csr(size), _ccForNode(sz), 
                 built(false), edge_built(false) {}
 
-  void addEdge(int from, int to) { csr.add(from, to); }
+  void addEdge(ll from, ll to) { csr.add(from, to); }
 
   void build() {
     if (built) return;
     built = true;
     csr.build();
-    int idx = 0;
-    vector<int> stack;
-    vector<int> index(size, -1);
-    vector<int> lowlink(size);
+    ll idx = 0;
+    vector<ll> stack;
+    vector<ll> index(size, -1);
+    vector<ll> lowlink(size);
     vector<bool> onstack(size, false);
-    auto dfs = [&](auto rF, int i) -> void {
+    auto dfs = [&](auto rF, ll i) -> void {
       // DLOGKL("dfs", i);
       index[i] = idx;
       lowlink[i] = idx;
       idx++;
       stack.push_back(i);
       onstack[i] = true;
-      for (int k = csr.start[i]; k < csr.start[i + 1]; k++) {
-        int j = csr.es[k];
+      for (ll k = csr.start[i]; k < csr.start[i + 1]; k++) {
+        ll j = csr.es[k];
         if (index[j] < 0) {
           rF(rF, j);
           lowlink[i] = min(lowlink[i], lowlink[j]);
@@ -145,11 +145,11 @@ struct SCC {
       }
       // DLOGK(i, lowlink[i], index[i]);
       if (lowlink[i] == index[i]) {
-        int ccid = _nodesInCC.size();
+        ll ccid = _nodesInCC.size();
         _nodesInCC.resize(ccid + 1);
-        vector<int>& cc = _nodesInCC[ccid];
+        vector<ll>& cc = _nodesInCC[ccid];
         while (true) {
-          int j = stack.back(); stack.pop_back();
+          ll j = stack.back(); stack.pop_back();
           onstack[j] = false;
           cc.push_back(j);
           _ccForNode[j] = ccid;
@@ -157,22 +157,22 @@ struct SCC {
         }
       }
     };
-    for (int i = 0; i < size; i++) if (index[i] < 0) dfs(dfs, i);
+    for (ll i = 0; i < size; i++) if (index[i] < 0) dfs(dfs, i);
   }
 
   void edge_build() {
     if (edge_built) return;
     edge_built = true;
     if (!built) build();
-    int sz = _nodesInCC.size();
+    ll sz = _nodesInCC.size();
     _cFwd.resize(sz);
     _cBwd.resize(sz);
-    for (int icc = 0; icc < sz; icc++) {
+    for (ll icc = 0; icc < sz; icc++) {
       vector<bool> tmp(sz);
-      for (int i : _nodesInCC[icc]) {
-        for (int k = csr.start[i]; k < csr.start[i + 1]; k++) {
-          int j = csr.es[k];
-          int jcc = _ccForNode[j];
+      for (ll i : _nodesInCC[icc]) {
+        for (ll k = csr.start[i]; k < csr.start[i + 1]; k++) {
+          ll j = csr.es[k];
+          ll jcc = _ccForNode[j];
           if (icc == jcc) continue;
           if (tmp[jcc]) continue;
           tmp[jcc] = true;

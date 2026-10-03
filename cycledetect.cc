@@ -33,11 +33,11 @@ using namespace std;
 // See help of libins command for dependency spec syntax.
 // @@ !! BEGIN() ---- cycledetect.cc
 
-pair<vector<int>, int> func_cycle_detect(int n, int init, auto f) {
-  vector<int> ret;
-  vector<int> record(n, -1);
-  int a = init;
-  for (int i = 0; true; i++) {
+pair<vector<ll>, ll> func_cycle_detect(ll n, ll init, auto f) {
+  vector<ll> ret;
+  vector<ll> record(n, -1);
+  ll a = init;
+  for (ll i = 0; true; i++) {
     if (record[a] >= 0) return {move(ret), record[a]};
     ret.push_back(a);
     record[a] = i;
@@ -46,13 +46,13 @@ pair<vector<int>, int> func_cycle_detect(int n, int init, auto f) {
 }
 
 template<bool directed>
-pair<vector<int>, int> graph_cycle_detect(int n, int init, const auto& fwd) {
+pair<vector<ll>, ll> graph_cycle_detect(ll n, ll init, const auto& fwd) {
   struct myexc : exception {};
-  vector<int> ret;
-  vector<int> record(n, -1);
+  vector<ll> ret;
+  vector<ll> record(n, -1);
   vector<bool> visited(n);
-  int ret_idx = -1;
-  auto dfs = [&](auto rF, int nd, int idx, int pt) -> void {
+  ll ret_idx = -1;
+  auto dfs = [&](auto rF, ll nd, ll idx, ll pt) -> void {
     if (record[nd] >= 0) {
       ret_idx = record[nd];
       throw myexc();
@@ -61,7 +61,7 @@ pair<vector<int>, int> graph_cycle_detect(int n, int init, const auto& fwd) {
     visited[nd] = true;
     ret.push_back(nd);
     record[nd] = idx;
-    for (int cld : fwd[nd]) {
+    for (ll cld : fwd[nd]) {
       if constexpr (not directed) {
         if (cld == pt) continue;
       }
@@ -72,16 +72,16 @@ pair<vector<int>, int> graph_cycle_detect(int n, int init, const auto& fwd) {
   };
   try {
     dfs(dfs, init, 0, -1);
-    return {vector<int>(), -1};
+    return {vector<ll>(), -1};
   }catch (myexc& e) {
     return {move(ret), ret_idx};
   }
 }
 
-pair<vector<int>, int> directed_cycle_detect(int n, int init, const auto& fwd) {
+pair<vector<ll>, ll> directed_cycle_detect(ll n, ll init, const auto& fwd) {
   return graph_cycle_detect<true>(n, init, fwd);
 }
-pair<vector<int>, int> undirected_cycle_detect(int n, int init, const auto& nbr) {
+pair<vector<ll>, ll> undirected_cycle_detect(ll n, ll init, const auto& nbr) {
   return graph_cycle_detect<false>(n, init, nbr);
 }
 

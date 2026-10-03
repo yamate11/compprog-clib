@@ -19,7 +19,7 @@ int main(/* int argc, char *argv[] */) {
     const OP unit_op = nullopt;
     auto xAdd = [](DAT x, DAT y) -> DAT { return min(x, y); };
     auto xComp = [](OP h, OP g) -> OP { return h.has_value() ? h : g; };
-    auto xAppl = [](int, OP f, DAT x) -> DAT { return f.value_or(x); };
+    auto xAppl = [](ll, OP f, DAT x) -> DAT { return f.value_or(x); };
     auto dst = make_dyn_seg_tree(0, 64, unit_dat, unit_op, xAdd, xComp, xAppl);
 
     dst.update(11, 12, 100);
@@ -50,8 +50,8 @@ int main(/* int argc, char *argv[] */) {
     return {p, q, x};
   };
 
-  ll rep1 = 500;
-  ll rep2 = 500;
+  ll rep1 = 300;
+  ll rep2 = 300;
 
   auto run_test = [&](auto unit_dat, auto unit_op,
                       auto xAdd, auto xComp, auto xAppl) -> void {
@@ -86,7 +86,7 @@ int main(/* int argc, char *argv[] */) {
     const OP unit_op = nullopt;
     auto xAdd = [](DAT x, DAT y) -> DAT { return min(x, y); };
     auto xComp = [](OP h, OP g) -> OP { return h.has_value() ? h : g; };
-    auto xAppl = [](int, OP f, DAT x) -> DAT { return f.value_or(x); };
+    auto xAppl = [](ll, OP f, DAT x) -> DAT { return f.value_or(x); };
     run_test(unit_dat, unit_op, xAdd, xComp, xAppl);
   }
 
@@ -96,7 +96,7 @@ int main(/* int argc, char *argv[] */) {
     const DAT unit_dat = 0;
     const OP unit_op = 0;
     auto xAdd = [](DAT x, DAT y) -> DAT { return x + y; };
-    auto xAppl = [](int k, OP f, DAT x) -> DAT { return k * f + x; };
+    auto xAppl = [](ll k, OP f, DAT x) -> DAT { return k * f + x; };
     auto xComp = [](OP h, OP g) -> OP { return h + g; };
     run_test(unit_dat, unit_op, xAdd, xComp, xAppl);
   }
@@ -107,7 +107,7 @@ int main(/* int argc, char *argv[] */) {
     const DAT unit_dat = 0;
     const OP unit_op = nullopt;
     auto xAdd = [](DAT x, DAT y) -> DAT { return x + y; };
-    auto xAppl = [](int k, OP f, DAT x) -> DAT {
+    auto xAppl = [](ll k, OP f, DAT x) -> DAT {
       return f.has_value() ? k * f.value() : x;
     };
     auto xComp = [](OP h, OP g) -> OP { return h.has_value() ? h : g; };

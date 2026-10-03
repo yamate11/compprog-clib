@@ -312,7 +312,7 @@ Point circumcenter(const Point& z1, const Point& z2, const Point& z3) {
 
 vector<Point> convex_hull(const vector<Point>& pts) {
   vector<Point> spts(pts);
-  int n = pts.size();
+  int n = (int)pts.size();
   if (n == 0) return vector<Point>();
 
   auto sub = [&]() -> vector<Point> {
@@ -321,7 +321,7 @@ vector<Point> convex_hull(const vector<Point>& pts) {
       Point pt = spts.at(i);
       if (i > 0 && spts.at(i-1).sim(spts.at(i))) continue;
       while (true) {
-	int rs = ret.size();
+	int rs = (int)ret.size();
 	if (rs - 2 < 0) break;
 	Point q0 = ret.at(rs - 2);
 	Point q1 = ret.at(rs - 1);
@@ -352,7 +352,7 @@ vector<Point> convex_hull(const vector<Point>& pts) {
 // diameter (the distance between the farest two points)
 // pts should be convex, and sorted counter-clockwise.
 tuple<Real, int, int> convex_diameter(const vector<Point>& pts) {
-  int n = pts.size();
+  int n = (int)pts.size();
   if (n <= 1) {
     cerr << "diameter is called with <=1 points.\n";
     exit(1);
@@ -395,7 +395,7 @@ tuple<Real, int, int> convex_diameter(const vector<Point>& pts) {
 
 // The polygon should be convex.  Vector vs should be in counter-clockwise
 int in_polygon(const Point& pt, const vector<Point>& vs) {
-  int sz = vs.size();
+  int sz = (int)vs.size();
   bool on_edge = false;
   for (int i = 0; i < sz; i++) {
     int c = Line::connect(vs[i], vs[(i + 1) % sz]).ptSide(pt);

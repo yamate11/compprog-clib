@@ -16,25 +16,25 @@ using namespace std;
 
 struct OffDynConn { 
   bool built;
-  int size;
-  int tlim; 
-  int node_h_size;
+  ll size;
+  ll tlim; 
+  ll node_h_size;
   UndoUnionFind uuf;
-  int seq_idx;
-  map<pair<int, int>, int> edge_idx;
-  vector<pair<int, int>> v_edge;
-  vector<vector<pair<int, int>>> ops;
-  vector<vector<int>> nodes;
+  ll seq_idx;
+  map<pair<ll, ll>, ll> edge_idx;
+  vector<pair<ll, ll>> v_edge;
+  vector<vector<pair<ll, ll>>> ops;
+  vector<vector<ll>> nodes;
 
-  OffDynConn(int size_, int tlim_)
-    : built(false), size(size_), tlim(tlim_), node_h_size(bit_ceil((unsigned long long)tlim)),
+  OffDynConn(ll size_, ll tlim_)
+    : built(false), size(size_), tlim(tlim_), node_h_size((ll)bit_ceil((unsigned long long)tlim)),
       uuf(size), seq_idx(0), edge_idx(), v_edge(), ops(), nodes(2 * node_h_size) {}
   
-  void set_edge(int t, int i, int j, bool conn) {
+  void set_edge(ll t, ll i, ll j, bool conn) {
     if (i == j) return;
     if (i > j) swap(i, j);
     const pair<int, int> p(i, j);
-    int idx = -1;
+    ll idx = -1;
     auto it = edge_idx.find(p);
     if (it == edge_idx.end()) {
       idx = seq_idx++;
@@ -46,7 +46,7 @@ struct OffDynConn {
       idx = it->second;
     }
     if (not ops[idx].empty()) {
-      int prev = ops[idx].back().first;
+      ll prev = ops[idx].back().first;
       if (prev > t) throw runtime_error("OffDynConn: edge_set(): time reversed.");
       if (prev == t) ops[idx].pop_back();
     }
@@ -54,9 +54,9 @@ struct OffDynConn {
     built = false;
   }
 
-  void _range_set(int idx, int t1, int t2) {
-    int l = node_h_size + t1;
-    int r = node_h_size + t2 - 1;
+  void _range_set(ll idx, ll t1, ll t2) {
+    ll l = node_h_size + t1;
+    ll r = node_h_size + t2 - 1;
     while (l <= r) {
       if (l % 2 != 0) nodes[l].push_back(idx);
       l = (l + 1) / 2;
@@ -67,8 +67,8 @@ struct OffDynConn {
 
   void build() {
     if (built) return;
-    for (int idx = 0; idx < seq_idx; idx++) {
-      int t_prev = -1;
+    for (ll idx = 0; idx < seq_idx; idx++) {
+      ll t_prev = -1;
       for (auto [t, b] : ops[idx]) {
         if (b) {
           if (t_prev >= 0) continue;
@@ -86,19 +86,19 @@ struct OffDynConn {
 
   void run(auto f) {
     build();
-    int cur = 1;
+    ll cur = 1;
     for (; cur <= node_h_size; cur *= 2) {
-      for (int i : nodes[cur]) {
+      for (ll i : nodes[cur]) {
         auto [a, b] = v_edge[i];
         uuf.merge(a, b);
       }
     }
     cur = node_h_size;
-    int l = 0, r = 1;
-    for (int t = 0; t < tlim; t++) {
+    ll l = 0, r = 1;
+    for (ll t = 0; t < tlim; t++) {
       while (not (l == t and r == t + 1)) {
         if (r <= t) {
-          for (int j = 0; j < (int)nodes[cur].size(); j++) uuf.undo();
+          for (ll j = 0; j < (ll)nodes[cur].size(); j++) uuf.undo();
           if (cur % 2 == 0) r += r - l;
           else l -= r - l;
           cur /= 2;
@@ -111,7 +111,7 @@ struct OffDynConn {
             cur = cur * 2 + 1;
             l = m;
           }
-          for (int j : nodes[cur]) {
+          for (ll j : nodes[cur]) {
             auto [a, b] = v_edge[j];
             uuf.merge(a, b);
           }

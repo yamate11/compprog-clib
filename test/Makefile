@@ -13,7 +13,7 @@ else
 endif
 
 # WARNINGS := -Wall -Wno-format-security -Wshadow -Wconversion -fconcepts
-WARNINGS := -Wall -Wextra -Wno-format-security -Wshadow -fconcepts
+WARNINGS := -Wall -Wextra -Wno-format-security -Wshadow -fconcepts -Wconversion -Wno-sign-conversion
 
 CXXFLAGS := -std=gnu++23 $(DEBUGFLAGS) $(WARNINGS)
 

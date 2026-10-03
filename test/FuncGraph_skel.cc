@@ -51,9 +51,9 @@ int main() {
     assert(fg.dist_to_cycle(3) == 0);
     for (int c = 0; c < fg.numcc(); c++) assert(fg.cc(fg.repr(c)) == c);
     {                 assert(fg.bwd(0).empty()); }
-    { vector v{3, 0}; assert(fg.bwd(1) == v); }  // the order matters.
-    { vector v{2};    assert(fg.bwd(2) == v); }
-    { vector v{1};    assert(fg.bwd(3) == v); }
+    { vector v{3, 0LL}; assert(fg.bwd(1) == v); }  // the order matters.
+    { vector<ll> v{2};      assert(fg.bwd(2) == v); }
+    { vector<ll> v{1};      assert(fg.bwd(3) == v); }
   }
   
   {
@@ -78,8 +78,8 @@ int main() {
     assert(fg.dist_to_cycle(1) == 0);
     assert(fg.dist_to_cycle(2) == 1);
     for (int c = 0; c < fg.numcc(); c++) assert(fg.cc(fg.repr(c)) == c);
-    { vector v{1};    assert(fg.bwd(0) == v); }
-    { vector v{0, 2}; assert(fg.bwd(1) == v); }  // the order matters.
+    { vector<ll> v{1};    assert(fg.bwd(0) == v); }
+    { vector<ll> v{0, 2}; assert(fg.bwd(1) == v); }  // the order matters.
     {                 assert(fg.bwd(2).empty()); }
   }
   
@@ -95,11 +95,11 @@ int main() {
     int numRep = 10000;
     int sizeLim = 16;
     for (int rep = 0; rep < numRep; rep++) {
-      int size = randrange(1, sizeLim);
+      ll size = randrange(1, sizeLim);
       FuncGraph fg(size);
-      UnionFind uf(size);
+      UnionFind uf((int)size);
       for (int i = 0; i < size; i++) {
-        int j = randrange(0, size);
+        int j = (int)randrange(0, size);
         fg.add_edge(i, j);
         uf.merge(i, j);
       }
@@ -112,20 +112,20 @@ int main() {
       for (int i = 0; i < size; i++) {
         ll p = fg.dist_to_cycle(i);
         ll c = fg.cycle_size(fg.cc(i));
-        vector<int> traj(p + c);
-        for (int j = 0, m = i; j < p + c; j++, m = fg.fwd[m]) traj[j] = m;
-        for (int j = 0; j < p + c; j++) for (int k = j + 1; k < p + c; k++) assert(traj[j] != traj[k]);
+        vector<ll> traj(p + c);
+        for (ll j = 0, m = i; j < p + c; j++, m = fg.fwd[m]) traj[j] = m;
+        for (ll j = 0; j < p + c; j++) for (ll k = j + 1; k < p + c; k++) assert(traj[j] != traj[k]);
         assert(fg.fwd[traj.back()] == traj[p]);
         assert(fg.node_on_cycle(i) == traj[p]);
         assert(fg.is_on_cycle(i) == (p == 0));
       }
       for (int c = 0; c < fg.numcc(); c++) {
-        int i = fg.repr(c);
+        ll i = fg.repr(c);
         assert(fg.cc(i) == c);
         assert(fg.is_on_cycle(i));
       }
       {
-        int s = 0;
+        ll s = 0;
         for (int i = 0; i < size; i++) s += ssize(fg.bwd(i));
         assert(s == size);
         for (int i = 0; i < size; i++) {

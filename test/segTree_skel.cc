@@ -27,22 +27,22 @@ struct Naive {
   Fadd add;
   Fappl appl;
   vector<DAT> vec;
-  int size;
+  ll size;
 
   Naive(DAT unit_dat_, Fadd add_, Fappl appl_, const vector<DAT>& vec_)
     : unit_dat(unit_dat_), add(add_), appl(appl_), vec(vec_), size(vec_.size()) {}
 
-  DAT query(int l, int r) {
+  DAT query(ll l, ll r) {
     DAT ret = unit_dat;
-    for (int i = l; i < r; i++) ret = add(ret, vec[i]);
+    for (ll i = l; i < r; i++) ret = add(ret, vec[i]);
     return ret;
   }
 
-  void update(int l, int r, OP f) {
-    for (int i = l; i < r; i++) vec[i] = appl(f, vec[i]);
+  void update(ll l, ll r, OP f) {
+    for (ll i = l; i < r; i++) vec[i] = appl(f, vec[i]);
   }
 
-  int search_r_until(const auto& check, int l) {
+  ll search_r_until(const auto& check, ll l) {
     ll val = unit_dat;
     if (not check(val)) return l - 1;
     for (ll i = l; i < size; i++) {
@@ -52,7 +52,7 @@ struct Naive {
     return size;
   }
 
-  int search_r_from(const auto& check, int l) {
+  ll search_r_from(const auto& check, ll l) {
     ll val = unit_dat;
     if (check(val)) return l;
     for (ll i = l; i < size; i++) {
@@ -62,7 +62,7 @@ struct Naive {
     return size + 1;
   }
 
-  int search_l_until(const auto& check, int r) {
+  ll search_l_until(const auto& check, ll r) {
     ll val = unit_dat;
     if (not check(val)) return r + 1;
     for (ll i = r - 1; i >= 0; i--) {
@@ -72,7 +72,7 @@ struct Naive {
     return 0;
   }
 
-  int search_l_from(const auto& check, int r) {
+  ll search_l_from(const auto& check, ll r) {
     ll val = unit_dat;
     if (check(val)) return r;
     for (ll i = r - 1; i >= 0; i--) {
@@ -160,7 +160,7 @@ void test1() {
 void test2() {
   auto sub = [&](auto& ivec) {
     ll sz = ivec.size();
-    auto add = plus<int>();
+    auto add = plus<ll>();
     auto appl = [&](ll f, ll) -> ll { return f; };
     auto st = make_seg_tree<ll>(0, add, ivec);
     Naive<ll, ll, decltype(add), decltype(appl)> nv(0, add, appl, ivec);
@@ -375,12 +375,14 @@ void test7() {
 
 void test8() {
   // testing at() and rs()
-  auto mymin = [&](ll x, ll y) -> ll { return min(x, y); };
+  auto mymin  = [&](ll x, ll y) -> ll { return min(x, y); };
+  auto mymin2 = [&](int x, int y) -> int { return min(x, y); };
   auto st = make_seg_tree(LLONG_MAX, mymin, vector<ll>(10, 100));
   st.rs(5) = 80;
   assert(st.at(5) == 80);
 
   ll big = 1e18;
+  int big2 = 1e9;
   auto st2 = make_seg_tree_lazy(big, 0LL, mymin, plus<ll>(), plus<ll>(), vector(100, 0LL));
   st2.update(20, 60, 100);
   st2.update(40, 80, 200);
@@ -397,6 +399,7 @@ void test8() {
   ll d_max = 10;
   for (ll sz : vector<ll>{8, 13}) {
     auto init_vec = vector<ll>(sz, 0LL);
+    auto init_vec2 = vector<int>(sz, 0);
     for (ll o_r = 0; o_r < out_rep; o_r++) {
       auto st3 = make_seg_tree(big, mymin, init_vec);
       Naive<ll, ll, decltype(mymin), decltype(mymin)> nv3(big, mymin, mymin, init_vec);
@@ -417,13 +420,13 @@ void test8() {
         }else assert(0);
       }
 
-      auto st4 = make_seg_tree_lazy(big, 0, mymin, plus<int>(), plus<int>(), init_vec);
-      Naive<ll, ll, decltype(mymin), decltype(plus<int>())> nv4(big, mymin, plus<int>(), init_vec);
+      auto st4 = make_seg_tree_lazy(big2, 0, mymin2, plus<int>(), plus<int>(), init_vec2);
+      Naive<int, int, decltype(mymin2), decltype(plus<int>())> nv4(big2, mymin2, plus<int>(), init_vec2);
       for (ll _r = 0; _r < in_rep; _r++) {
         ll tp = randrange(0, 4);
         if (tp == 0) {
           ll i = randrange(0, sz);
-          ll x = randrange(d_min, d_max + 1);
+          int x = (int)randrange(d_min, d_max + 1);
           st4.rs(i) = x;
           nv4.vec[i] = x;
         }else if (tp == 1) {
@@ -436,7 +439,7 @@ void test8() {
         }else if (tp == 3) {
           ll l = randrange(0, sz);
           ll r = randrange(l + 1, sz + 1);
-          ll x = randrange(d_min, d_max + 1);
+          int x = (int)randrange(d_min, d_max + 1);
           st4.update(l, r, x);
           nv4.update(l, r, x);
         }else assert(0);
@@ -466,8 +469,8 @@ void test9() {
   // range_of_node, nodes_for_range
   ll rep = 1000;
   for (ll _r = 0; _r < rep; _r++) {
-    unsigned sz = randrange(4, 18);
-    unsigned ht = countr_zero(bit_ceil(sz));
+    unsigned sz = (unsigned)randrange(4, 18);
+    ll ht = countr_zero(bit_ceil(sz));
     ll i = randrange(1, (1LL << ht) + sz);
     auto [lo, hi] = segtree_range_of_node(ht, i);
     auto vec = segtree_nodes_for_range(ht, lo, hi);
@@ -476,7 +479,7 @@ void test9() {
     }
   }
   for (ll _r = 0; _r < rep; _r++) {
-    unsigned sz = randrange(4, 18);
+    unsigned sz = (unsigned)randrange(4, 18);
     unsigned ht = countr_zero(bit_ceil(sz));
     ll lo = randrange(0, sz);
     ll hi = randrange(lo + 1, sz + 1);
@@ -493,7 +496,7 @@ void test9() {
   }
   auto st = make_seg_tree_lazy(LLONG_MIN, 0, [&](ll a, ll b) -> ll { return max(a, b); }, plus<int>(), plus<int>());
   for (ll _r = 0; _r < rep; _r++) {
-    unsigned sz = randrange(4, 18);
+    unsigned sz = (unsigned)randrange(4, 18);
     unsigned ht = countr_zero(bit_ceil(sz));
     st.set_data(vector<ll>(sz, 0LL));
     ll i = randrange(1, (1LL << ht) + sz);
