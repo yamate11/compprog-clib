@@ -17,63 +17,63 @@ struct Matrix {
 
   struct Part {
     const Matrix& mat;
-    int i_size;
-    int j_size;
-    int i_0;
-    int j_0;
-    Part(const Matrix& mat_, int i_size_ = -1, int j_size_ = -1, int i_0_ = 0, int j_0_ = 0)
+    ll i_size;
+    ll j_size;
+    ll i_0;
+    ll j_0;
+    Part(const Matrix& mat_, ll i_size_ = -1, ll j_size_ = -1, ll i_0_ = 0, ll j_0_ = 0)
       : mat(mat_), i_size(i_size_ >= 0 ? i_size_ : mat.dimI),
         j_size(j_size_ >= 0 ? j_size_ : mat.dimJ), i_0(i_0_), j_0(j_0_) {
       if (i_0 + i_size > mat.dimI or j_0 + j_size > mat.dimJ) throw domain_error("part");
     }
   };
 
-  int dimI;
-  int dimJ;
+  ll dimI;
+  ll dimJ;
   bool rev_rc = false; // if true, the order in mem is column->row
   vector<T> mem;
 
-  const T& at(int i, int j) const { return rev_rc ? mem[j*dimI + i] : mem[i*dimJ + j]; }
-  T&       rs(int i, int j)       { return rev_rc ? mem[j*dimI + i] : mem[i*dimJ + j]; }
+  const T& at(ll i, ll j) const { return rev_rc ? mem[j*dimI + i] : mem[i*dimJ + j]; }
+  T&       rs(ll i, ll j)       { return rev_rc ? mem[j*dimI + i] : mem[i*dimJ + j]; }
   
   Matrix() : dimI(1), dimJ(1), mem(1) {}
-  Matrix(int dimI_, int dimJ_) : dimI(dimI_), dimJ(dimJ_), mem(dimI*dimJ) {}
-  Matrix(int dimI_, int dimJ_, const T& t) : dimI(dimI_), dimJ(dimJ_), mem(dimI*dimJ, t) {}
+  Matrix(ll dimI_, ll dimJ_) : dimI(dimI_), dimJ(dimJ_), mem(dimI*dimJ) {}
+  Matrix(ll dimI_, ll dimJ_, const T& t) : dimI(dimI_), dimJ(dimJ_), mem(dimI*dimJ, t) {}
 
   template<typename Z>
-  void _from_vec(int dimI_, int dimJ_, Z&& vec) {
-    int sz = (int)vec.size();
+  void _from_vec(ll dimI_, ll dimJ_, Z&& vec) {
+    ll sz = (ll)vec.size();
     dimI = dimI_ <= 0 ? sz / dimJ_ : dimI_;
     dimJ = dimJ_ <= 0 ? sz / dimI_ : dimJ_;
     if (dimI * dimJ != sz) throw domain_error("_from_vec: inconsistent sizes");
     mem = forward<Z>(vec);
   }
-  Matrix(int dimI_, int dimJ_, const vector<T>& vec) { _from_vec(dimI_, dimJ_, vec); }
-  Matrix(int dimI_, int dimJ_, vector<T>&&      vec) { _from_vec(dimI_, dimJ_, move(vec)); }
+  Matrix(ll dimI_, ll dimJ_, const vector<T>& vec) { _from_vec(dimI_, dimJ_, vec); }
+  Matrix(ll dimI_, ll dimJ_, vector<T>&&      vec) { _from_vec(dimI_, dimJ_, move(vec)); }
 
   Matrix(initializer_list<initializer_list<T>> il) {
-    dimI = (int)il.size();
+    dimI = (ll)il.size();
     if (dimI == 0) throw domain_error("from_il: zero rows");
-    dimJ = (int)(*il.begin()).size();
+    dimJ = (ll)(*il.begin()).size();
     if (dimJ == 0) throw domain_error("from_il: zero columns");
     mem.resize(dimI * dimJ);
-    int i = 0;
+    ll i = 0;
     for (auto it : il) {
-      if ((int)it.size() != dimJ) throw domain_error("from_il: not in rectangular shape");
-      int j = 0;
+      if ((ll)it.size() != dimJ) throw domain_error("from_il: not in rectangular shape");
+      ll j = 0;
       for (const T& t : it) mem[i * dimJ + (j++)] = t;
       i++;
     }
   }
 
   Matrix(const Part& cs) : dimI(cs.i_size), dimJ(cs.j_size), mem(dimI*dimJ) {
-    for (int i = 0; i < dimI; i++) for (int j = 0; j < dimJ; j++) rs(i, j) = cs.mat.at(cs.i_0 + i, cs.j_0 + j);
+    for (ll i = 0; i < dimI; i++) for (ll j = 0; j < dimJ; j++) rs(i, j) = cs.mat.at(cs.i_0 + i, cs.j_0 + j);
   }
 
   bool operator ==(const Matrix& r) const {
     if (dimI != r.dimI or dimJ != r.dimJ) return false;
     if (rev_rc == r.rev_rc) return mem == r.mem;
-    for (int i = 0; i < dimI; i++) for (int j = 0; j < dimJ; j++) if (at(i, j) != r.at(i, j)) return false;
+    for (ll i = 0; i < dimI; i++) for (ll j = 0; j < dimJ; j++) if (at(i, j) != r.at(i, j)) return false;
     return true;
   }
   bool operator !=(const Matrix& r) const { return !(*this == r); }
@@ -84,7 +84,7 @@ struct Matrix {
   template<int sign>
   Matrix& _add_subt(const Matrix& r) {
     if (dimI != r.dimI or dimJ != r.dimJ) throw domain_error("_add_subt: dimension mismatch");
-    for (int i = 0; i < dimI; i++) for (int j = 0; j < dimJ; j++) {
+    for (ll i = 0; i < dimI; i++) for (ll j = 0; j < dimJ; j++) {
         if constexpr (sign > 0) rs(i, j) += r.at(i, j);
         else                    rs(i, j) -= r.at(i, j);
       }
@@ -98,21 +98,21 @@ struct Matrix {
   Matrix operator *(const Matrix& r) const {
     if (dimJ != r.dimI) throw domain_error("mult: dimension mismatch");
     Matrix result(dimI, r.dimJ, _zero_T());
-    for (int i = 0; i < dimI; i++) for (int j = 0; j < r.dimJ; j++) {
-	for (int k = 0; k < dimJ; k++) result.rs(i, j) += at(i, k) * r.at(k, j);
+    for (ll i = 0; i < dimI; i++) for (ll j = 0; j < r.dimJ; j++) {
+	for (ll k = 0; k < dimJ; k++) result.rs(i, j) += at(i, k) * r.at(k, j);
       }
     return result;
   }
   Matrix& operator *=(const Matrix& r) { return *this = *this * r; }
 
   Matrix& operator *=(const T& t) {
-    for (int p = 0; p < dimI * dimJ; p++) mem[p] *= t;
+    for (ll p = 0; p < dimI * dimJ; p++) mem[p] *= t;
     return *this;
   }
   friend Matrix operator *(const Matrix& mat, const T& t) { return Matrix(mat) *= t; }
   friend Matrix operator *(const T& t, const Matrix& mat) { // Mult of T might be non-commutative
     Matrix ret(mat);
-    for (int p = 0; p < mat.dimI * mat.dimJ; p++) ret.mem[p] = t * ret.mem[p];
+    for (ll p = 0; p < mat.dimI * mat.dimJ; p++) ret.mem[p] = t * ret.mem[p];
     return ret;
   }
 
@@ -127,14 +127,14 @@ struct Matrix {
   }
 
   static Matrix from_vvec(const vector<vector<T>>& vvec) {
-    int dimI_ = (int)vvec.size();
+    ll dimI_ = (ll)vvec.size();
     if (dimI_ == 0) throw domain_error("from_vvec: zero rows");
-    int dimJ_ = (int)vvec[0].size();
+    ll dimJ_ = (ll)vvec[0].size();
     if (dimJ_ == 0) throw domain_error("from_vvec: zero columns");
     Matrix ret(dimI_, dimJ_);
-    for (int i = 0; i < dimI_; i++) {
-      if ((int)vvec[i].size() != dimJ_) throw domain_error("from_vvec: not in rectangular shape");
-      for (int j = 0; j < dimJ_; j++) ret.mem[i*dimJ_ + j] = vvec[i][j];
+    for (ll i = 0; i < dimI_; i++) {
+      if ((ll)vvec[i].size() != dimJ_) throw domain_error("from_vvec: not in rectangular shape");
+      for (ll j = 0; j < dimJ_; j++) ret.mem[i*dimJ_ + j] = vvec[i][j];
     }
     return ret;
   }
@@ -143,20 +143,20 @@ struct Matrix {
   Matrix unit() const {
     if (dimI != dimJ) throw domain_error("unit: dimension mismatch");
     Matrix ret(dimI, dimI, _zero_T());
-    for (int i = 0; i < dimI; i++) ret.rs(i, i) = _one_T();
+    for (ll i = 0; i < dimI; i++) ret.rs(i, i) = _one_T();
     return ret;
   }
   Matrix one() const { return unit(); }  // for general operation Ring
 
-  Part part(int i_size_ = -1, int j_size_ = -1, int i_0_ = 0, int j_0_ = 0) const {
+  Part part(ll i_size_ = -1, ll j_size_ = -1, ll i_0_ = 0, ll j_0_ = 0) const {
     return Part(*this, i_size_, j_size_, i_0_, j_0_);
   }
 
-  Matrix rowVec(int i) const { return Matrix(part(1, -1, i, 0)); }
-  Matrix colVec(int j) const { return Matrix(part(-1, 1, 0, j)); }
+  Matrix rowVec(ll i) const { return Matrix(part(1, -1, i, 0)); }
+  Matrix colVec(ll j) const { return Matrix(part(-1, 1, 0, j)); }
 
-  void memcopy(const Part& cs, int i_1 = 0, int j_1 = 0) {
-    for (int i = 0; i < cs.i_size; i++) for (int j = 0; j < cs.j_size; j++) {
+  void memcopy(const Part& cs, ll i_1 = 0, ll j_1 = 0) {
+    for (ll i = 0; i < cs.i_size; i++) for (ll j = 0; j < cs.j_size; j++) {
         rs(i_1 + i, j_1 + j) = cs.mat.at(cs.i_0 + i, cs.j_0 + j);
       }
   }
@@ -172,29 +172,29 @@ struct Matrix {
 
   /* aux functions for sweepout */
 
-  void basic_mult(int i, T t) {               // multiplies i-th row by t
-    for (int j = 0; j < dimJ; j++) rs(i, j) *= t;
+  void basic_mult(ll i, T t) {               // multiplies i-th row by t
+    for (ll j = 0; j < dimJ; j++) rs(i, j) *= t;
   }
-  void basic_xchg(int i1, int i2) {           // exchanges i1-th and i2-th rows
-    for (int j = 0; j < dimJ; j++) swap(rs(i1, j), rs(i2, j));
+  void basic_xchg(ll i1, ll i2) {           // exchanges i1-th and i2-th rows
+    for (ll j = 0; j < dimJ; j++) swap(rs(i1, j), rs(i2, j));
   }
-  void basic_mult_add(int i1, T t, int i2) {  // adds t times of i1-th row to i2-th row
-    for (int j = 0; j < dimJ; j++) rs(i2, j) += t * at(i1, j);
+  void basic_mult_add(ll i1, T t, ll i2) {  // adds t times of i1-th row to i2-th row
+    for (ll j = 0; j < dimJ; j++) rs(i2, j) += t * at(i1, j);
   }
 
-  pair<int, int> _find_nz(int i0, int j0) const {
+  pair<ll, ll> _find_nz(ll i0, ll j0) const {
     for ( ; j0 < dimJ; j0++) {
-      int i = i0;
+      ll i = i0;
       for ( ; i < dimI && at(i, j0) == _zero_T(); i++);
       if (i < dimI) return {i, j0};
     }
     return {dimI, dimJ};
   }
 
-  pair<int, T> self_sweepout() {
+  pair<ll, T> self_sweepout() {
     T det = _one_T();
-    int j0 = 0;
-    int i0 = 0;
+    ll j0 = 0;
+    ll i0 = 0;
     for ( ; i0 < dimI; i0++, j0++) {
       auto [i1, j1] = _find_nz(i0, j0);
       if (i1 == dimI) break;
@@ -205,7 +205,7 @@ struct Matrix {
       }
       det *= at(i0, j0);
       basic_mult(i0, ::inverse<T>(at(i0, j0)));
-      for (int i = 0; i < dimI; i++) {
+      for (ll i = 0; i < dimI; i++) {
 	if (i == i0) continue;
         basic_mult_add(i0, -at(i, j0), i);
       }
@@ -213,7 +213,7 @@ struct Matrix {
     return {i0, move(det)};
   }
   
-  pair<int, T> sweepout() const { 
+  pair<ll, T> sweepout() const { 
     Matrix res1(*this);
     return res1.self_sweepout();
   }
@@ -248,7 +248,7 @@ struct Matrix {
     vector<Matrix> kernel;
     if (rank == 0) {
       if constexpr (not ret_kernel) return make_pair(move(sol), move(kernel));
-      for (int j = 0; j < dimJ; j++) {
+      for (ll j = 0; j < dimJ; j++) {
         Matrix m(dimJ, 1);
         m.rs(j, 0) = _one_T();
         kernel.push_back(m);
@@ -256,21 +256,21 @@ struct Matrix {
       return make_pair(move(sol), move(kernel));
     }
     if (not ([&]() -> bool {
-      for (int j = 0; j < dimJ; j++) if (work.at(rank - 1, j) != _zero_T()) return true;
+      for (ll j = 0; j < dimJ; j++) if (work.at(rank - 1, j) != _zero_T()) return true;
       return false;
     })()) return nullopt;
-    for (int i = 0, j = 0; i < rank; i++, j++) {
+    for (ll i = 0, j = 0; i < rank; i++, j++) {
       for ( ; work.at(i, j) == _zero_T(); j++);
       sol.rs(j, 0) = work.at(i, dimJ);
     }
     if constexpr (not ret_kernel) return make_pair(move(sol), move(kernel));
     vector<bool> cor(dimJ, false);
-    int i = 0;
-    for (int j = 0 ; j < dimJ; j++) {
+    ll i = 0;
+    for (ll j = 0 ; j < dimJ; j++) {
       if (i == dimI || work.at(i, j) == _zero_T()) {
         Matrix vec(dimJ, 1);
         vec.rs(j, 0) = _one_T();
-        for (int p = 0, q = 0; p < i; p++, q++) {
+        for (ll p = 0, q = 0; p < i; p++, q++) {
           while (!cor[q]) q++;
           vec.rs(q, 0) = -work.at(p, j);
         }
@@ -293,13 +293,13 @@ struct Matrix {
     is >> mat.dimI >> mat.dimJ;
     mat.rev_rc = false;
     mat.mem.resize(mat.dimI * mat.dimJ);
-    for (int i = 0; i < mat.dimI; i++) for (int j = 0; j < mat.dimJ; j++) is >> mat.rs(i, j);
+    for (ll i = 0; i < mat.dimI; i++) for (ll j = 0; j < mat.dimJ; j++) is >> mat.rs(i, j);
     return is;
   }
 
   friend ostream& operator <<(ostream& os, const Matrix& mat) {
-    for (int i = 0; i < mat.dimI; i++) {
-      for (int j = 0; j < mat.dimJ; j++) {
+    for (ll i = 0; i < mat.dimI; i++) {
+      for (ll j = 0; j < mat.dimJ; j++) {
         if (j > 0) os << ", ";
         os << mat.at(i, j);
       }

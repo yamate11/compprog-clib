@@ -39,13 +39,13 @@ void test1() {
 
   au.build();
 
-  assert(au.llk._ord == (vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
-  assert(au.llk._low == (vector<int>{0, 0, 1, 3, 4, 1, 0, 7, 0, 0}));
-  assert(au._bcc == (vector<vector<int>>{{0, 1, 6, 8, 9}, {6, 7}, {1, 2, 5}, {2, 4}, {2, 3}}));
+  assert(au.llk._ord == (vector<ll>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+  assert(au.llk._low == (vector<ll>{0, 0, 1, 3, 4, 1, 0, 7, 0, 0}));
+  assert(au._bcc == (vector<vector<ll>>{{0, 1, 6, 8, 9}, {6, 7}, {1, 2, 5}, {2, 4}, {2, 3}}));
   DLOGK(au.art_seq);
   articulation::bctree* abc = au.make_bctree();
   DLOGK(abc->arts);
-  auto show = [&](int a) -> void {
+  auto show = [&](ll a) -> void {
     auto [a1, a2] = abc->what(a);
     if (a1 == articulation::BLOCK) {
       DLOGKL("  BLOCK: ", au._bcc[a2]);
@@ -93,7 +93,7 @@ bool connected(ll n, const vpll& edges, ll nodes) { // nodes \subseteq [0..n)
   return uf.group_size(__builtin_ctzll(nodes)) == s;
 }
 
-int num_cc(ll n, const vpll& edges, ll nodes) {
+ll num_cc(ll n, const vpll& edges, ll nodes) {
   ll s = __builtin_popcountll(nodes);
   assert(s >= 0);
   UnionFind uf(n);
@@ -261,7 +261,7 @@ void sane_articulation(ll n, const vpll& edges) {
     assert(w2 == articulation::BLOCK);
     assert(0 <= i1 and i1 < n and arts[i1]);
     bool bb = false;
-    for (int k : au._bcc[i2]) bb = bb or (k == i1);
+    for (ll k : au._bcc[i2]) bb = bb or (k == i1);
     assert(bb);
   }
 

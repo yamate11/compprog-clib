@@ -15,31 +15,31 @@
 // @@ !! BEGIN()    ---- bridge.cc
 
 struct lowlink {
-  int size;
-  vector<vector<int>> _nbr;
-  vector<vector<int>> children;
-  vector<int> parent;
-  vector<vector<int>> back_edges_s;
-  vector<vector<int>> back_edges_e;
-  vector<int> _ord; // preorder
-  vector<int> _low; // low[i] = min{ ord[k] | k is reachable from i using at most one back edge. }
-  vector<int> roots;
+  ll size;
+  vector<vector<ll>> _nbr;
+  vector<vector<ll>> children;
+  vector<ll> parent;
+  vector<vector<ll>> back_edges_s;
+  vector<vector<ll>> back_edges_e;
+  vector<ll> _ord; // preorder
+  vector<ll> _low; // low[i] = min{ ord[k] | k is reachable from i using at most one back edge. }
+  vector<ll> roots;
   bool built;
-  int _seq;
+  ll _seq;
 
-  lowlink(int size_) : size(size_), _nbr(size), children(size), parent(size, -1),
+  lowlink(ll size_) : size(size_), _nbr(size), children(size), parent(size, -1),
                        back_edges_s(size), back_edges_e(size), _ord(0), _low(size), roots(0), built(false), _seq(0) {}
 
-  void add_edge(int u, int v) {
+  void add_edge(ll u, ll v) {
     if (built) throw runtime_error("lowlink.add_edge: already built");
     _nbr[u].push_back(v);
     _nbr[v].push_back(u);
   }
 
-  void _dfs_build(int i, int pt) {
+  void _dfs_build(ll i, ll pt) {
     bool found = false;
     _ord[i] = _low[i] = _seq++;
-    for (int j : _nbr[i]) {
+    for (ll j : _nbr[i]) {
       if (j == pt and not found) found = true;
       else if (_ord[j] < 0) { // j has not been visited
         _dfs_build(j, i);
@@ -65,19 +65,19 @@ struct lowlink {
     _ord.resize(size, -1);
     _seq = 0;
     roots.resize(0);
-    for (int i = 0; i < size; i++) if (_ord[i] < 0) {
+    for (ll i = 0; i < size; i++) if (_ord[i] < 0) {
         roots.push_back(i);
         _dfs_build(i, -1);
       }
     _nbr.clear();
   }
 
-  int ord(int i) {
+  ll ord(ll i) {
     if (not built) build();
     return _ord[i];
   }
 
-  int low(int i) {
+  ll low(ll i) {
     if (not built) build();
     return _low[i];
   }
@@ -92,14 +92,14 @@ struct lowlink {
  */
 struct bridge {
   lowlink llk;
-  vector<vector<int>> _tecc; // this.tecc(i) is the members of the i-th TECC
-  vector<int> _node_teccidx; // i = this._node_teccidx(u) if u belongs to the i-th TECC
+  vector<vector<ll>> _tecc; // this.tecc(i) is the members of the i-th TECC
+  vector<ll> _node_teccidx; // i = this._node_teccidx(u) if u belongs to the i-th TECC
   bool built;
   
-  bridge(int size) : llk(size), _tecc(0), _node_teccidx(size), built(false) {}
-  void add_edge(int u, int v) { llk.add_edge(u, v); }
+  bridge(ll size) : llk(size), _tecc(0), _node_teccidx(size), built(false) {}
+  void add_edge(ll u, ll v) { llk.add_edge(u, v); }
 
-  bool is_bridge(int u, int v) {
+  bool is_bridge(ll u, ll v) {
     if (not built) build();
     if (u == v) return false;
     if (llk.ord(u) > llk.ord(v)) swap(u, v);
@@ -113,16 +113,16 @@ struct bridge {
     built = true;
     llk.build();
     // auto visited = vector(llk.size, false);
-    vector<int> yet = llk.roots;
+    vector<ll> yet = llk.roots;
     while (not yet.empty()) {
-      int r = yet.back(); yet.pop_back();
-      auto comp = vector<int>();
-      auto dfs = [&](auto rF, int u) -> void {
+      ll r = yet.back(); yet.pop_back();
+      auto comp = vector<ll>();
+      auto dfs = [&](auto rF, ll u) -> void {
         DLOGKL("dfs top", u);
         // if (visited[u]) return;
         // visited[u] = true;
         comp.push_back(u);
-        for (int v : llk.children[u]) {
+        for (ll v : llk.children[u]) {
           DLOGK(u, v, is_bridge(u, v));
           if (is_bridge(u, v)) yet.push_back(v);
           else                 rF(rF, v);
@@ -131,31 +131,31 @@ struct bridge {
       DLOGKL("dfs initialted", r);
       dfs(dfs, r);
       DLOGKL("dfs finishes", comp);
-      for (int u : comp) _node_teccidx[u] = (int)_tecc.size();
+      for (ll u : comp) _node_teccidx[u] = (ll)_tecc.size();
       _tecc.push_back(move(comp));
     }
   }
 
-  int num_tecc() {
+  ll num_tecc() {
     if (not built) build();
-    return (int)_tecc.size();
+    return (ll)_tecc.size();
   }
 
-  const vector<int>& tecc(int ccid) {
+  const vector<ll>& tecc(ll ccid) {
     if (not built) build();
     return _tecc[ccid];
   }
 
-  int node_tecc_idx(int u) {
+  ll node_tecc_idx(ll u) {
     if (not built) build();
     return _node_teccidx[u];
   }
 
-  vector<pair<int, int>> tecc_edges() {
+  vector<pair<ll, ll>> tecc_edges() {
     if (not built) build();
-    vector<pair<int, int>> ret;
-    for (int u = 0; u < llk.size; u++) {
-      for (int v : llk.children[u]) if (is_bridge(u, v)) ret.emplace_back(node_tecc_idx(u), node_tecc_idx(v));
+    vector<pair<ll, ll>> ret;
+    for (ll u = 0; u < llk.size; u++) {
+      for (ll v : llk.children[u]) if (is_bridge(u, v)) ret.emplace_back(node_tecc_idx(u), node_tecc_idx(v));
     }
     return ret;
   }
@@ -165,36 +165,36 @@ struct bridge {
 
 struct articulation {
   lowlink llk;
-  vector<vector<int>> _bcc; // BiConnected Component
-  vector<int> art_seq;  // art_seq[u] is the sequence number if u is an articulation point; -1, otherwise.
-  int num_arts;
+  vector<vector<ll>> _bcc; // BiConnected Component
+  vector<ll> art_seq;  // art_seq[u] is the sequence number if u is an articulation point; -1, otherwise.
+  ll num_arts;
   bool built;
 
-  articulation(int size) : llk(size), _bcc(), art_seq(size, -1), num_arts(0), built(false) {}
+  articulation(ll size) : llk(size), _bcc(), art_seq(size, -1), num_arts(0), built(false) {}
 
-  void add_edge(int u, int v) { llk.add_edge(u, v); }
+  void add_edge(ll u, ll v) { llk.add_edge(u, v); }
 
   void build() {
     if (built) return;
     built = true;
     llk.build();
-    int seq = 0;
+    ll seq = 0;
     // DLOGK(llk.roots);
-    for (int rt : llk.roots) {
+    for (ll rt : llk.roots) {
       // DLOGK(rt);
-      vector<pair<int, int>> yet;
+      vector<pair<ll, ll>> yet;
       if (llk.children[rt].size() == 0) {
-        _bcc.push_back(vector<int>{rt});
+        _bcc.push_back(vector<ll>{rt});
       }else {
         if (llk.children[rt].size() >= 2) art_seq[rt] = seq++;
-        for (int u : llk.children[rt]) yet.emplace_back(rt, u);
+        for (ll u : llk.children[rt]) yet.emplace_back(rt, u);
         while (not yet.empty()) {
           auto [pt, cld] = yet.back(); yet.pop_back();
           // DLOGK(pt, cld);
-          vector<int> comp{pt};
-          auto dfs = [&](auto rF, int u) -> void {
+          vector<ll> comp{pt};
+          auto dfs = [&](auto rF, ll u) -> void {
             comp.push_back(u);
-            for (int v : llk.children[u]) {
+            for (ll v : llk.children[u]) {
               if (llk.low(v) >= llk.ord(u)) {
                 if (art_seq[u] < 0) art_seq[u] = seq++;
                 yet.emplace_back(u, v);
@@ -209,17 +209,17 @@ struct articulation {
     num_arts = seq;
   }
 
-  bool is_articulation(int u) {
+  bool is_articulation(ll u) {
     if (not built) build();
     return art_seq[u] >= 0;
   }
 
-  int bcc_size() {
+  ll bcc_size() {
     if (not built) build();
-    return (int)_bcc.size();
+    return (ll)_bcc.size();
   }
 
-  const vector<int>& bcc(int idx) {
+  const vector<ll>& bcc(ll idx) {
     if (not built) build();
     return _bcc[idx];
   }
@@ -229,34 +229,34 @@ struct articulation {
 
   struct bctree {
     const articulation* obj;
-    int size_block;
-    int size_cut;
-    vector<int> arts;
+    ll size_block;
+    ll size_cut;
+    vector<ll> arts;
 
-    bctree(const articulation* obj_) : obj(obj_), size_block((int)obj->_bcc.size()), size_cut(obj->num_arts),
+    bctree(const articulation* obj_) : obj(obj_), size_block((ll)obj->_bcc.size()), size_cut(obj->num_arts),
                                        arts(size_cut) {
-      for (int i = 0; i < obj->llk.size; i++) if (obj->art_seq[i] >= 0) arts[obj->art_seq[i]] = i; 
+      for (ll i = 0; i < obj->llk.size; i++) if (obj->art_seq[i] >= 0) arts[obj->art_seq[i]] = i; 
     }
 
-    int size() { return size_block + size_cut; }
+    ll size() { return size_block + size_cut; }
 
-    vector<pair<int, int>> edges() {
-      vector<pair<int, int>> ret;
-      for (int c = 0; c < size_block; c++) {
-        for (int i : obj->_bcc[c]) {
-          int a = obj->art_seq[i];
+    vector<pair<ll, ll>> edges() {
+      vector<pair<ll, ll>> ret;
+      for (ll c = 0; c < size_block; c++) {
+        for (ll i : obj->_bcc[c]) {
+          ll a = obj->art_seq[i];
           if (a >= 0) ret.emplace_back(size_block + a, c);
         }
       }
       return ret;
     }
 
-    pair<kind, int> what(int node) {
+    pair<kind, ll> what(ll node) {
       if (node < size_block) return {BLOCK, node};
       else                   return {CUT, arts[node - size_block]};
     }
 
-    int node(kind w, int i) {
+    ll node(kind w, ll i) {
       if (w == BLOCK) return i;
       else if (w == CUT) return size_block + obj->art_seq[i];
       else assert(0);

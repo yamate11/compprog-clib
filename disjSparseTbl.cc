@@ -52,7 +52,7 @@ struct DisjSparseTbl {
     }
   }
 
-  DAT query(int l, int r) {  // half-open interval [l, r)
+  DAT query(ll l, ll r) {  // half-open interval [l, r)
 #if DEBUG
     if (not (0 <= l and l <= r and r <= size)) {
       cerr << "DisjSparseTbl: Warning: border values inconsistent: l = " << l << ", r = " << r << endl;

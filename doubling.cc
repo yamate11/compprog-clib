@@ -39,8 +39,8 @@ struct Doubling {
     }
   }
 
-  pair<INT, T> val_pair(ll r, int i) const {
-    int idx = i;
+  pair<INT, T> val_pair(ll r, ll i) const {
+    ll idx = i;
     T ret{};
     if constexpr (hasT) ret = unit;
     for (int k = 0; r > 0; r >>= 1, k++) {
@@ -52,10 +52,10 @@ struct Doubling {
     return make_pair(idx, ret);
   }
 
-  INT f_val(ll r, int i) const { return val_pair(r, i).first; }
-  T   t_val(ll r, int i) const { return val_pair(r, i).second; }
+  INT f_val(ll r, ll i) const { return val_pair(r, i).first; }
+  T   t_val(ll r, ll i) const { return val_pair(r, i).second; }
 
-  ll binsearch_body(auto check, bool lo_exp, int i, ll lo, ll hi) const {
+  ll binsearch_body(auto check, bool lo_exp, ll i, ll lo, ll hi) const {
     if (hi < 0) hi = max_call;
     bool hi_checked = false;
     auto [lo_idx, lo_val] = val_pair(lo, i);
@@ -80,8 +80,8 @@ struct Doubling {
     else if (hi_checked) return hi;
     else return hi + 1;
   }
-  ll binsearch_lo(auto check, int i, ll lo = 0, ll hi = -1) const { return binsearch_body(check, true, i, lo, hi); }
-  ll binsearch_hi(auto check, int i, ll lo = 0, ll hi = -1) const { return binsearch_body(check, false, i, lo, hi); }
+  ll binsearch_lo(auto check, ll i, ll lo = 0, ll hi = -1) const { return binsearch_body(check, true, i, lo, hi); }
+  ll binsearch_hi(auto check, ll i, ll lo = 0, ll hi = -1) const { return binsearch_body(check, false, i, lo, hi); }
 };
 
 template<typename INT>

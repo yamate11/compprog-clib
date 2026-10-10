@@ -44,7 +44,7 @@ int main(/* int argc, char *argv[] */) {
   { // ABC179-E  
     using vll = vector<ll>;
     auto func = [&](ll N, ll K, const vll& A) -> ll {
-      vector<int> vf(N);
+      vector<ll> vf(N);
       REP(i, 0, N) vf[i] = (i + A[i]) % N;
       auto dobj = make_doubling(K, vf, A, 0LL, plus<ll>());
       return dobj.t_val(K, 0);
@@ -139,9 +139,9 @@ int main(/* int argc, char *argv[] */) {
         ll n = rand.range(1, n0);
         ll K = rand.range(1, K0);
         vector<int> A(n);
-        REP(i, 0, n) A[i] = rand.range(0, n);
+        REP(i, 0, n) A[i] = (int)rand.range(0, n);
         vector<ll> B(n);
-        REP(i, 0, n) B[i] = rand.range(0, (ll)1e9);
+        REP(i, 0, n) B[i] = (int)rand.range(0, (ll)1e9);
         auto naive_m = [&](ll r, ll x) -> pair<int, ll> {
           ll v = 1e9;
           REP(i, 0, r) {
@@ -176,7 +176,7 @@ int main(/* int argc, char *argv[] */) {
         ll R = rand.range(1, 20);
         ll K = rand.range(1, 10);
         vector<int> A(n);
-        REP(i, 0, n) A[i] = rand.range(0, n);
+        REP(i, 0, n) A[i] = (int)rand.range(0, n);
         S unit_S{-1, -1, 0};
         vector<S> M(n);
         REP(i, 0, n) M[i] = S{i, i, 0};
@@ -186,10 +186,10 @@ int main(/* int argc, char *argv[] */) {
           return S{a.left, b.right, a.numinc + b.numinc + (a.right < b.left ? 1 : 0)};
         };
         auto naive_1 = [&](ll x, ll lo, ll hi) -> ll {
-          auto op = [&](int i, const S& a) -> pair<int, S> {
+          auto op = [&](ll i, const S& a) -> pair<int, S> {
             return make_pair(A[i], prod(a, S{i, i, 0}));
           };
-          int idx = x;
+          ll idx = x;
           S acc = unit_S;
           REP(i, 0, lo) {
             tie(idx, acc) = op(idx, acc);
