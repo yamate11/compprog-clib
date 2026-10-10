@@ -13,7 +13,7 @@ int main() {
     Random rand;
     vector<int> cnt(10);
     for (int i = 0; i < 10000; i++) {
-      int c = rand.range(0, 10);
+      ll c = rand.range(0, 10);
       cnt[c]++;
     }
     for (int i = 0; i < 10; i++) assert(900 <= cnt[i] and cnt[i] <= 1100);

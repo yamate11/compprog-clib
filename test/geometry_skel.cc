@@ -192,7 +192,7 @@ int main() {
     assert(may_eq(Point(1,1).angle(Point(-1,0)), G_PI*0.75));
     assert(may_eq(Point(-1,0).angle(Point(1,1)), -G_PI*0.75));
     for (ll i = 0; i < 20; i++) {
-      Point p12 = p10.rotate(i*G_PI/10);
+      Point p12 = p10.rotate((double)i*G_PI/10.0);
       assert(may_eq(p10.innerProd(p12),
 		  p10.len() * p12.len() * cos(p10.angle(p12))));
       assert(may_eq(p10.outerProd(p12),

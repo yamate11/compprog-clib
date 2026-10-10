@@ -419,7 +419,7 @@ int main(/* int argc, char *argv[] */) {
       Pol p7 = (p6 * sp3 - p1).cutoff(p1.degree());
       assert(p7.degree() == -1);
       Pol p8 = p1.divide(sp3, 4);
-      Pol p9 = (p8 * sp3 - p1).cutoff(min(4, sp3.degree()));
+      Pol p9 = (p8 * sp3 - p1).cutoff(min(4LL, sp3.degree()));
       assert(p9.degree() == -1);
     }
   }

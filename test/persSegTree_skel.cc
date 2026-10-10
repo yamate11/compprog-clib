@@ -22,13 +22,13 @@ struct NaiveImpl {
 
   DAT query(ll idx, ll rngLo, ll rngHi) const {
     ll ret = unit_dat;
-    for (int i = rngLo; i < rngHi; i++) ret = add(ret, data[idx][i]);
+    for (ll i = rngLo; i < rngHi; i++) ret = add(ret, data[idx][i]);
     return ret;
   }
 
   ll update(ll idx, ll rngLo, ll rngHi, const OP& op_asked) {
     vector<DAT> new_vec = data[idx];
-    for (int i = rngLo; i < rngHi; i++) new_vec[i] = appl(op_asked, new_vec[i]);
+    for (ll i = rngLo; i < rngHi; i++) new_vec[i] = appl(op_asked, new_vec[i]);
     data.push_back(move(new_vec));
     return ssize(data) - 1;
   }
@@ -99,16 +99,16 @@ int main() {
       rec1.push_back(pt0);
       rec2.push_back(idx0);
       for (int _r2 = 0; _r2 < repeat2; _r2++) {
-        int j0 = rand.range(0, ssize(rec1));
-        int j1 = rand.range(0, sz);
-        int x = rand.range(-9, 10);
+        ll j0 = rand.range(0, ssize(rec1));
+        ll j1 = rand.range(0, sz);
+        ll x = rand.range(-9, 10);
         auto pt = st.set(rec1[j0], j1, x);
         auto idx = ni.set(rec2[j0], j1, x);
         rec1.push_back(pt);
         rec2.push_back(idx);
-        int i = rand.range(0, ssize(rec1));
-        int lo = rand.range(0, sz);
-        int hi = rand.range(lo + 1, sz + 1);
+        ll i = rand.range(0, ssize(rec1));
+        ll lo = rand.range(0, sz);
+        ll hi = rand.range(lo + 1, sz + 1);
         ll a1 = st.query(rec1[i], lo, hi);
         ll a2 = ni.query(rec2[i], lo, hi);
         assert(a1 == a2);
@@ -132,24 +132,24 @@ int main() {
       rec1.push_back(pt0);
       rec2.push_back(idx0);
       for (int _r2 = 0; _r2 < repeat2; _r2++) {
-        int j0 = rand.range(0, ssize(rec1));
-        int j1 = rand.range(0, sz);
-        int x = rand.range(-9, 10);
+        ll j0 = rand.range(0, ssize(rec1));
+        ll j1 = rand.range(0, sz);
+        ll x = rand.range(-9, 10);
         auto pt = st.set(rec1[j0], j1, x);
         auto idx = ni.set(rec2[j0], j1, x);
         rec1.push_back(pt);
         rec2.push_back(idx);
-        int k0 = rand.range(0, ssize(rec1));
-        int k1 = rand.range(0, sz);
-        int k2 = rand.range(k1 + 1, sz + 1);
-        int y = rand.range(-9, 10);
+        ll k0 = rand.range(0, ssize(rec1));
+        ll k1 = rand.range(0, sz);
+        ll k2 = rand.range(k1 + 1, sz + 1);
+        ll y = rand.range(-9, 10);
         auto pt3 = st.update(rec1[k0], k1, k2, y);
         auto idx3 = ni.update(rec2[k0], k1, k2, y);
         rec1.push_back(pt3);
         rec2.push_back(idx3);
-        int i = rand.range(0, ssize(rec1));
-        int lo = rand.range(0, sz);
-        int hi = rand.range(lo + 1, sz + 1);
+        ll i = rand.range(0, ssize(rec1));
+        ll lo = rand.range(0, sz);
+        ll hi = rand.range(lo + 1, sz + 1);
         ll a1 = st.query(rec1[i], lo, hi);
         ll a2 = ni.query(rec2[i], lo, hi);
         assert(a1 == a2);

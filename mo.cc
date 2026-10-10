@@ -40,27 +40,27 @@
 // @@ !! BEGIN()    ---- mo.cc
 
 struct Mo {
-  using vq_t = tuple<int, int, int>;
-  int size;
-  int vq_idx;
+  using vq_t = tuple<ll, ll, ll>;
+  ll size;
+  ll vq_idx;
   vector<vq_t> vq;
-  int cl;
-  int cr;
+  ll cl;
+  ll cr;
 
-  Mo(int size_) : size(size_), vq_idx(0), vq(), cl(0), cr(0) {}
-  void add_query(int l, int r) { vq.emplace_back(l, r, vq_idx++); }
+  Mo(ll size_) : size(size_), vq_idx(0), vq(), cl(0), cr(0) {}
+  void add_query(ll l, ll r) { vq.emplace_back(l, r, vq_idx++); }
 
   void run(auto in_left, auto in_right, auto out_left, auto out_right, auto calc) {
-    int qsz = (int)vq.size();
-    int bsize = max(1, int((double)size / sqrt(qsz)));
+    ll qsz = (ll)vq.size();
+    ll bsize = max(1LL, ll((double)size / sqrt(qsz)));
     cl = 0;
     cr = 0;
     sort(vq.begin(), vq.end(),
          [&](const vq_t& p1, const vq_t& p2) -> bool {
            const auto& [a1, b1, i1] = p1;
            const auto& [a2, b2, i2] = p2;
-           int z1 = a1 / bsize;
-           int z2 = a2 / bsize;
+           ll z1 = a1 / bsize;
+           ll z2 = a2 / bsize;
            if (z1 != z2) return z1 < z2;
            else if (z1 % 2 == 0) return b1 < b2;
            else return b1 > b2;

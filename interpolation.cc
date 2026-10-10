@@ -110,11 +110,11 @@ T lagrangeVal(const vector<T>& vs, ll n) {
 
 template<typename Pol>
 optional<pair<Pol, Pol>>
-fitFPS(const vector<typename Pol::value_type>& vec, int verify) {
+fitFPS(const vector<typename Pol::value_type>& vec, ll verify) {
   using T = typename Pol::value_type;
 
   auto checkSol = [&](const Matrix<T>& sol) -> bool {
-    int d = sol.dimI;
+    ll d = sol.dimI;
     // DLOGKL("checkSol", d);
     for (int i = 0; i < verify; i++) {
       T y = (T)0;

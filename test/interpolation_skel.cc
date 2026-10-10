@@ -35,7 +35,7 @@ int main(/* int argc, char *argv[] */) {
     vector<double> A(2*N);
     for (ll s1 = 0; s1 < N; s1++) {
       for (ll s2 = s1 + 1; s2 < N; s2++) {
-        A[s1 + s2] += s2 - s1;
+        A[s1 + s2] += (double)(s2 - s1);
       }
     }
     auto optsol = fitFPS<Pol>(A, 10);

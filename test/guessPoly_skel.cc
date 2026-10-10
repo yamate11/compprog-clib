@@ -17,7 +17,7 @@ int main(/* int argc, char *argv[] */) {
   vector<double> v;
   for (ll i = 0; i < 100; i++) {
     for (ll j = 0; j < 3; j++) {
-      v.push_back(f(i, j));
+      v.push_back((double)f(i, j));
     }
   }
   GuessPoly<double, 0> gp(v, 0, 2, 3, 10);

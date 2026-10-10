@@ -167,7 +167,7 @@ public:
   }
 
   // Degree of the zero polynomial is -1.
-  int degree() const { return (int)coef.size() - 1; }
+  ll degree() const { return (int)coef.size() - 1; }
 
   void normalize() {
     while (!coef.empty() && coef.back() == (T)0) coef.pop_back();
@@ -206,7 +206,7 @@ public:
   }
 
   Polynomial& operator +=(const Polynomial& o) {
-    int deg = max(degree(), o.degree());
+    ll deg = max(degree(), o.degree());
     if ((int)coef.size() < deg + 1) { coef.resize(deg + 1); }
     for (int i = 0; i <= o.degree(); i++) { coef[i] += o.coef[i]; }
     normalize();
@@ -214,7 +214,7 @@ public:
   }
 
   Polynomial& operator -=(const Polynomial& o) {
-    int deg = max(degree(), o.degree());
+    ll deg = max(degree(), o.degree());
     if ((int)coef.size() < deg + 1) { coef.resize(deg + 1); }
     for (int i = 0; i <= o.degree(); i++) { coef[i] -= o.coef[i]; }
     normalize();
@@ -270,15 +270,15 @@ public:
     return ret;
   }
 
-  Polynomial& selfCutoff(int deg) {
+  Polynomial& selfCutoff(ll deg) {
     if (degree() <= deg) return *this;
     coef.resize(deg + 1);
     normalize();
     return *this;
   }
 
-  Polynomial cutoff(int deg) const {
-    int new_deg = min(deg, degree());
+  Polynomial cutoff(ll deg) const {
+    ll new_deg = min(deg, degree());
     vector<T> new_coef(new_deg + 1);
     for (int i = 0; i <= new_deg; i++) new_coef[i] = coef[i];
     return Polynomial(move(new_coef));
@@ -308,16 +308,16 @@ public:
   //   - T is a field, or
   //   - the coefficient of the highest degree of q is (T)1.
   pair<Polynomial, Polynomial> divmod(const Polynomial& q) const {
-    int this_deg = degree();
-    int q_deg = q.degree();
+    ll this_deg = degree();
+    ll q_deg = q.degree();
     if (q_deg == 0) {
       vector<T> new_coef(coef);
       for (ll i = 0; i <= this_deg; i++) { new_coef[i] /= q.coef[0]; }
       return {Polynomial(move(new_coef)), Polynomial()};
     }
-    int div_deg = this_deg - q_deg;
+    ll div_deg = this_deg - q_deg;
     if (div_deg < 0) { return { (T)0, *this }; }
-    int mod_deg = q_deg - 1;
+    ll mod_deg = q_deg - 1;
     vector<T> div_coef(div_deg + 1);
     vector<T> mod_coef(coef);
     DLOGK_LIB(div_deg, mod_deg);
@@ -339,7 +339,7 @@ public:
      also https://nyaannyaan.github.io/library/fps/ntt-friendly-fps.hpp
    */
   // This works, but very slow.   (Library Checker: 334ms)
-  Polynomial inverse(int n) const {  
+  Polynomial inverse(ll n) const {  
     Polynomial g{(T)1 / coef[0]};
     int k = 1;
     while (n >= k) {
@@ -350,7 +350,7 @@ public:
     return g;
   }
 
-  Polynomial divide(const Polynomial& q, int n) const { return ((*this) * q.inverse(n)).selfCutoff(n); }
+  Polynomial divide(const Polynomial& q, ll n) const { return ((*this) * q.inverse(n)).selfCutoff(n); }
 
   T subBostanMori(const Polynomial& o, ll n) const {
     auto rev = [](vector<T> &f) -> void {
@@ -421,13 +421,13 @@ public:
   }
 
   // This works, but very slow.   (Library Checker: 454ms)
-  Polynomial log(int n) const {
+  Polynomial log(ll n) const {
     if (coef[0] != 1) throw runtime_error("polynomial: log: coef[0] must be one.");
     return differential().divide(*this, n).integral();
   }
 
   // This works, but very slow.   (Library Checker: 975ms)
-  Polynomial exp(int n) const {
+  Polynomial exp(ll n) const {
     if (coef[0] != 0) throw runtime_error("polynomial: exp: coef[0] must be zero.");
     Polynomial g((T)1);
     ll k = 1;
@@ -475,10 +475,10 @@ public:
     return *this;
   }
 
-  Polynomial& selfMult(const SP& o, int lim = -1) {
+  Polynomial& selfMult(const SP& o, ll lim = -1) {
     if (coef.empty()) return *this;
     if (o.coef.empty()) { coef.resize(0); return *this; }
-    int dd = degree() + o.degree();
+    ll dd = degree() + o.degree();
     if (lim < 0 || dd < lim) lim = dd;
     auto old_coef = move(coef);
     coef = vector<T>(lim + 1);
@@ -491,7 +491,7 @@ public:
     return *this;
   }
 
-  Polynomial mult(const SP& o, int lim = -1) const {
+  Polynomial mult(const SP& o, ll lim = -1) const {
     Polynomial p(*this);
     return p.selfMult(o, lim);
   }
@@ -499,7 +499,7 @@ public:
   Polynomial& operator *=(const SP& o) { return selfMult(o, -1); }
 
   // the constant term of o should have the inverse.
-  Polynomial& selfDivide(const SP& o, int lim = -1) {
+  Polynomial& selfDivide(const SP& o, ll lim = -1) {
     if (o.coef.empty()) throw runtime_error("selfDivide: o.coef.empty");
     auto [i, t0] = o.coef.front();
     if (i != 0) throw runtime_error("selfDivide: no constant factor");
@@ -520,7 +520,7 @@ public:
     return *this;
   }
 
-  Polynomial divide(const SP& o, int lim = -1) const {
+  Polynomial divide(const SP& o, ll lim = -1) const {
     Polynomial p(*this);
     return p.selfDivide(o, lim);
   }
@@ -539,7 +539,7 @@ public:
   }
 
   static Polynomial X() { return Polynomial(vector<T>{0, 1}); }
-  static Polynomial Xn(int n) { return (Polynomial)(SparsePoly<T>::Xn(n)); }
+  static Polynomial Xn(ll n) { return (Polynomial)(SparsePoly<T>::Xn(n)); }
 
 };
 
@@ -553,7 +553,7 @@ struct SparsePoly {   // Sparse Polynomial
   // Thus, 0 (as polynomial) should be represented by the empty vector.
 
   // degree of 0 (as polynomial) is -1
-  int degree() const {
+  ll degree() const {
     if (coef.empty()) return -1;
     return (int)coef.back().first;
   }
@@ -626,12 +626,7 @@ struct SparsePoly {   // Sparse Polynomial
     else return (T)0;
   }
 
-  /*
-  static SparsePoly getX() { return SparsePoly({{1, 1}}); }
-  static SparsePoly getXn(int n) { return SparsePoly({{n, 1}}); }
-  */
-
-  coef_t _plus_minus(const coef_t& a, const coef_t& b, int flag) const {
+  coef_t _plus_minus(const coef_t& a, const coef_t& b, ll flag) const {
     coef_t ret;
     int i = 0, j = 0;
     while (true) {
@@ -719,7 +714,7 @@ struct SparsePoly {   // Sparse Polynomial
     return os;
   }
 
-  static SparsePoly Xn(int n) { return SparsePoly({{n,1}}); }
+  static SparsePoly Xn(ll n) { return SparsePoly({{n,1}}); }
   static SparsePoly X() { return Xn(1); }
 
 };
