@@ -84,7 +84,7 @@ WARNINGS := -Wall -Wextra -Wno-format-security -Wshadow -Wconversion -Wno-sign-c
 
 CXXFLAGS := -std=gnu++23 $(DEBUGFLAGS) $(WARNINGS)
 
-CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/lib/boost_1_73_0
+# CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/lib/boost_1_85_0
 CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/proj/compprog/clib/ac-library
 CXXFLAGS := $(CXXFLAGS) $(if $(CMPNAIVE),-DCMPNAIVE=1)
 CXXFLAGS := $(CXXFLAGS)
