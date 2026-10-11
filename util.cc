@@ -164,10 +164,9 @@ template <typename T>
 string g_show_impl(const optional<T>& t) { return t ? g_show(*t) : "(nullopt)"; }
 
 //    (signed/unsigned) __int128
-//    operator<< is defined here, and the next section makes g_show
 
-ostream& operator<<(ostream& ostr, unsigned __int128 x) {
-  if (x == 0) return ostr << "0";
+string g_show_impl(unsigned __int128 x) {
+  if (x == 0) return "0";
   string s;
   while (x > 0) {
     int d = (int)(x % 10);
@@ -175,18 +174,18 @@ ostream& operator<<(ostream& ostr, unsigned __int128 x) {
     x /= 10;
   }
   reverse(s.begin(), s.end());
-  return ostr << s;
+  return s;
 }
 
-ostream& operator<<(ostream& ostr, __int128 x) {
-  if (x >= 0) {
-    return ostr << (unsigned __int128)x;
-  } else {
-    unsigned __int128 ux = (unsigned __int128)x;
-    ux = ~ux + 1;
-    return ostr << "-" << ux;
-  }
+string g_show_impl(__int128 x) {
+  unsigned __int128 ux = (unsigned __int128)x;
+  return x >= 0 ? g_show_impl(ux) : "-" + g_show_impl(~ux + 1);
 }
+
+// Both g_show_impl and operator<< are needed because of the implicit casting from __int128 to int etc.
+ostream& operator<<(ostream& ostr, unsigned __int128 x) { return ostr << g_show(x); }
+ostream& operator<<(ostream& ostr,          __int128 x) { return ostr << g_show(x); }
+
 
 template<class T>
 string g_show(const T& x) {
@@ -250,26 +249,31 @@ vector<T> read_vector(istream& is) {
   return read_vector_n<T>(is, n);
 }
 
-// This is a very ad-hoc implementation...
-// Known problem: "1 << 127" cannot be handled.
-istream& operator>>(istream& is, __int128& o) {
+// signed and unsigned __int128.  This assumes correct input is given.
+
+unsigned __int128 _uint128_from_string(const string& s, int start) {
+  unsigned __int128 y = 0;
+  for (int i = start; i < ssize(s); i++) y = y * 10 + (s[i] - '0');
+  return y;
+}
+
+istream& operator>>(istream& is, unsigned __int128& x) {
   string s; is >> s;
-  o = 0;
-  int sign = 1;
-  for (int i = 0; i < ssize(s); i++) {
-    if (s[i] == '-') {
-      if (i == 0) sign = -1;
-      else throw runtime_error(">>: misplaced minus sign");
-    }else {
-      int d = s[i] - '0';
-      if (0 <= d and d <= 9) {
-        o = 10 * o + d;
-      }else throw runtime_error(">>: not a digit");
-    }
-  }
-  o = sign * o;
+  if (!is) return is;
+  x = _uint128_from_string(s, s[0] == '+' ? 1 : 0);
   return is;
-    
+}
+
+istream& operator>>(istream& is, __int128& x) {
+  string s; is >> s;
+  if (!is) return is;
+  bool negative; int start;
+  if      (s[0] == '-') { negative = true;  start = 1; }
+  else if (s[0] == '+') { negative = false; start = 1; }
+  else                  { negative = false; start = 0; }
+  unsigned __int128 v = _uint128_from_string(s, start);
+  x = negative ? -(__int128)(v - 1) - 1 : (__int128)v;
+  return is;
 }
 
 // @@ !! FUNC END f:>>

@@ -5,6 +5,20 @@ using namespace std;
 
 // @@ !! LIM(debug f:<< f:>> f:gcd f:updMaxMin f:intDiv f:mex f:shortVector f:perfmeas f:itrange)
 
+template<typename T>
+void stream_out_check(const T& x, string s) {
+  stringstream ss;
+  ss << x;
+  assert(ss.str() == s);
+}
+
+template<typename T>
+void stream_in_check(const T& x, string s) {
+  stringstream ss(s);
+  T y;
+  ss >> y;
+  assert(x == y);
+}
 
 int main() {
 
@@ -213,42 +227,46 @@ int main() {
   }
 
   { // __int128 input output
+    // __int128_t and __uint128_t are aliases for __int128 and unsigned __int128, resp.
+    const __uint128_t zero = 0;
+    const __uint128_t max_uint128 = ~zero;
+    const __int128_t max_int128 = (__int128_t)(max_uint128 ^ ((__uint128_t)1 << 127));
+    const __int128_t min_int128 = -max_int128 - 1;
+    const string str_max_uint128 = "340282366920938463463374607431768211455";
+    const string str_max_int128 =  "170141183460469231731687303715884105727";
+    const string str_min_int128 = "-170141183460469231731687303715884105728";
+  
     stringstream ss1;
-    __int128 x1 = 0;
+    __int128_t x1 = 0;
     ss1 << x1 << 0;
     assert(ss1.str() == "00");
 
-    auto out_check = [&](__int128 x, string s) -> void {
-      stringstream ss;
-      ss << x;
-      cout << ss.str() << endl;
-      cout << s << endl;
-      assert(ss.str() == s);
-    };
-    out_check((__int128)0, "0");
-    out_check((__int128)123, "123");
-    out_check((__int128)(-2450), "-2450");
-    unsigned __int128 y1 = 1LL << 60;
-    unsigned __int128 y2 = 1LL << 7;
-    unsigned __int128 y3 = y1 * y1 * y2;
-    __int128 x4 = (-1) * y3;
-    __int128 x5 = y3 - 1;
-    // Sorry, this cannot be handled.
-    // out_check(x4, "-170141183460469231731687303715884105728");
-    out_check(x4 + 1, "-170141183460469231731687303715884105727");
-    out_check(x5, "170141183460469231731687303715884105727");
+    stream_out_check<__int128_t>((__int128_t)0, "0");
+    stream_out_check<__int128_t>((__int128_t)123, "123");
+    stream_out_check<__int128_t>((__int128_t)(-2450), "-2450");
+    stream_out_check<__int128_t>(min_int128, str_min_int128);
+    stream_out_check<__int128_t>(max_int128, str_max_int128);
+    stream_out_check<__uint128_t>((__uint128_t)0, "0");
+    stream_out_check<__uint128_t>((__uint128_t)123, "123");
+    stream_out_check<__uint128_t>(max_uint128, str_max_uint128);
 
-    stringstream ss2("56 0 -18");
-    __int128 x10, x11, x12 ; ss2 >> x10 >> x11 >> x12;
-    assert(x10 == 56 and x11 == 0 and x12 == -18);
-    // Sorry, this cannot be handled.
-    // stringstream ss3("-170141183460469231731687303715884105728");
-    stringstream ss3("-170141183460469231731687303715884105727");
-    __int128 x13; ss3 >> x13;
-    assert(x13 == x4 + 1);
-    stringstream ss4("170141183460469231731687303715884105727");
-    __int128 x14; ss4 >> x14;
-    assert(x14 == x5);
+    stringstream ss2("56 0 -18 2 143");
+    __int128_t x10, x11, x12 ; ss2 >> x10 >> x11 >> x12;
+    __uint128_t y10, y11; ss2 >> y10 >> y11;
+    assert(x10 == 56 and x11 == 0 and x12 == -18 and y10 == 2 and y11 == 143);
+
+    stream_in_check<__int128_t>(min_int128, str_min_int128);
+    stream_in_check<__int128_t>(max_int128, str_max_int128);
+    stream_in_check<__uint128_t>(max_uint128, str_max_uint128);
+    stream_in_check<__uint128_t>((__uint128_t)max_int128, str_max_int128);
+
+    __int128_t x20 = -5100;
+    __uint128_t y20 = 365;
+    assert(g_show(x20) == "-5100");
+    assert(g_show(y20) == "365");
+    assert(g_show(min_int128) == str_min_int128);
+    assert(g_show(max_int128) == str_max_int128);
+    assert(g_show(max_uint128) == str_max_uint128);
   }
 
 
