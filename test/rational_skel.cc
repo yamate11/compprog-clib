@@ -27,6 +27,8 @@ int main() {
     x += a;
     y -= a;
     assert(x == y);
+    if (a > 1) assert(0);
+    if (1 != c) assert(0);
     assert(g_show(-b) == "-2/3");
     // Note that operator<< is not supported.  Use g_show if needed.
   }

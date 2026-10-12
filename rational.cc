@@ -7,7 +7,22 @@ using namespace std;
    Rational
 
    Template parameter INT is mandatory (design choice).
-   Something like "use Rat = Rational<ll>;" or "use Rat = Rational<__int128>;" is recommended.
+   Something like "using Rat = Rational<ll>;" or "using Rat = Rational<__int128>;" is recommended.
+
+   Usage:
+
+     using Rat = Rational<ll>;   // consider Rational<__int128> or Rational<cpp_int> if overflow is likely
+     Rat a(-2, 5);   // -2/5
+     Rat b(4);       // 4
+     Rat c;          // 0
+     ll x = a.num;   // numerator
+     ll y = a.den;   // denominator
+     a + b, a / b, ... etc
+     1 - a, b * 4, ... etc
+     if (a < b and c < -1 ...) ... etc
+     
+     cout << g_show(a);    // "-2/5".   "cout << a" is not supported
+
  */
 
 //////////////////////////////////////////////////////////////////////
