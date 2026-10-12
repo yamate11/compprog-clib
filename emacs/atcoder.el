@@ -2,7 +2,7 @@
       '("NONE" "cmpNaive" "UnionFind" "UnionFindRel" "bit" "coordCompr" "debug"
 	"fix" "FuncGraph" "bridge" "offDynConn" "UndoUnionFind"
 	"integer" "matrix" "misc" "mod" "segTree" "fenwick" "sieve" "strSearch" "algOp"
-	"util" "scc" "geometry" "binsearch" "rerror"
+	"util" "scc" "geometry" "binsearch" "rerror" "rational"
 	"suffixArray" "board" "minCostFlow" "perm" "guessPoly" "ftwo"
 	"trie" "tree" "rollingHash" "fft" "doubling" "ipoint"
 	"interactive" "intervalMap" "polynomial" "convolution" "adjMatrix"
