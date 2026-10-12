@@ -73,9 +73,9 @@ struct CoordCompr {
     return (int)(it - rev.begin());
   }
 
-  const T& d(int i) const {
+  const T& d(ll i) const {
     build();
-    assert(0 <= i and i < (int)rev.size());
+    assert(0 <= i and i < (ll)rev.size());
     return rev[i];
   }
 

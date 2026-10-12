@@ -273,7 +273,7 @@ def mkstruct(namebase, c_fields, idx, order, istr, ostr):
         out += f'\n  int {idx};'
 
     def g_show(v, t):
-        if t in ['ll', 'int', 'unsigned', 'double', 'long double', 'u64']:
+        if t in ['ll', 'int', 'unsigned', 'bool', 'double', 'long double', 'u64']:
             return f'to_string({v})'
         elif t in ['string']:
             return v
