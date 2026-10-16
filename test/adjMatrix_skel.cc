@@ -5,7 +5,7 @@ using namespace std;
 // #include <atcoder/all>
 // using namespace atcoder;
 
-// @@ !! LIM(f:<< debug mod matrix adjMatrix)
+// @@ !! LIM(streamOut debug mod matrix adjMatrix)
 
 int main(/* int argc, char *argv[] */) {
   ios_base::sync_with_stdio(false);

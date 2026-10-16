@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(mapget f:perfmeas)
+// @@ !! LIM(mapget perfMeas)
 
 int main() {
   ios_base::sync_with_stdio(false);

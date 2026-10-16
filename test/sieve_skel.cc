@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(f:<< sieve random)
+// @@ !! LIM(streamOut sieve random)
 
 int main() {
 

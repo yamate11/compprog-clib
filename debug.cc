@@ -26,7 +26,7 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN(f:<<)
+// @@ !! BEGIN(streamOut)
 // https://github.com/yamate11/compprog-clib/blob/master/debug.cc
 
 template<class T>

@@ -110,7 +110,7 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN(f:<< mod convolution) ---- polynomial.cc
+// @@ !! BEGIN(streamOut mod convolution) ---- polynomial.cc
 
 #if ! defined(DLOG_LIB)
   #define DLOG_LIB(...)

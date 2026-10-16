@@ -10,8 +10,7 @@
         "mapget" "mypair" "digit" "topord" "input" "cycledetect" "rbst" "mo" "unordered_map" "rle" "random"
 	"power" "vicinity" "sqrtDecomp" "bellmanford" "wavelet" "SternBrocot" "smallVec" "cartesianTree"
         "persSegTree" "disjSparseTbl" "doublyLinkedList" "swag" "LiChao"
-        "f:<<" "f:>>" "f:updMaxMin" "f:gcd" "f:intDiv" 
-        "f:perfmeas" "f:mex" "f:shortVector" "f:floor_sum" "f:itrange"
+        "streamOut" "streamIn" "updMaxMin" "gcd" "intDiv" "perfMeas" "f:floorSum"
 	))
 
 (setq atcoder-topdir "/home/y-tanabe/proj/compprog")

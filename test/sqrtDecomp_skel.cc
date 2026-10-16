@@ -9,7 +9,7 @@ using namespace std;
 #define REPOUT(i, a, b, exp, sep) REP(i, (a), (b)) cout << (exp) << (i + 1 == (b) ? "" : (sep)); cout << "\n"
 using pll = pair<ll, ll>;
 
-// @@ !! LIM(sqrtDecomp f:<< random debug)
+// @@ !! LIM(sqrtDecomp streamOut random debug)
 
 int main() {
 

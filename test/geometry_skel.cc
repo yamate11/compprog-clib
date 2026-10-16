@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(debug rerror f:updMaxMin geometry)
+// @@ !! LIM(debug rerror updMaxMin geometry)
 
 bool pt_comp(const Point& a, const Point& b) {
   if (a.x != b.x) return a.x < b.x;

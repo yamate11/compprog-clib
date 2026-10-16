@@ -4,7 +4,7 @@
  */
 
 //////////////////////////////////////////////////////////////////////
-// @@ !! BEGIN(f:<<) ---- segTree.cc
+// @@ !! BEGIN(streamOut) ---- segTree.cc
 // https://github.com/yamate11/compprog-clib/blob/master/segTree.cc
 
 // It seems that we should keep the size power of two,

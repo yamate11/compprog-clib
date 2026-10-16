@@ -4,7 +4,7 @@ using namespace std;
 using ll = long long int;
 using pll = pair<ll, ll>;
 
-// @@ !! LIM(bellmanford random forall f:updMaxMin debug)
+// @@ !! LIM(bellmanford random forall updMaxMin debug)
 
 Random myrand;
 

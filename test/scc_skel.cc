@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(f:<< scc)
+// @@ !! LIM(streamOut scc)
 
 struct NaiveSCC {
   bool built;

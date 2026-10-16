@@ -3,7 +3,7 @@
 typedef long long int ll;
 using namespace std;
 
-// @@ !! LIM(f:<< mod debug f:perfmeas polynomial)
+// @@ !! LIM(streamOut mod debug perfMeas polynomial)
 
 int main(/* int argc, char *argv[] */) {
   ios_base::sync_with_stdio(false);

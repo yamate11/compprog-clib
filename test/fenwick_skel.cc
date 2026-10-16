@@ -5,7 +5,7 @@ using namespace std;
 using pll = pair<ll, ll>;
 using u64 = unsigned long long;
 
-// @@ !! LIM(f:<< debug random fenwick)
+// @@ !! LIM(streamOut debug random fenwick)
 
 Random myrand;
 

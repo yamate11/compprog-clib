@@ -102,7 +102,7 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // See help of libins command for dependency spec syntax.
-// @@ !! BEGIN(rerror f:updMaxMin) ---- geometry.cc
+// @@ !! BEGIN(rerror updMaxMin) ---- geometry.cc
 
 #if RERROR_LONGDOUBLE
 #define G_PI 3.141592653589793238462643383279502884L

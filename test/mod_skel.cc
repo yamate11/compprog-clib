@@ -6,7 +6,7 @@ using namespace std;
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
-// @@ !! LIM(power debug f:>> f:<< mod)
+// @@ !! LIM(power debug streamIn streamOut mod)
 
 template<int mod> void testf1(int dyn_mod);
 
