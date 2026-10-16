@@ -60,7 +60,8 @@ For the library file format, consult the help message of command libins."
 
 (defun atcoder-input-expand ()
   (interactive)
-  (let ((orig-pos (point))) ; We need it because original points will be deleted in the save-excursion
+  (let ((orig-pos (point))
+        (new-pos nil))
     (save-excursion
       (let* ((start-old (line-beginning-position))
              (spec (buffer-substring start-old (line-end-position)))
@@ -70,21 +71,21 @@ For the library file format, consult the help message of command libins."
             (let ((expanded (with-current-buffer buf (buffer-substring (point-min) (point-max))))
                   (idx (string-match "\\[[A-Za-z0-9]\\{8\\}\\]" spec)))
               (if idx
-                  (let ((save-case-fold-search case-fold-search))
+                  (let ((case-fold-search nil))
                     (end-of-line)
-                    (setq case-fold-searh nil)
-                    (search-forward (concat "@End " (substring spec idx (+ idx 10))) nil t)
-                    (setq case-fold-search save-case-fold-search)))
+                    (search-forward (concat "@End " (substring spec idx (+ idx 10))) nil t)))
               (let ((end-old (line-beginning-position 2)))
                 (goto-char start-old)
                 (delete-region start-old end-old)
                 (insert expanded)
+                (c-indent-line)
+                (setq new-pos (point))
                 (message "Successfully expanded.")))
           (let ((cbuf (current-buffer)))
             (switch-to-buffer-other-window buf)
             (switch-to-buffer-other-window cbuf)
             (message "expansion failed.  See *atcoder-expand*")))))
-    (goto-char orig-pos)))
+    (goto-char (or new-pos orig-pos))))
 
 (global-set-key "\e\ei" 'atcoder-insert-library)
 (global-set-key "\e\ep" 'atcoder-input-expand)
