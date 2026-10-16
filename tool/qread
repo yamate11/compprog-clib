@@ -3,9 +3,10 @@
 import sys, argparse, os, re
 from argparse import Namespace
 from bs4 import BeautifulSoup
+import shutil
+import time
 import util
 from util import warn, die, getPage, debug
-import time
 
 def quest(args: Namespace, contestName: str) -> dict[str, str]:
     qlist = 'qlist.html'
@@ -66,62 +67,6 @@ def extractEg(qid: str, page: str) -> None:
             if outs[i]:
                 print(outs[i], file=wfp)
 
-def makeMakefile(path: str) -> None:
-    with open(path, 'w', encoding='UTF-8') as wfp:
-        print('''
-CXX := g++
-
-ifeq ($(DEBUG),)
-  DEBUGFLAGS := -O2
-else
-  DEBUGFLAGS := -g -O0 -D_GLIBCXX_DEBUG -DDEBUG=1 -fsanitize=address,undefined -fno-sanitize-recover -fno-omit-frame-pointer -fconcepts-diagnostics-depth=3
-  ifneq ($(DEBUG_LIB),)
-    DEBUGFLAGS := $(DEBUGFLAGS) -DDEBUG_LIB=1
-  endif
-endif
-
-WARNINGS := -Wall -Wextra -Wno-format-security -Wshadow -Wconversion -Wno-sign-conversion
-
-CXXFLAGS := -std=gnu++23 $(DEBUGFLAGS) $(WARNINGS)
-
-# CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/lib/boost_1_85_0
-CXXFLAGS := $(CXXFLAGS) -I/home/y-tanabe/proj/compprog/clib/ac-library
-CXXFLAGS := $(CXXFLAGS) $(if $(CMPNAIVE),-DCMPNAIVE=1)
-CXXFLAGS := $(CXXFLAGS)
-
-all: cans
-
-clean:
-	$(RM) cans.o cans cans.exe *~ *.stackdump core
-''', file=wfp)
-
-def makeSource(path: str) -> None:
-    with open(path, 'w', encoding='UTF-8') as wfp:
-        print('''#include <bits/stdc++.h>
-#include <cassert>
-using namespace std;
-using ll = long long int;
-using u64 = unsigned long long;
-using pll = pair<ll, ll>;
-// #include <atcoder/all>
-// using namespace atcoder;
-#define REP(i, a, b) for (ll i = (a); i < (b); i++)
-#define REPrev(i, a, b) for (ll i = (a); i >= (b); i--)
-#define ALL(coll) (coll).begin(), (coll).end()
-#define SIZE(v) ((ll)((v).size()))
-#define REPOUT(i, a, b, exp, sep) REP(i, (a), (b)) cout << (exp) << (i + 1 == (b) ? "" : (sep)); cout << "\\n"
-
-// @@ !! LIM()
-
-int main(/* int argc, char *argv[] */) {
-  ios_base::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout << setprecision(20);
-
-  return 0;
-}
-''', file=wfp)
-
 def doQuest(qid: str, url: str) -> None:
     # debug('doQuest ', qid, url)
     if not os.path.exists(qid):
@@ -138,8 +83,9 @@ def doQuest(qid: str, url: str) -> None:
         # but this code forces translation from \r\n to \n.
     extractEg(qid, page)
 
-    makeMakefile(f'{qid}/Makefile')
-    makeSource(f'{qid}/cans.cc')
+    for f in ['Makefile', 'cans.cc']:
+        shutil.copyfile(os.path.join(os.path.dirname(__file__), '../template/atcoder', f),
+                        os.path.join(qid, f))
 
 def getContestName(name: str) -> str:
     cnFile = ".contestName"

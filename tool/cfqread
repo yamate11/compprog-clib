@@ -241,8 +241,9 @@ def doQuest(qid: str, url: str) -> None:
             for [cno, citem] in enumerate(sc, start=0):
                 qprint(str(sno) + chr(ord('a') + cno), citem)
 
-    shutil.copyfile(f'{getTopDir()}/zCodeForces/Makefile', f'{qid}/Makefile')
-    shutil.copyfile(f'{getTopDir()}/zCodeForces/cans.cc', f'{qid}/cans.cc')
+    for f in ['Makefile', 'cans.cc']:
+        shutil.copyfile(os.path.join(os.path.dirname(__file__), '../template/atcoder', f),
+                        os.path.join(qid, f))
 
 def problem_name_in_url(url: str) -> str:
     if not (mo := re.search(r'/([^/]+)$', url)):
