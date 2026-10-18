@@ -242,7 +242,7 @@ def doQuest(qid: str, url: str) -> None:
                 qprint(str(sno) + chr(ord('a') + cno), citem)
 
     for f in ['Makefile', 'cans.cc']:
-        shutil.copyfile(os.path.join(os.path.dirname(__file__), '../template/atcoder', f),
+        shutil.copyfile(os.path.join(os.path.dirname(__file__), '../template/codeforces', f),
                         os.path.join(qid, f))
 
 def problem_name_in_url(url: str) -> str:
