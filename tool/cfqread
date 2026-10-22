@@ -30,13 +30,18 @@ from cf_problem_list import extract_codeforces_contest_problems, ContestProblemL
 
 from util import debug, warn, die, getTopDir
 
-PORT = 9222
+# This script runs on WSL.
 
-CHROMEDRIVER = "/home/y-tanabe/lib/chromedriver-147-0-7727-116"
+# The following can be downloaded from https://googlechromelabs.github.io/chrome-for-testing/
+# Stable version should be used.  "chrome" for win64 and "chromedriver" for linux64.
+# After downloading, copy and rename the files to add the version number, and set the executable bit for chromedriver.
+CHROME_VERSION = "156-0-8078-47"
+CHROMEDRIVER = f"/home/y-tanabe/lib/chromedriver/chromedriver-{CHROME_VERSION}"
+WINDOWS_CHROME = f"/mnt/c/pkg/chrome_for_testing/{CHROME_VERSION}/chrome.exe"
+
+PORT = 9222
 DEBUGGER_ADDRESS = f"127.0.0.1:{PORT}"
 DEBUGGER_URL = f"http://{DEBUGGER_ADDRESS}/json/version"
-
-WINDOWS_CHROME = "/mnt/c/pkg/chrome_for_testing/147.0.7727.116/chrome.exe"
 WINDOWS_PROFILE = r"C:\Users\y-tanabe\var\chromeRemoteProfile"
 
 _args: Namespace | None = None
