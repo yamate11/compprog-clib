@@ -532,11 +532,8 @@ public:
   friend Polynomial operator -(SP t, const Polynomial& p) { return (-p) + t; }
   friend Polynomial operator *(SP t, const Polynomial& p) { return p * t; }
 
-
-  friend ostream& operator<< (ostream& os, const Polynomial& p) {
-    os << p.coef;
-    return os;
-  }
+  string show() const { return g_show(coef); }
+  friend ostream& operator<< (ostream& os, const Polynomial& p) { return os << p.show(); }
 
   static Polynomial X() { return Polynomial(vector<T>{0, 1}); }
   static Polynomial Xn(ll n) { return (Polynomial)(SparsePoly<T>::Xn(n)); }
@@ -698,21 +695,23 @@ struct SparsePoly {   // Sparse Polynomial
   friend SparsePoly operator-(T t, const SparsePoly& sp) { return -(sp - t); }
   friend SparsePoly operator*(T t, const SparsePoly& sp) { return sp * t; }
 
-  friend ostream& operator<<(ostream& os, const SparsePoly& sp) {
-    if (sp.coef.empty()) {
-      cout << "0";
-    }else {
+  string show() const {
+    string ret;
+    if (coef.empty()) ret = "0";
+    else {
       bool first = true;
-      for (const auto& [k, t] : sp.coef) {
+      for (const auto& [k, t] : coef) {
         if (first) first = false;
-        else cout << " ";
-        if (k == 0) cout << t;
-        else if (k == 1) cout << "+ " << t << "X";
-        else cout << "+ " << t << "X^" << k;
+        else ret += " + ";
+        if      (k == 0) ret += g_show(t);
+        else if (k == 1) ret += g_show(t) + "X";
+        else             ret += g_show(t) + "X^" + g_show(k);
       }
     }
-    return os;
+    return ret;
   }
+
+  friend ostream& operator<<(ostream& os, const SparsePoly& sp) { return os << sp.show(); }
 
   static SparsePoly Xn(ll n) { return SparsePoly({{n,1}}); }
   static SparsePoly X() { return Xn(1); }

@@ -101,6 +101,18 @@ int main(/* int argc, char *argv[] */) {
     sp1 = vector<pair<ll, ll>>({{2, -3}});
     assert(sp1 == -3*X*X);
   }
+  {
+    auto X = PolyLL::X();
+    auto Y = SparsePoly<ll>::X();
+
+    auto p = X*X*X*X*X - 3*X + 1;
+    assert(g_show(p) == "[1, -3, 0, 0, 0, 1]");
+    auto q1 = Y*Y*Y*Y*Y - 3*Y + 1;
+    assert(g_show(q1) == "1 + -3X + 1X^5");
+    auto q2 = 2 * Y*Y*Y;
+    assert(g_show(q2) == "2X^3");
+  }
+
 
   cerr << "1 " << get_time_sec() - et << endl;
   et = get_time_sec();
