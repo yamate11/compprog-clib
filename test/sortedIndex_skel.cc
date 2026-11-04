@@ -76,15 +76,15 @@ int main() {
            
   {
     vector<ll> vec{5, 10, 1, 2, 2, 2};
-    auto [ord1, inv1] = sortedIndex2CFAI(vec, [&](ll i, ll j) -> bool {
+    auto [ord1, inv1] = sortedIndex2CFAI(ssize(vec), [&](ll i, ll j) -> bool {
       if (vec[i] != vec[j]) return vec[i] > vec[j];
       return i < j;
     });
-    auto [ord2, inv2] = sortedIndex2CFAI<int>(vec, [&](int i, int j) -> bool {
+    auto [ord2, inv2] = sortedIndex2CFAI<int>(ssize(vec), [&](int i, int j) -> bool {
       if (vec[i] != vec[j]) return vec[i] > vec[j];
       return i > j;
     });
-    auto ord3 = sortedIndexCFAI(vec, [&](int i, int j) -> bool {
+    auto ord3 = sortedIndexCFAI(ssize(vec), [&](int i, int j) -> bool {
       if (vec[i] != vec[j]) return vec[i] < vec[j];
       return i < j;
     });
