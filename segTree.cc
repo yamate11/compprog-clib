@@ -10,6 +10,9 @@
 // It seems that we should keep the size power of two,
 // considering the binary search.
 
+struct max2 { template<typename T> T operator()(const T& a, const T& b) { return max(a, b); }};
+struct min2 { template<typename T> T operator()(const T& a, const T& b) { return min(a, b); }};
+
 pair<ll, ll> segtree_range_of_node(ll ht, ll i) {
   ll m = bit_floor((unsigned long long)i);
   ll w = ht + 1 - bit_width((unsigned long long)i);

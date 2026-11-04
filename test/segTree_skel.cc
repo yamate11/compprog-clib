@@ -363,7 +363,7 @@ void test7() {
   auto sg3 = make_seg_tree(0, plus<int>(), init);
   assert(segtree_data_equals(sg2, sg3));
 
-  auto sg4 = make_seg_tree(LLONG_MIN, [](ll x, ll y) -> ll { return max(x, y); });
+  auto sg4 = make_seg_tree(LLONG_MIN, max2());
   using sg4_t = decltype(sg4);
   vector<sg4_t> vec4(2, sg4);
   vec4[0].set_data(vector<ll>(5));
@@ -375,15 +375,13 @@ void test7() {
 
 void test8() {
   // testing at() and rs()
-  auto mymin  = [&](ll x, ll y) -> ll { return min(x, y); };
-  auto mymin2 = [&](int x, int y) -> int { return min(x, y); };
-  auto st = make_seg_tree(LLONG_MAX, mymin, vector<ll>(10, 100));
+  auto st = make_seg_tree(LLONG_MAX, min2(), vector<ll>(10, 100));
   st.rs(5) = 80;
   assert(st.at(5) == 80);
 
   ll big = 1e18;
   int big2 = 1e9;
-  auto st2 = make_seg_tree_lazy(big, 0LL, mymin, plus<ll>(), plus<ll>(), vector(100, 0LL));
+  auto st2 = make_seg_tree_lazy(big, 0LL, min2(), plus<ll>(), plus<ll>(), vector(100, 0LL));
   st2.update(20, 60, 100);
   st2.update(40, 80, 200);
   assert(st2.at(0) == 0);
@@ -401,8 +399,8 @@ void test8() {
     auto init_vec = vector<ll>(sz, 0LL);
     auto init_vec2 = vector<int>(sz, 0);
     for (ll o_r = 0; o_r < out_rep; o_r++) {
-      auto st3 = make_seg_tree(big, mymin, init_vec);
-      Naive<ll, ll, decltype(mymin), decltype(mymin)> nv3(big, mymin, mymin, init_vec);
+      auto st3 = make_seg_tree(big, min2(), init_vec);
+      Naive<ll, ll, decltype(min2()), decltype(min2())> nv3(big, min2(), min2(), init_vec);
       for (ll _r = 0; _r < in_rep; _r++) {
         ll tp = randrange(0, 3);
         if (tp == 0) {
@@ -420,8 +418,8 @@ void test8() {
         }else assert(0);
       }
 
-      auto st4 = make_seg_tree_lazy(big2, 0, mymin2, plus<int>(), plus<int>(), init_vec2);
-      Naive<int, int, decltype(mymin2), decltype(plus<int>())> nv4(big2, mymin2, plus<int>(), init_vec2);
+      auto st4 = make_seg_tree_lazy(big2, 0, min2(), plus<int>(), plus<int>(), init_vec2);
+      Naive<int, int, decltype(min2()), decltype(plus<int>())> nv4(big2, min2(), plus<int>(), init_vec2);
       for (ll _r = 0; _r < in_rep; _r++) {
         ll tp = randrange(0, 4);
         if (tp == 0) {
@@ -454,7 +452,7 @@ void test8() {
   assert(st5.query(0, 10) == pll(10, 15));
   assert(st5.query(4, 7) == pll(6, 9));
 
-  auto st6 = make_seg_tree_lazy(0LL, 0LL, [](ll x, ll y) { return max(x, y); }, plus<ll>(), plus<ll>());
+  auto st6 = make_seg_tree_lazy(0LL, 0LL, max2(), plus<ll>(), plus<ll>());
   st6.set_data(vector(10, 0LL));
   st6.update(0, 10, 1LL);
   st6.rs(2) = (st6.rs(8) = 10) + 10;
@@ -494,7 +492,7 @@ void test9() {
       prev = hi_X;
     }
   }
-  auto st = make_seg_tree_lazy(LLONG_MIN, 0, [&](ll a, ll b) -> ll { return max(a, b); }, plus<int>(), plus<int>());
+  auto st = make_seg_tree_lazy(LLONG_MIN, 0, max2(), plus<int>(), plus<int>());
   for (ll _r = 0; _r < rep; _r++) {
     unsigned sz = (unsigned)randrange(4, 18);
     unsigned ht = countr_zero(bit_ceil(sz));
